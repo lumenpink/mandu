@@ -33,6 +33,26 @@ fn test_linter_modificado_timestamp_injection_and_update() {
     let res3 = Linter::apply_save_hooks(raw_fm_with_mod, "2026-10-17T15:20:00Z");
     assert!(res3.contains("modificado: 2026-10-17T15:20:00Z\n"));
     assert!(!res3.contains("2026-01-01T00:00:00Z"));
+
+    // Caso 4: Com chave 'modified:' em inglês
+    let raw_fm_with_eng = "---\ntitulo: Ingles\nmodified: 2025-12-31T23:59:59Z\n---\nCorpo.";
+    let res4 = Linter::apply_save_hooks(raw_fm_with_eng, "2026-10-17T15:25:00Z");
+    assert!(res4.contains("modificado: 2026-10-17T15:25:00Z\n"));
+    assert!(!res4.contains("modified:"));
+}
+
+#[test]
+fn test_linter_edge_cases_empty_and_minimal() {
+    // Vazio
+    let res_empty = Linter::apply_save_hooks("", "2026-10-17T15:00:00Z");
+    assert_eq!(res_empty, "---\nmodificado: 2026-10-17T15:00:00Z\n---\n\n");
+
+    // Frontmatter com delimitador e sem corpo
+    let res_only_fm =
+        Linter::apply_save_hooks("---\ntitulo: Apenas FM\n---\n", "2026-10-17T15:00:00Z");
+    assert!(res_only_fm.contains("titulo: Apenas FM\n"));
+    assert!(res_only_fm.contains("modificado: 2026-10-17T15:00:00Z\n"));
+    assert!(res_only_fm.ends_with("---\n"));
 }
 
 #[test]
@@ -54,6 +74,16 @@ fn test_create_daily_note_and_idempotency() {
     assert_eq!(path, path2);
     let content2 = std::fs::read_to_string(&path).unwrap();
     assert_eq!(content2, "Conteúdo modificado manualmente");
+
+    // Com template customizado
+    let custom_path = create_daily_note(
+        vault_root,
+        "2026-10-18",
+        Some("# Template Customizado Diário\n"),
+    )
+    .unwrap();
+    let custom_content = std::fs::read_to_string(&custom_path).unwrap();
+    assert_eq!(custom_content, "# Template Customizado Diário\n");
 }
 
 #[test]
@@ -70,6 +100,13 @@ fn test_create_unique_note() {
     assert!(content.contains("id: 20261017153000"));
     assert!(content.contains("titulo: \"Zettelkasten Atomic\""));
     assert!(content.contains("# Zettelkasten Atomic"));
+
+    // Idempotência
+    let path_repeat =
+        create_unique_note(vault_root, "20261017153000", "Outro Título", None).unwrap();
+    assert_eq!(path, path_repeat);
+    let content_after = std::fs::read_to_string(&path_repeat).unwrap();
+    assert!(content_after.contains("titulo: \"Zettelkasten Atomic\""));
 }
 
 #[test]
@@ -86,4 +123,18 @@ fn test_extract_to_new_note_composer() {
     assert!(new_note_content.contains("origem: \"[[Nota Principal]]\""));
     assert!(new_note_content
         .contains("Este é o conceito fundamental a ser extraído para uma nova nota."));
+}
+
+#[test]
+fn test_extract_to_new_note_boundary_checks() {
+    let source = "Texto em português com acentuação e caracteres Unicode (é, ç, ã).";
+
+    // Intervalo com índices fora dos limites de caracteres UTF-8
+    let err = extract_to_new_note(source, 10..999, "Destino", "Origem");
+    assert!(err.is_err());
+
+    // Invertido (start > end)
+    let (start_inv, end_inv) = (20, 10);
+    let err_inv = extract_to_new_note(source, start_inv..end_inv, "Destino", "Origem");
+    assert!(err_inv.is_err());
 }
