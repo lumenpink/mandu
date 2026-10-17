@@ -61,7 +61,8 @@ fn test_create_unique_note() {
     let tmp = TempDir::new().unwrap();
     let vault_root = tmp.path();
 
-    let path = create_unique_note(vault_root, "20261017153000", "Zettelkasten Atomic", None).unwrap();
+    let path =
+        create_unique_note(vault_root, "20261017153000", "Zettelkasten Atomic", None).unwrap();
     assert!(path.exists());
     assert!(path.ends_with("20261017153000.md"));
 
@@ -77,16 +78,12 @@ fn test_extract_to_new_note_composer() {
     let start = source.find("Este é o conceito fundamental").unwrap();
     let end = start + "Este é o conceito fundamental a ser extraído para uma nova nota.".len();
 
-    let (updated_source, new_note_content) = extract_to_new_note(
-        source,
-        start..end,
-        "Conceito Fundamental",
-        "Nota Principal",
-    )
-    .unwrap();
+    let (updated_source, new_note_content) =
+        extract_to_new_note(source, start..end, "Conceito Fundamental", "Nota Principal").unwrap();
 
     assert!(updated_source.contains("[[Conceito Fundamental]]"));
     assert!(!updated_source.contains("Este é o conceito fundamental"));
     assert!(new_note_content.contains("origem: \"[[Nota Principal]]\""));
-    assert!(new_note_content.contains("Este é o conceito fundamental a ser extraído para uma nova nota."));
+    assert!(new_note_content
+        .contains("Este é o conceito fundamental a ser extraído para uma nova nota."));
 }

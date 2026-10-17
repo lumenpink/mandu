@@ -12,6 +12,8 @@ pub enum VaultError {
     Io(#[from] std::io::Error),
     #[error("Falha ao analisar frontmatter: {0}")]
     Yaml(String),
+    #[error("Intervalo de seleção inválido: {0}")]
+    InvalidSelection(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -158,4 +160,80 @@ impl Vault {
         let parsed: Option<serde_yaml::Value> = serde_yaml::from_str(yaml_str).ok();
         (parsed, body)
     }
+}
+
+pub fn create_daily_note(
+    vault_root: &Path,
+    date: &str,
+    template: Option<&str>,
+) -> Result<PathBuf, VaultError> {
+    let diario_dir = vault_root.join("diario");
+    fs::create_dir_all(&diario_dir)?;
+    let target = diario_dir.join(format!("{date}.md"));
+    if target.exists() {
+        return Ok(target);
+    }
+
+    let content = if let Some(t) = template {
+        t.to_string()
+    } else {
+        format!(
+            "---\ntipo: diario\ndata: {date}\ntags:\n  - diario\n---\n\n# {date}\n\n## Tarefas\n- [ ] \n\n## Notas do Dia\n"
+        )
+    };
+
+    fs::write(&target, content)?;
+    Ok(target)
+}
+
+pub fn create_unique_note(
+    vault_root: &Path,
+    id: &str,
+    title: &str,
+    template: Option<&str>,
+) -> Result<PathBuf, VaultError> {
+    fs::create_dir_all(vault_root)?;
+    let target = vault_root.join(format!("{id}.md"));
+    if target.exists() {
+        return Ok(target);
+    }
+
+    let content = if let Some(t) = template {
+        t.to_string()
+    } else {
+        format!("---\nid: {id}\ntitulo: \"{title}\"\ntipo: nota\n---\n\n# {title}\n")
+    };
+
+    fs::write(&target, content)?;
+    Ok(target)
+}
+
+pub fn extract_to_new_note(
+    source_content: &str,
+    range: std::ops::Range<usize>,
+    new_note_title: &str,
+    origin_title: &str,
+) -> Result<(String, String), VaultError> {
+    if range.start > range.end
+        || range.end > source_content.len()
+        || !source_content.is_char_boundary(range.start)
+        || !source_content.is_char_boundary(range.end)
+    {
+        return Err(VaultError::InvalidSelection(
+            "Limites da seleção inválidos".into(),
+        ));
+    }
+
+    let extracted_text = &source_content[range.clone()];
+    let updated_source = format!(
+        "{}[[{new_note_title}]]{}",
+        &source_content[..range.start],
+        &source_content[range.end..]
+    );
+
+    let new_note = format!(
+        "---\ntitulo: \"{new_note_title}\"\norigem: \"[[{origin_title}]]\"\ntipo: nota\n---\n\n# {new_note_title}\n\n{extracted_text}\n"
+    );
+
+    Ok((updated_source, new_note))
 }
