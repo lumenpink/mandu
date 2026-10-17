@@ -18,22 +18,12 @@ impl Linter {
         let normalized = content.replace("\r\n", "\n");
 
         // 2. Tratar Frontmatter YAML
-        let processed = if let Some(rest) = normalized.strip_prefix("---\n") {
-            if let Some(closing_pos) = rest.find("\n---\n") {
-                let fm_content = &rest[..closing_pos];
-                let body = &rest[closing_pos + 5..]; // pula "\n---\n"
-                let updated_fm = update_or_insert_modificado(fm_content, timestamp);
-                format!("---\n{updated_fm}\n---\n{body}")
-            } else if let Some(closing_pos) = rest.find("\n---") {
-                if rest[closing_pos + 4..].is_empty() {
-                    let fm_content = &rest[..closing_pos];
-                    let updated_fm = update_or_insert_modificado(fm_content, timestamp);
-                    format!("---\n{updated_fm}\n---\n")
-                } else {
-                    format!("---\nmodificado: {timestamp}\n---\n\n{normalized}")
-                }
+        let processed = if let Some((fm_content, body)) = split_frontmatter(&normalized) {
+            let updated_fm = update_or_insert_modificado(fm_content, timestamp);
+            if body.is_empty() {
+                format!("---\n{updated_fm}\n---\n")
             } else {
-                format!("---\nmodificado: {timestamp}\n---\n\n{normalized}")
+                format!("---\n{updated_fm}\n---\n{body}")
             }
         } else {
             // Não possui Frontmatter delimitado por ---
@@ -45,13 +35,37 @@ impl Linter {
     }
 }
 
+fn split_frontmatter(content: &str) -> Option<(&str, &str)> {
+    if !content.starts_with("---") {
+        return None;
+    }
+    let after_dashes = &content[3..];
+    let newline_idx = after_dashes.find('\n')?;
+    if !after_dashes[..newline_idx].trim().is_empty() {
+        return None;
+    }
+
+    let yaml_candidate = &after_dashes[newline_idx + 1..];
+    let closing_pos = yaml_candidate.find("\n---")?;
+    let yaml_content = &yaml_candidate[..closing_pos];
+    let after_closing = &yaml_candidate[closing_pos + 4..];
+
+    let body = if let Some(end_of_line) = after_closing.find('\n') {
+        &after_closing[end_of_line + 1..]
+    } else {
+        ""
+    };
+
+    Some((yaml_content, body))
+}
+
 fn update_or_insert_modificado(fm_content: &str, timestamp: &str) -> String {
     let mut lines: Vec<String> = Vec::new();
     let mut found = false;
 
     for line in fm_content.lines() {
         let trimmed = line.trim_start();
-        if trimmed.starts_with("modificado:") {
+        if trimmed.starts_with("modificado:") || trimmed.starts_with("modified:") {
             lines.push(format!("modificado: {timestamp}"));
             found = true;
         } else {
