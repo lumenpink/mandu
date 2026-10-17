@@ -67,6 +67,60 @@ fn test_tui_interactive_search_modal_and_selection() {
 }
 
 #[test]
+fn test_tui_search_modal_edge_cases_and_navigation() {
+    let tmp = TempDir::new().unwrap();
+    let vault_dir = tmp.path();
+    let n1 = vault_dir.join("n1.md");
+    let n2 = vault_dir.join("n2.md");
+    fs::write(&n1, "---\ntitulo: Primeira\n---\nNota 1").unwrap();
+    fs::write(&n2, "---\ntitulo: Segunda\n---\nNota 2").unwrap();
+
+    let mut app = TuiApp::new_with_vault(Some(vault_dir.to_path_buf()), Some(n1.clone()));
+
+    // Abrir busca
+    app.handle_key(KeyEvent::new(KeyCode::Char('o'), KeyModifiers::CONTROL));
+    assert_eq!(app.search.results.len(), 2);
+    assert_eq!(app.search.selected_index, 0);
+
+    // Navegar para baixo
+    app.handle_key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
+    assert_eq!(app.search.selected_index, 1);
+
+    // Navegar para baixo além do limite não deve ultrapassar
+    app.handle_key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
+    assert_eq!(app.search.selected_index, 1);
+
+    // Navegar para cima
+    app.handle_key(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE));
+    assert_eq!(app.search.selected_index, 0);
+
+    // Navegar para cima além do limite não deve ter underflow
+    app.handle_key(KeyEvent::new(KeyCode::Up, KeyModifiers::NONE));
+    assert_eq!(app.search.selected_index, 0);
+
+    // Digitar consulta sem correspondência
+    for c in "zzzzzz".chars() {
+        app.handle_key(KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE));
+    }
+    assert!(app.search.results.is_empty());
+
+    // Enter com lista vazia não deve panicar nem alterar o arquivo ativo
+    app.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+    assert_eq!(app.current_file, Some(n1.clone()));
+
+    // Backspace recupera a busca
+    for _ in 0..6 {
+        app.handle_key(KeyEvent::new(KeyCode::Backspace, KeyModifiers::NONE));
+    }
+    assert_eq!(app.search.query, "");
+    assert_eq!(app.search.results.len(), 2);
+
+    // Esc cancela e fecha modal
+    app.handle_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
+    assert!(!app.is_search_open);
+}
+
+#[test]
 fn test_tui_rendering_search_modal_overlay() {
     let backend = TestBackend::new(80, 24);
     let mut terminal = Terminal::new(backend).unwrap();
@@ -82,4 +136,5 @@ fn test_tui_rendering_search_modal_overlay() {
     let buffer = terminal.backend().buffer().clone();
     let rendered = format!("{buffer:?}");
     assert!(rendered.contains("Buscar / Abrir Nota"));
+    assert!(rendered.contains("Nenhuma nota encontrada."));
 }
