@@ -52,9 +52,7 @@ Este é o corpo do texto acadêmico sobre heredogramas e mutações.
         db.index_note(note).expect("Falha ao indexar nota");
     }
 
-    let search_results = db
-        .search_fts("heredogramas")
-        .expect("Falha na busca FTS");
+    let search_results = db.search_fts("heredogramas").expect("Falha na busca FTS");
     assert_eq!(search_results.len(), 1);
     assert_eq!(search_results[0].title, "Genética Clínica");
 }

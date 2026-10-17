@@ -73,12 +73,68 @@ impl ManduDb {
         &self.conn
     }
 
-    pub fn index_note(&self, _note: &crate::vault::Note) -> Result<()> {
-        todo!("index_note() não implementado ainda")
+    pub fn index_note(&self, note: &crate::vault::Note) -> Result<()> {
+        let path_str = note.path.to_string_lossy();
+        self.conn.execute(
+            r#"
+            INSERT OR REPLACE INTO notes (path, title, blake3_hash, frontmatter_json, word_count, modified_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+            "#,
+            (
+                path_str.as_ref(),
+                &note.title,
+                &note.blake3_hash,
+                &note.frontmatter_json,
+                note.word_count as i64,
+                &note.modified_at,
+            ),
+        )?;
+
+        self.conn.execute(
+            r#"
+            INSERT INTO notes_fts (path, title, body)
+            VALUES (?1, ?2, ?3)
+            "#,
+            (path_str.as_ref(), &note.title, &note.body),
+        )?;
+
+        self.conn
+            .execute("DELETE FROM tags WHERE note_path = ?1", [path_str.as_ref()])?;
+
+        let mut tag_stmt = self
+            .conn
+            .prepare("INSERT OR IGNORE INTO tags (tag, note_path) VALUES (?1, ?2)")?;
+        for tag in &note.tags {
+            tag_stmt.execute((tag, path_str.as_ref()))?;
+        }
+
+        Ok(())
     }
 
-    pub fn search_fts(&self, _query: &str) -> Result<Vec<FtsSearchResult>> {
-        todo!("search_fts() não implementado ainda")
+    pub fn search_fts(&self, query: &str) -> Result<Vec<FtsSearchResult>> {
+        let mut stmt = self.conn.prepare(
+            r#"
+            SELECT path, title, snippet(notes_fts, 2, '<b>', '</b>', '...', 10)
+            FROM notes_fts
+            WHERE notes_fts MATCH ?1
+            ORDER BY rank
+            LIMIT 50
+            "#,
+        )?;
+
+        let rows = stmt.query_map([query], |row| {
+            Ok(FtsSearchResult {
+                path: row.get(0)?,
+                title: row.get(1)?,
+                snippet: row.get(2)?,
+            })
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
     }
 }
 
