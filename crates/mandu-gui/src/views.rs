@@ -83,6 +83,17 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
     });
 }
 
+#[must_use]
+pub fn format_word_count(count: usize) -> String {
+    if count >= 1000 {
+        let thousands = count / 1000;
+        let remainder = count % 1000;
+        format!("{thousands}.{remainder:03}")
+    } else {
+        count.to_string()
+    }
+}
+
 pub fn render_statusbar(ui: &mut egui::Ui, state: &mut ViewsState) {
     ui.horizontal(|ui| {
         if ui.button("[ 📁 Buscar/Abrir ]").clicked() {
@@ -90,13 +101,7 @@ pub fn render_statusbar(ui: &mut egui::Ui, state: &mut ViewsState) {
         }
 
         let file_name = state.current_file.as_deref().unwrap_or("nota_atual.md");
-        let words_formatted = if state.word_count >= 1000 {
-            let thousands = state.word_count / 1000;
-            let remainder = state.word_count % 1000;
-            format!("{thousands}.{remainder:03}")
-        } else {
-            state.word_count.to_string()
-        };
+        let words_formatted = format_word_count(state.word_count);
 
         ui.label(format!(
             "{file_name} ({words_formatted} pal. | 🔗 {} backlinks)",

@@ -23,13 +23,7 @@ impl ManduApp {
             .as_deref()
             .unwrap_or("nota_atual.md");
 
-        let words_formatted = if self.state.word_count >= 1000 {
-            let thousands = self.state.word_count / 1000;
-            let remainder = self.state.word_count % 1000;
-            format!("{thousands}.{remainder:03}")
-        } else {
-            self.state.word_count.to_string()
-        };
+        let words_formatted = views::format_word_count(self.state.word_count);
 
         format!(
             "[ 📁 Buscar/Abrir ]  {file_name} ({words_formatted} pal. | 🔗 {} backlinks)  [ 👁 {} ]  [ 📄 Gerar PDF ]",
