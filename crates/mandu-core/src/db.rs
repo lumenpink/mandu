@@ -199,6 +199,32 @@ impl ManduDb {
         Ok(results)
     }
 
+    pub fn get_outgoing_links(&self, source_path: &str) -> Result<Vec<crate::refs::InternalLink>> {
+        let mut stmt = self.conn.prepare(
+            r#"
+            SELECT target_path, line_number, context_snippet
+            FROM links
+            WHERE source_path = ?1
+            ORDER BY line_number
+            "#,
+        )?;
+
+        let rows = stmt.query_map([source_path], |row| {
+            Ok(crate::refs::InternalLink {
+                target: row.get(0)?,
+                alias: None,
+                line_number: row.get::<_, i64>(1)? as usize,
+                context_snippet: row.get(2)?,
+            })
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
     pub fn index_reference(&self, reference: &crate::refs::ReferenceMd) -> Result<()> {
         self.conn.execute(
             r#"

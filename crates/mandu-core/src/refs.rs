@@ -29,6 +29,9 @@ pub struct ReferenceMd {
 pub fn extract_wikilinks(content: &str) -> Vec<InternalLink> {
     let mut links = Vec::new();
     for (idx, line) in content.lines().enumerate() {
+        if !line.contains("[[") {
+            continue;
+        }
         let line_number = idx + 1;
         let mut rest = line;
         while let Some(start) = rest.find("[[") {
