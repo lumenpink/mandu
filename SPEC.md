@@ -7,7 +7,7 @@ perfil: abnt
 status: v0.1.0-draft
 ---
 
-# 1. Visão Geral e Filosofia (*Lumen-Style*)
+# 1. Visão Geral e Princípios Arquiteturais
 
 **Mandu** (do Guarani *mandu'a*: memória, lembrança, recordação) é um ambiente de escrita acadêmica, gestão de conhecimento e publicação científica construído em **100% Rust**. O projeto nasce para substituir editores baseados em Electron (como o Obsidian), eliminando o consumo excessivo de recursos, a complexidade de configuração e a divergência entre a visualização de tela e o documento exportado.
 
@@ -115,7 +115,7 @@ CREATE TABLE joaju_block_cache (
 );
 ~~~
 
-## 3.2. Gestão Bibliográfica *Lumen-Style* (Notas `.md` como Referências)
+## 3.2. Gestão Bibliográfica Integrada (Notas `.md` como Referências)
 
 Em vez de depender de um arquivo `.bib` estático ou de plugins acoplados ao Zotero Desktop:
 1. **Um Arquivo `.md` por Referência:** Um script extrator (ou criação manual) gera uma nota `.md` para cada artigo/livro (ex: `refs/@autor2026.md` ou identificada por `tipo: referencia` no YAML).

@@ -1,7 +1,7 @@
 # Contrato Técnico: Referências Bibliográficas, Grafo de Links e Fuzzy Matching (Ticket #3)
 
 ## 1. Visão Geral
-Na filosofia *Lumen-Style*, as referências bibliográficas não residem em arquivos `.bib` estáticos, mas sim em notas Markdown vivas (`refs/@autor2026.md` ou notas com `tipo: referencia`). Adicionalmente, as notas se interconectam através de links wiki no formato `[[alvo]]` ou `[[alvo|apelido]]`, alimentando um grafo bidirecional (links de saída e backlinks) e um mecanismo de autocompletar instantâneo com `nucleo`.
+No Mandu, as referências bibliográficas não residem em arquivos `.bib` estáticos, mas sim em notas Markdown vivas (`refs/@autor2026.md` ou notas com `tipo: referencia`). Adicionalmente, as notas se interconectam através de links wiki no formato `[[alvo]]` ou `[[alvo|apelido]]`, alimentando um grafo bidirecional (links de saída e backlinks) e um mecanismo de autocompletar instantâneo com `nucleo`.
 
 ## 2. Tipos de Domínio e Contratos
 

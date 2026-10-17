@@ -1,7 +1,7 @@
 # Contrato Técnico: Interface de Terminal HedgeDoc (Ticket #4)
 
 ## 1. Princípios de Interface e Diretriz Zero Teclas de Função
-A interface de terminal (`mandu-tui`) é construída com `ratatui`, `crossterm` e `tui-textarea`. Seguindo a diretriz estrita de usabilidade *Lumen-Style*:
+A interface de terminal (`mandu-tui`) é construída com `ratatui`, `crossterm` e `tui-textarea`. Seguindo as diretrizes de ergonomia e usabilidade do projeto:
 - **Zero Teclas de Função:** É expressamente vedado o uso de atalhos baseados em `F1`–`F12`. Isso garante compatibilidade total com teclados compactos (60%/75% como Aula F75) e dispositivos Android/Termux.
 - **Memória Muscular Unificada:** Todos os atalhos usam combinações de `Ctrl` + tecla alfanumérica/espaço, idênticos aos usados na futura GUI.
 
