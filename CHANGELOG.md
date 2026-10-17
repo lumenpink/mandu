@@ -23,3 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Grafo de conexões com suporte a links wiki [[nota]] e [[nota|apelido]], com rastreio de linha e snippet de contexto.
 - Consultas relacionais rápidas para backlinks (links inversos) e outgoing links no SQLite in-memory.
 - Motor de autocompletar fuzzy ultrarrápido em memória utilizando a biblioteca nucleo.
+- Interface TUI HedgeDoc com os 3 modos de visualização (Escrita, Split, Leitura) implementada em mandu-tui.
+- Diretriz estrita de zero teclas de função (F1-F12), com alternância de modos via Ctrl+Espaço ou toque na barra de status.
+- Barra de status inferior de 1 linha tátil exibindo botões de ação, contagem de palavras e contador de backlinks em tempo real.
+- Mapeamento ergonômico de atalhos Ctrl unificados para pesquisa (Ctrl+O), salvamento (Ctrl+S), exportação (Ctrl+D) e saída (Ctrl+Q).
