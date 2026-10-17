@@ -46,11 +46,10 @@ Este é o corpo do texto acadêmico sobre heredogramas e mutações.
     assert!(n2.tags.is_empty());
     assert_eq!(n2.body, "Apenas uma nota simples sem cabeçalho YAML.");
 
-    // Testar indexação no SQLite in-memory e FTS5
+    // Testar indexação no SQLite in-memory e FTS5 em lote
     let db = ManduDb::open_in_memory().expect("Falha ao abrir SQLite");
-    for note in &notes {
-        db.index_note(note).expect("Falha ao indexar nota");
-    }
+    db.index_notes_batch(&notes)
+        .expect("Falha ao indexar notas em lote");
 
     let search_results = db.search_fts("heredogramas").expect("Falha na busca FTS");
     assert_eq!(search_results.len(), 1);

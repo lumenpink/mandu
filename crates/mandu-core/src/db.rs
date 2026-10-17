@@ -111,6 +111,15 @@ impl ManduDb {
         Ok(())
     }
 
+    pub fn index_notes_batch(&self, notes: &[crate::vault::Note]) -> Result<()> {
+        self.conn.execute_batch("BEGIN TRANSACTION;")?;
+        for note in notes {
+            self.index_note(note)?;
+        }
+        self.conn.execute_batch("COMMIT;")?;
+        Ok(())
+    }
+
     pub fn search_fts(&self, query: &str) -> Result<Vec<FtsSearchResult>> {
         let mut stmt = self.conn.prepare(
             r#"

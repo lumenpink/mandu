@@ -42,6 +42,13 @@ impl Vault {
     pub fn scan(&self) -> Result<Vec<Note>, VaultError> {
         let md_paths: Vec<PathBuf> = WalkDir::new(&self.root_path)
             .into_iter()
+            .filter_entry(|e| {
+                e.depth() == 0
+                    || !e
+                        .file_name()
+                        .to_str()
+                        .is_some_and(|name| name.starts_with('.'))
+            })
             .filter_map(std::result::Result::ok)
             .filter(|e| e.file_type().is_file())
             .filter(|e| {
