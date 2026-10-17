@@ -2160,10 +2160,12 @@ name = "mandu-tui"
 version = "0.1.0-dev.1"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "crossterm",
  "mandu-core",
  "ratatui",
+ "tempfile",
  "tui-textarea",
 ]
 

@@ -35,3 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Atualização e injeção determinística de timestamp modificado no YAML Frontmatter sem alterar dados ou comentários existentes.
 - Geradores nativos de notas diárias (diario/YYYY-MM-DD.md) e notas únicas Zettelkasten com suporte a templates e idempotência.
 - Compositor nativo de notas com extração atômica de seleções de texto para novas notas e substituição por links wiki.
+- Loop interativo completo do terminal com crossterm em raw mode e restauração segura de tela.
+- Paleta modal flutuante de busca rápida (Ctrl+O) com casamento fuzzy de notas em tempo real via nucleo.
+- Integração de salvamento no buffer (Ctrl+S) persistindo em disco, acionando hooks de linter determinístico e indexando no SQLite.
+- Indicador de edições pendentes ([●]) na barra de status inferior de 1 linha e consulta de backlinks em tempo real.
