@@ -1,0 +1,18 @@
+[workspace]
+members = [
+    "crates/mandu-core",
+    "crates/mandu-tui",
+    "crates/mandu-gui",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0-dev.1"
+edition = "2021"
+authors = ["Lumen Pink <hi@lumen.pink>"]
+license = "Apache-2.0"
+repository = "https://codeberg.org/lumenpink/mandu"
+homepage = "https://mandu.2lp.in"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"

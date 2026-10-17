@@ -1,0 +1,24 @@
+[package]
+name = "mandu-gui"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Interface Gráfica GPU (egui / eframe) para o Mandu"
+
+[dependencies]
+mandu-core = { path = "../mandu-core" }
+eframe = "0.30"
+egui = "0.30"
+clap = { version = "4.5", features = ["derive"] }
+anyhow = "1.0"
+
+[lib]
+name = "mandu_gui"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mandu-gui"
+path = "src/main.rs"
