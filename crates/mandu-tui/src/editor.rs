@@ -25,4 +25,9 @@ impl Editor<'_> {
         let textarea = TextArea::new(lines);
         Self { textarea }
     }
+
+    #[must_use]
+    pub fn get_text(&self) -> String {
+        self.textarea.lines().join("\n")
+    }
 }

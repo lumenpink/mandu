@@ -2,10 +2,10 @@
 
 use crate::app::TuiApp;
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Clear, Paragraph},
     Frame,
 };
 
@@ -84,4 +84,108 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
             .add_modifier(Modifier::BOLD),
     )]));
     frame.render_widget(status_bar, status_area);
+
+    // Modal de busca overlay (Ctrl+O)
+    if app.is_search_open {
+        render_search_modal(app, frame);
+    }
+}
+
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
+}
+
+fn render_search_modal(app: &TuiApp, frame: &mut Frame) {
+    let area = centered_rect(70, 60, frame.area());
+    frame.render_widget(Clear, area);
+
+    let modal_block = Block::default()
+        .borders(Borders::ALL)
+        .title(" [ 🔍 Buscar / Abrir Nota (Ctrl+O) ] ")
+        .style(Style::default().bg(Color::Rgb(20, 20, 24)));
+    frame.render_widget(modal_block.clone(), area);
+
+    let inner = modal_block.inner(area);
+    let modal_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(2),
+            Constraint::Min(3),
+            Constraint::Length(1),
+        ])
+        .split(inner);
+
+    // Linha de consulta
+    let query_line = Line::from(vec![
+        Span::styled(
+            " > ",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(&app.search.query),
+        Span::styled("_", Style::default().add_modifier(Modifier::RAPID_BLINK)),
+    ]);
+    frame.render_widget(Paragraph::new(query_line), modal_chunks[0]);
+
+    // Lista de resultados
+    let mut lines = Vec::new();
+    if app.search.results.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Nenhuma nota encontrada.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (i, item) in app.search.results.iter().enumerate().take(10) {
+            let is_selected = i == app.search.selected_index;
+            let file_stem = item
+                .path
+                .file_name()
+                .map(|f| f.to_string_lossy())
+                .unwrap_or_default();
+
+            let line_style = if is_selected {
+                Style::default()
+                    .bg(Color::Rgb(50, 50, 70))
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+
+            let prefix = if is_selected { "▶ " } else { "  " };
+            lines.push(Line::from(vec![
+                Span::styled(prefix, line_style),
+                Span::styled(format!("{} ", item.title), line_style),
+                Span::styled(
+                    format!("({file_stem})"),
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ]));
+        }
+    }
+    frame.render_widget(Paragraph::new(lines), modal_chunks[1]);
+
+    // Rodapé de instruções
+    let footer = Line::from(vec![Span::styled(
+        " ↑/↓ Navegar  |  Enter Abrir  |  Esc Cancelar",
+        Style::default().fg(Color::DarkGray),
+    )]);
+    frame.render_widget(Paragraph::new(footer), modal_chunks[2]);
 }

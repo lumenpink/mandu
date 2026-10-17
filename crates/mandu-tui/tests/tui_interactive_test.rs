@@ -9,20 +9,24 @@ use tempfile::TempDir;
 fn test_tui_interactive_saving_with_linter() {
     let tmp = TempDir::new().unwrap();
     let note_path = tmp.path().join("artigo.md");
-    fs::write(&note_path, "---\ntitulo: Artigo\n---\nTexto inicial sem quebra final").unwrap();
+    fs::write(
+        &note_path,
+        "---\ntitulo: Artigo\n---\nTexto inicial sem quebra final",
+    )
+    .unwrap();
 
     let mut app = TuiApp::new_with_vault(Some(tmp.path().to_path_buf()), Some(note_path.clone()));
-    assert_eq!(app.is_dirty, false);
+    assert!(!app.is_dirty);
     assert!(!app.status_text().contains("[●]"));
 
     // Digitar algo novo
     app.handle_key(KeyEvent::new(KeyCode::Char('!'), KeyModifiers::NONE));
-    assert_eq!(app.is_dirty, true);
+    assert!(app.is_dirty);
     assert!(app.status_text().contains("[●]"));
 
     // Salvar com Ctrl+S
     app.handle_key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL));
-    assert_eq!(app.is_dirty, false);
+    assert!(!app.is_dirty);
     assert!(!app.status_text().contains("[●]"));
 
     // Verificar arquivo no disco: deve conter modificado e quebra POSIX
