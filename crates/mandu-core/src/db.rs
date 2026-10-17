@@ -145,6 +145,26 @@ impl ManduDb {
         }
         Ok(results)
     }
+
+    pub fn index_note_links(
+        &self,
+        _source_path: &str,
+        _links: &[crate::refs::InternalLink],
+    ) -> Result<()> {
+        todo!("index_note_links() não implementado ainda")
+    }
+
+    pub fn get_backlinks(&self, _target_path: &str) -> Result<Vec<crate::refs::InternalLink>> {
+        todo!("get_backlinks() não implementado ainda")
+    }
+
+    pub fn index_reference(&self, _reference: &crate::refs::ReferenceMd) -> Result<()> {
+        todo!("index_reference() não implementado ainda")
+    }
+
+    pub fn find_reference(&self, _citekey: &str) -> Result<Option<crate::refs::ReferenceMd>> {
+        todo!("find_reference() não implementado ainda")
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
