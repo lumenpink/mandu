@@ -19,3 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Parser determinístico de notas com extração de YAML Frontmatter (título, tags, datas), contagem de palavras e cálculo de hash BLAKE3.
 - Indexação em lote no SQLite in-memory com suporte a Full-Text Search (FTS5) para busca instantânea de conteúdo acadêmico.
 - Suíte de testes abrangente cobrindo casos de borda: quebras de linha CRLF, YAML malformatado, notas vazias e proteção contra travessia em pastas ocultas.
+- Extração de referências bibliográficas (.md) em refs/@citekey.md com metadados estruturados (DOI, autores, ano, CSL/YAML).
+- Grafo de conexões com suporte a links wiki [[nota]] e [[nota|apelido]], com rastreio de linha e snippet de contexto.
+- Consultas relacionais rápidas para backlinks (links inversos) e outgoing links no SQLite in-memory.
+- Motor de autocompletar fuzzy ultrarrápido em memória utilizando a biblioteca nucleo.
