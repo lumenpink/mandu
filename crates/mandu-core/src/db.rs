@@ -72,6 +72,21 @@ impl ManduDb {
     pub fn connection(&self) -> &Connection {
         &self.conn
     }
+
+    pub fn index_note(&self, _note: &crate::vault::Note) -> Result<()> {
+        todo!("index_note() não implementado ainda")
+    }
+
+    pub fn search_fts(&self, _query: &str) -> Result<Vec<FtsSearchResult>> {
+        todo!("search_fts() não implementado ainda")
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FtsSearchResult {
+    pub path: String,
+    pub title: String,
+    pub snippet: String,
 }
 
 #[cfg(test)]
