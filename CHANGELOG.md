@@ -27,3 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Diretriz estrita de zero teclas de função (F1-F12), com alternância de modos via Ctrl+Espaço ou toque na barra de status.
 - Barra de status inferior de 1 linha tátil exibindo botões de ação, contagem de palavras e contador de backlinks em tempo real.
 - Mapeamento ergonômico de atalhos Ctrl unificados para pesquisa (Ctrl+O), salvamento (Ctrl+S), exportação (Ctrl+D) e saída (Ctrl+Q).
+- Interface gráfica GPU nativa (egui/eframe) com visualização HedgeDoc (Escrita, Split, Preview) implementada em mandu-gui.
+- Renderizador de preview vetorial com suporte a blocos SVG e renderização Joaju/Typst.
+- Barra de status inferior de 1 linha na GUI com botões clicáveis e paridade estrita com o layout de terminal.
+- Paridade rigorosa de atalhos ergonômicos Ctrl e conformidade com zero teclas de função para compatibilidade e memória muscular unificada.
