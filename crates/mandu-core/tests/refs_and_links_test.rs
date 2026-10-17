@@ -88,4 +88,31 @@ Artigo fundamental para a padronização do Joaju.
     ];
     let matches = FuzzySearcher::match_candidates("silv", &candidates);
     assert_eq!(matches, vec!["silva2026".to_string()]);
+
+    // Testar consulta vazia retornando todos os candidatos
+    let all = FuzzySearcher::match_candidates("", &candidates);
+    assert_eq!(all.len(), 3);
+}
+
+#[test]
+fn test_wikilinks_edge_cases_and_outgoing_links() {
+    let content = r#"Texto com [[]] vazio, link quebrado [[sem_fechar
+E múltiplos links na mesma linha: [[alvo1]] e [[alvo2|Segundo Alvo]] e [[alvo3]].
+"#;
+    let links = extract_wikilinks(content);
+    assert_eq!(links.len(), 3);
+    assert_eq!(links[0].target, "alvo1");
+    assert_eq!(links[1].target, "alvo2");
+    assert_eq!(links[1].alias, Some("Segundo Alvo".to_string()));
+    assert_eq!(links[2].target, "alvo3");
+
+    let db = ManduDb::open_in_memory().expect("Falha ao abrir SQLite");
+    db.index_note_links("origem.md", &links)
+        .expect("Falha ao indexar");
+
+    let outgoing = db
+        .get_outgoing_links("origem.md")
+        .expect("Falha ao buscar outgoing");
+    assert_eq!(outgoing.len(), 3);
+    assert_eq!(outgoing[0].target, "alvo1");
 }
