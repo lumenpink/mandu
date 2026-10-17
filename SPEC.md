@@ -147,7 +147,7 @@ Ambas as interfaces obedecem à diretriz de **mínima poluição visual**, sem b
 
 ## 4.1. Os 3 Modos de Visualização (HedgeDoc Pattern)
 
-Alternados rapidamente via teclado (`Ctrl+Espaço` ou `F2`) ou toque na barra de status:
+Alternados rapidamente via teclado (`Ctrl+Espaço`) ou toque na barra de status (com estrita proibição de teclas de função F1–F12 para paridade total com dispositivos compactos e tablets):
 1. **`[Modo 1: Escrita (Source)]`** — 100% da tela dedicada ao editor de texto monoespaçado.
 2. **`[Modo 2: Split (HedgeDoc)]`** — Tela dividida ao meio: Editor Markdown à esquerda e Preview renderizado pelo Joaju à direita, com *scroll sync* proporcional baseado nos offsets de linha da AST.
 3. **`[Modo 3: Leitura (Preview)]`** — 100% da tela dedicada ao documento diagramado pelo Joaju, com links navegáveis e inspeção de diagramas/heredogramas.
