@@ -1,11 +1,7 @@
 //! Entrypoint do mandu-tui.
 
-pub mod editor;
-pub mod ui;
-
 use clap::Parser;
-use editor::Editor;
-use ui::ViewMode;
+use mandu_tui::app::TuiApp;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -20,15 +16,11 @@ struct Args {
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    let _editor = Editor::new();
-    let mode = ViewMode::Split;
+    let app = TuiApp::new(args.vault);
     println!(
-        "Mandu TUI v{} inicializado no {}.",
+        "Mandu TUI v{} pronto no {}.",
         mandu_core::VERSION,
-        mode.label()
+        app.mode.label()
     );
-    if let Some(vault) = args.vault {
-        println!("Cofre selecionado: {}", vault.display());
-    }
     Ok(())
 }
