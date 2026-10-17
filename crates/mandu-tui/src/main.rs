@@ -1,7 +1,7 @@
 //! Entrypoint do mandu-tui.
 
 use clap::Parser;
-use mandu_tui::app::TuiApp;
+use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -10,17 +10,14 @@ use mandu_tui::app::TuiApp;
     about = "Interface TUI soberana para o Mandu"
 )]
 struct Args {
-    #[arg(short, long)]
-    vault: Option<std::path::PathBuf>,
+    #[arg(short, long, help = "Caminho da raiz do cofre de notas")]
+    vault: Option<PathBuf>,
+
+    #[arg(value_name = "ARQUIVO", help = "Nota Markdown opcional para abrir")]
+    file: Option<PathBuf>,
 }
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    let app = TuiApp::new(args.vault);
-    println!(
-        "Mandu TUI v{} pronto no {}.",
-        mandu_core::VERSION,
-        app.mode.label()
-    );
-    Ok(())
+    mandu_tui::run(args.vault, args.file)
 }
