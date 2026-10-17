@@ -148,22 +148,102 @@ impl ManduDb {
 
     pub fn index_note_links(
         &self,
-        _source_path: &str,
-        _links: &[crate::refs::InternalLink],
+        source_path: &str,
+        links: &[crate::refs::InternalLink],
     ) -> Result<()> {
-        todo!("index_note_links() não implementado ainda")
+        self.conn
+            .execute("DELETE FROM links WHERE source_path = ?1", [source_path])?;
+
+        let mut stmt = self.conn.prepare(
+            r#"
+            INSERT OR REPLACE INTO links (source_path, target_path, line_number, context_snippet)
+            VALUES (?1, ?2, ?3, ?4)
+            "#,
+        )?;
+
+        for link in links {
+            stmt.execute((
+                source_path,
+                &link.target,
+                link.line_number as i64,
+                &link.context_snippet,
+            ))?;
+        }
+
+        Ok(())
     }
 
-    pub fn get_backlinks(&self, _target_path: &str) -> Result<Vec<crate::refs::InternalLink>> {
-        todo!("get_backlinks() não implementado ainda")
+    pub fn get_backlinks(&self, target_path: &str) -> Result<Vec<crate::refs::InternalLink>> {
+        let mut stmt = self.conn.prepare(
+            r#"
+            SELECT target_path, line_number, context_snippet
+            FROM links
+            WHERE target_path = ?1
+            ORDER BY source_path, line_number
+            "#,
+        )?;
+
+        let rows = stmt.query_map([target_path], |row| {
+            Ok(crate::refs::InternalLink {
+                target: row.get(0)?,
+                alias: None,
+                line_number: row.get::<_, i64>(1)? as usize,
+                context_snippet: row.get(2)?,
+            })
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
     }
 
-    pub fn index_reference(&self, _reference: &crate::refs::ReferenceMd) -> Result<()> {
-        todo!("index_reference() não implementado ainda")
+    pub fn index_reference(&self, reference: &crate::refs::ReferenceMd) -> Result<()> {
+        self.conn.execute(
+            r#"
+            INSERT OR REPLACE INTO references_md (citekey, note_path, doi, title, authors_json, year, csl_yaml)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            "#,
+            (
+                &reference.citekey,
+                &reference.note_path,
+                &reference.doi,
+                &reference.title,
+                &reference.authors_json,
+                reference.year,
+                &reference.csl_yaml,
+            ),
+        )?;
+        Ok(())
     }
 
-    pub fn find_reference(&self, _citekey: &str) -> Result<Option<crate::refs::ReferenceMd>> {
-        todo!("find_reference() não implementado ainda")
+    pub fn find_reference(&self, citekey: &str) -> Result<Option<crate::refs::ReferenceMd>> {
+        let mut stmt = self.conn.prepare(
+            r#"
+            SELECT citekey, note_path, doi, title, authors_json, year, csl_yaml
+            FROM references_md
+            WHERE citekey = ?1
+            "#,
+        )?;
+
+        let mut rows = stmt.query_map([citekey], |row| {
+            Ok(crate::refs::ReferenceMd {
+                citekey: row.get(0)?,
+                note_path: row.get(1)?,
+                doi: row.get(2)?,
+                title: row.get(3)?,
+                authors_json: row.get(4)?,
+                year: row.get(5)?,
+                csl_yaml: row.get(6)?,
+            })
+        })?;
+
+        if let Some(r) = rows.next() {
+            Ok(Some(r?))
+        } else {
+            Ok(None)
+        }
     }
 }
 

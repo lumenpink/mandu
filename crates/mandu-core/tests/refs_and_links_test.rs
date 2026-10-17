@@ -30,7 +30,8 @@ Ver também [[heredograma_nsgc|Heredogramas NSGC]] na linha seguinte.
             target: "heredograma_nsgc".to_string(),
             alias: Some("Heredogramas NSGC".to_string()),
             line_number: 3,
-            context_snippet: "Ver também [[heredograma_nsgc|Heredogramas NSGC]] na linha seguinte.".to_string(),
+            context_snippet: "Ver também [[heredograma_nsgc|Heredogramas NSGC]] na linha seguinte."
+                .to_string(),
         }
     );
 
@@ -70,7 +71,8 @@ Artigo fundamental para a padronização do Joaju.
     assert_eq!(reference.year, Some(2026));
 
     let db = ManduDb::open_in_memory().expect("Falha ao abrir SQLite");
-    db.index_reference(&reference).expect("Falha ao indexar referência");
+    db.index_reference(&reference)
+        .expect("Falha ao indexar referência");
 
     let found = db
         .find_reference("silva2026")
