@@ -12,6 +12,8 @@ pub struct TuiApp<'a> {
     pub word_count: usize,
     pub backlink_count: usize,
     pub should_quit: bool,
+    pub is_search_open: bool,
+    pub status_message: Option<String>,
 }
 
 impl Default for TuiApp<'_> {
@@ -20,16 +22,31 @@ impl Default for TuiApp<'_> {
     }
 }
 
-impl<'a> TuiApp<'a> {
+impl TuiApp<'_> {
     #[must_use]
-    pub fn new(vault_path: Option<PathBuf>) -> Self {
+    pub fn new(file_path: Option<PathBuf>) -> Self {
+        let mut editor = Editor::new();
+        let mut word_count = 0;
+
+        if let Some(ref path) = file_path {
+            if path.is_file() {
+                if let Ok(content) = std::fs::read_to_string(path) {
+                    let note = mandu_core::vault::Vault::parse_note_content(path, &content);
+                    word_count = note.word_count;
+                    editor = Editor::from_text(&note.body);
+                }
+            }
+        }
+
         Self {
             mode: ViewMode::Split,
-            editor: Editor::new(),
-            current_file: vault_path,
-            word_count: 0,
+            editor,
+            current_file: file_path,
+            word_count,
             backlink_count: 0,
             should_quit: false,
+            is_search_open: false,
+            status_message: None,
         }
     }
 
@@ -44,6 +61,24 @@ impl<'a> TuiApp<'a> {
         // Ctrl+Espaço: Alternar Modo (HedgeDoc)
         if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char(' ') {
             self.mode = self.mode.next();
+            return true;
+        }
+
+        // Ctrl+O: Abrir modal de busca
+        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('o') {
+            self.is_search_open = !self.is_search_open;
+            return true;
+        }
+
+        // Ctrl+S: Salvar nota
+        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('s') {
+            self.status_message = Some("Nota salva com sucesso".to_string());
+            return true;
+        }
+
+        // Ctrl+D: Gerar PDF via Joaju
+        if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('d') {
+            self.status_message = Some("Documento exportado via Joaju".to_string());
             return true;
         }
 

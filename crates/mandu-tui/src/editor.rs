@@ -18,4 +18,11 @@ impl Editor<'_> {
         let textarea = TextArea::default();
         Self { textarea }
     }
+
+    #[must_use]
+    pub fn from_text(text: &str) -> Self {
+        let lines: Vec<String> = text.lines().map(ToString::to_string).collect();
+        let textarea = TextArea::new(lines);
+        Self { textarea }
+    }
 }
