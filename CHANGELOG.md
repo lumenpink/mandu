@@ -31,3 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renderizador de preview vetorial com suporte a blocos SVG e renderização Joaju/Typst.
 - Barra de status inferior de 1 linha na GUI com botões clicáveis e paridade estrita com o layout de terminal.
 - Paridade rigorosa de atalhos ergonômicos Ctrl e conformidade com zero teclas de função para compatibilidade e memória muscular unificada.
+- Hooks de salvamento nativos no mandu-core com normalização de CRLF para POSIX (\n) e terminação estrita.
+- Atualização e injeção determinística de timestamp modificado no YAML Frontmatter sem alterar dados ou comentários existentes.
+- Geradores nativos de notas diárias (diario/YYYY-MM-DD.md) e notas únicas Zettelkasten com suporte a templates e idempotência.
+- Compositor nativo de notas com extração atômica de seleções de texto para novas notas e substituição por links wiki.
