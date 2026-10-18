@@ -49,5 +49,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Painel de visualização com renderização de segmentos estruturados Joaju e exportação direta para PDF acadêmico (`Ctrl+D`).
 - Suporte a argumentos de linha de comando (`--vault` e arquivo Markdown posicional) via `clap`.
 - Conformidade estrita com a diretriz de zero teclas de função (`F1`–`F12`) na GUI.
+- Motor de autocompletar fuzzy em tempo real para citações bibliográficas (`@citekey`) e links internos (`[[nota]]`) integrado ao banco de dados SQLite.
+- Modal flutuante de espreitar página/fichamento (Peek via `Ctrl+P`) implementado tanto no `mandu-tui` quanto no `mandu-gui` para visualização rápida de contexto sem perder a posição do cursor.
+- Extração determinística de referências e wikilinks sob o cursor compartilhada via helper unificado `extract_peek_target` no `mandu-core`.
+- Mecanismo de escape hatch (`Ctrl+E`) no `mandu-tui` com suspensão segura do terminal via raw mode do crossterm e transição transparente para o editor configurado em `$EDITOR` ou `nano`.
 
 
