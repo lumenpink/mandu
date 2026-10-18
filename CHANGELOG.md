@@ -56,5 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolução automática zero-config do cofre padrão para o diretório de trabalho atual (`.`) quando `--vault` for omitido em ambos os executáveis `mandu-tui` e `mandu-gui`.
 - Abertura automática inteligente do ponto de entrada inicial (`indice.md` ou `README.md`) quando nenhum arquivo for passado na linha de comando.
 - Resolução dinâmica de caminhos de arquivos relativos informados em relação à raiz do cofre.
+- Renderização dinâmica em tempo real do conteúdo formatado do Markdown e blocos Joaju/Typst no painel de visualização (Split e Leitura) no terminal e na interface gráfica.
+- Navegação direta para notas e referências bibliográficas sob o cursor com o atalho `Ctrl+G` ("Go to link") no `mandu-tui` e `mandu-gui`.
+- Ação imediata de abertura de notas no editor a partir da janela suspensa de Peek (`Ctrl+P`) pressionando a tecla `Enter`.
 
 
