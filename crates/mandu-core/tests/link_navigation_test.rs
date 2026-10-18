@@ -79,4 +79,41 @@ fn test_resolve_target_path_nonexistent_returns_none() {
         resolve_target_path(&db, "@inexistente", Some(&vault_path)),
         None
     );
+    assert_eq!(
+        resolve_target_path(&db, "[[]]", Some(&vault_path)),
+        None
+    );
+}
+
+#[test]
+fn test_resolve_citation_with_punctuation() {
+    let dir = tempdir().expect("tempdir");
+    let vault_path = dir.path().to_path_buf();
+    let ref_dir = vault_path.join("refs");
+    std::fs::create_dir_all(&ref_dir).expect("create refs dir");
+
+    let ref_file = ref_dir.join("@shannon1948.md");
+    File::create(&ref_file).expect("create ref file");
+
+    let db = ManduDb::open_in_memory().expect("db open");
+    let ref_item = ReferenceMd {
+        citekey: "shannon1948".to_string(),
+        note_path: ref_file.to_string_lossy().to_string(),
+        doi: None,
+        title: "A Mathematical Theory of Communication".to_string(),
+        authors_json: None,
+        year: Some(1948),
+        csl_yaml: None,
+    };
+    db.index_reference(&ref_item).expect("index ref");
+
+    // Com vírgula ou parênteses
+    assert_eq!(
+        resolve_target_path(&db, "@shannon1948,", Some(&vault_path)),
+        Some(ref_file.clone())
+    );
+    assert_eq!(
+        resolve_target_path(&db, "@shannon1948)", Some(&vault_path)),
+        Some(ref_file)
+    );
 }
