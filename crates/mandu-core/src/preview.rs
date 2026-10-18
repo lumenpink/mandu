@@ -139,6 +139,10 @@ fn is_supported_preview_engine(engine: &str) -> bool {
             | "chem"
             | "svg"
             | "table"
+            | "d2"
+            | "mermaid"
+            | "graphviz"
+            | "typst"
     )
 }
 
