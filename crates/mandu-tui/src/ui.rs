@@ -240,9 +240,8 @@ fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
 
         if let Some(start) = rest.find('@') {
             if start == 0
-                || rest[..start].ends_with(|c: char| {
-                    c.is_whitespace() || c == '(' || c == '[' || c == '{'
-                })
+                || rest[..start]
+                    .ends_with(|c: char| c.is_whitespace() || c == '(' || c == '[' || c == '{')
             {
                 if start > 0 {
                     spans.push(Span::styled(
@@ -294,7 +293,7 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
     let mut lines = Vec::new();
     let (meta_opt, raw_body) = mandu_core::vault::Vault::extract_metadata(text);
 
-    let number_headings = meta_opt.as_ref().map_or(false, |m| m.number_headings);
+    let number_headings = meta_opt.as_ref().is_some_and(|m| m.number_headings);
 
     if let Some(ref meta) = meta_opt {
         let mut meta_spans = vec![Span::styled(" [ 📑 ", Style::default().fg(Color::Cyan))];
@@ -413,10 +412,7 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
                 ),
             ]));
         } else if let Some(stripped) = trimmed.strip_prefix('>') {
-            let mut quote_spans = vec![Span::styled(
-                "▍ ",
-                Style::default().fg(Color::LightYellow),
-            )];
+            let mut quote_spans = vec![Span::styled("▍ ", Style::default().fg(Color::LightYellow))];
             quote_spans.push(Span::styled(
                 stripped.to_string(),
                 Style::default()

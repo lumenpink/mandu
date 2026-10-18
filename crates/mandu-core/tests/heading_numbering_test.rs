@@ -112,4 +112,3 @@ fn test_heading_numbering_preserves_existing_numbers_and_whitespace() {
     assert!(numbered.contains("## 1.1. Subtópico Já Numerado"));
     assert!(numbered.contains("# 2. Novo Título Sem Número"));
 }
-

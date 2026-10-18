@@ -121,7 +121,8 @@ impl PreviewEngine {
                     val.get("numbering")
                         .or_else(|| val.get("numeracao"))
                         .is_some_and(|v| {
-                            v.as_str().is_some_and(|s| !s.is_empty()) || v.as_bool().unwrap_or(false)
+                            v.as_str().is_some_and(|s| !s.is_empty())
+                                || v.as_bool().unwrap_or(false)
                         })
                 })
         });

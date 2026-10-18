@@ -87,7 +87,7 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
             }
 
             let (meta_opt, raw_body) = mandu_core::vault::Vault::extract_metadata(&state.buffer);
-            let number_headings = meta_opt.as_ref().map_or(false, |m| m.number_headings);
+            let number_headings = meta_opt.as_ref().is_some_and(|m| m.number_headings);
 
             if let Some(ref meta) = meta_opt {
                 egui::Frame::group(ui.style()).show(ui, |ui| {

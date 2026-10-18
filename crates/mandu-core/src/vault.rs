@@ -87,17 +87,18 @@ impl Vault {
 
         let (metadata, body) = Self::extract_metadata(content);
 
-        let (title, modified_at, tags, number_headings, frontmatter_json) = if let Some(m) = metadata {
-            (
-                m.title.unwrap_or(default_title),
-                m.modified_at,
-                m.tags,
-                m.number_headings,
-                m.raw_json,
-            )
-        } else {
-            (default_title, None, Vec::new(), false, None)
-        };
+        let (title, modified_at, tags, number_headings, frontmatter_json) =
+            if let Some(m) = metadata {
+                (
+                    m.title.unwrap_or(default_title),
+                    m.modified_at,
+                    m.tags,
+                    m.number_headings,
+                    m.raw_json,
+                )
+            } else {
+                (default_title, None, Vec::new(), false, None)
+            };
 
         let word_count = body.split_whitespace().count();
 
@@ -140,7 +141,10 @@ impl Vault {
                 }
             }
             let mut number_headings = false;
-            if let Some(n) = fm.get("numerar_titulos").or_else(|| fm.get("number_headings")) {
+            if let Some(n) = fm
+                .get("numerar_titulos")
+                .or_else(|| fm.get("number_headings"))
+            {
                 if let Some(b) = n.as_bool() {
                     number_headings = b;
                 }

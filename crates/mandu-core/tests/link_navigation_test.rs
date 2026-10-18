@@ -23,6 +23,7 @@ fn test_resolve_target_path_for_wikilink_and_alias() {
         word_count: 3,
         modified_at: None,
         tags: vec![],
+        number_headings: false,
     };
     db.index_note(&note).expect("index note");
 
