@@ -17,41 +17,41 @@ fn test_linter_modificado_timestamp_injection_and_update() {
     let raw_no_fm = "# Título da Nota\n\nConteúdo sem frontmatter.";
     let res1 = Linter::apply_save_hooks(raw_no_fm, "2026-10-17T15:00:00Z");
     assert!(res1.starts_with("---\n"));
-    assert!(res1.contains("modificado: 2026-10-17T15:00:00Z\n"));
+    assert!(res1.contains("modified: 2026-10-17T15:00:00Z\n"));
     assert!(res1.contains("# Título da Nota\n\nConteúdo sem frontmatter.\n"));
 
     // Caso 2: Com frontmatter existente sem campo modificado
-    let raw_fm_without_mod = "---\ntitulo: Teste\ntags:\n  - pesquisa\n---\nCorpo da nota.";
+    let raw_fm_without_mod = "---\ntitle: Teste\ntags:\n  - pesquisa\n---\nCorpo da nota.";
     let res2 = Linter::apply_save_hooks(raw_fm_without_mod, "2026-10-17T15:10:00Z");
-    assert!(res2.contains("modificado: 2026-10-17T15:10:00Z\n"));
-    assert!(res2.contains("titulo: Teste\n"));
+    assert!(res2.contains("modified: 2026-10-17T15:10:00Z\n"));
+    assert!(res2.contains("title: Teste\n"));
     assert!(res2.contains("tags:\n  - pesquisa\n"));
     assert!(res2.ends_with("Corpo da nota.\n"));
 
-    // Caso 3: Com frontmatter existente e campo modificado prévio
+    // Caso 3: Com frontmatter existente e campo modificado prévio (migração para modified)
     let raw_fm_with_mod = "---\ntitulo: Antigo\nmodificado: 2026-01-01T00:00:00Z\n---\nCorpo.";
     let res3 = Linter::apply_save_hooks(raw_fm_with_mod, "2026-10-17T15:20:00Z");
-    assert!(res3.contains("modificado: 2026-10-17T15:20:00Z\n"));
+    assert!(res3.contains("modified: 2026-10-17T15:20:00Z\n"));
     assert!(!res3.contains("2026-01-01T00:00:00Z"));
+    assert!(!res3.contains("modificado:"));
 
     // Caso 4: Com chave 'modified:' em inglês
-    let raw_fm_with_eng = "---\ntitulo: Ingles\nmodified: 2025-12-31T23:59:59Z\n---\nCorpo.";
+    let raw_fm_with_eng = "---\ntitle: Modern\nmodified: 2025-12-31T23:59:59Z\n---\nCorpo.";
     let res4 = Linter::apply_save_hooks(raw_fm_with_eng, "2026-10-17T15:25:00Z");
-    assert!(res4.contains("modificado: 2026-10-17T15:25:00Z\n"));
-    assert!(!res4.contains("modified:"));
+    assert!(res4.contains("modified: 2026-10-17T15:25:00Z\n"));
 }
 
 #[test]
 fn test_linter_edge_cases_empty_and_minimal() {
     // Vazio
     let res_empty = Linter::apply_save_hooks("", "2026-10-17T15:00:00Z");
-    assert_eq!(res_empty, "---\nmodificado: 2026-10-17T15:00:00Z\n---\n\n");
+    assert_eq!(res_empty, "---\nmodified: 2026-10-17T15:00:00Z\n---\n\n");
 
     // Frontmatter com delimitador e sem corpo
     let res_only_fm =
-        Linter::apply_save_hooks("---\ntitulo: Apenas FM\n---\n", "2026-10-17T15:00:00Z");
-    assert!(res_only_fm.contains("titulo: Apenas FM\n"));
-    assert!(res_only_fm.contains("modificado: 2026-10-17T15:00:00Z\n"));
+        Linter::apply_save_hooks("---\ntitle: Apenas FM\n---\n", "2026-10-17T15:00:00Z");
+    assert!(res_only_fm.contains("title: Apenas FM\n"));
+    assert!(res_only_fm.contains("modified: 2026-10-17T15:00:00Z\n"));
     assert!(res_only_fm.ends_with("---\n"));
 }
 
@@ -65,8 +65,8 @@ fn test_create_daily_note_and_idempotency() {
     assert!(path.ends_with("diario/2026-10-17.md"));
 
     let content = std::fs::read_to_string(&path).unwrap();
-    assert!(content.contains("tipo: diario"));
-    assert!(content.contains("data: 2026-10-17"));
+    assert!(content.contains("type: daily"));
+    assert!(content.contains("date: 2026-10-17"));
 
     // Idempotência: não sobrescrever se já existir
     std::fs::write(&path, "Conteúdo modificado manualmente").unwrap();
@@ -98,7 +98,8 @@ fn test_create_unique_note() {
 
     let content = std::fs::read_to_string(&path).unwrap();
     assert!(content.contains("id: 20261017153000"));
-    assert!(content.contains("titulo: \"Zettelkasten Atomic\""));
+    assert!(content.contains("title: \"Zettelkasten Atomic\""));
+    assert!(content.contains("type: note"));
     assert!(content.contains("# Zettelkasten Atomic"));
 
     // Idempotência
@@ -106,7 +107,7 @@ fn test_create_unique_note() {
         create_unique_note(vault_root, "20261017153000", "Outro Título", None).unwrap();
     assert_eq!(path, path_repeat);
     let content_after = std::fs::read_to_string(&path_repeat).unwrap();
-    assert!(content_after.contains("titulo: \"Zettelkasten Atomic\""));
+    assert!(content_after.contains("title: \"Zettelkasten Atomic\""));
 }
 
 #[test]
@@ -120,7 +121,9 @@ fn test_extract_to_new_note_composer() {
 
     assert!(updated_source.contains("[[Conceito Fundamental]]"));
     assert!(!updated_source.contains("Este é o conceito fundamental"));
-    assert!(new_note_content.contains("origem: \"[[Nota Principal]]\""));
+    assert!(new_note_content.contains("origin: \"[[Nota Principal]]\""));
+    assert!(new_note_content.contains("type: note"));
+    assert!(new_note_content.contains("title: \"Conceito Fundamental\""));
     assert!(new_note_content
         .contains("Este é o conceito fundamental a ser extraído para uma nova nota."));
 }

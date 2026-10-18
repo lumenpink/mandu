@@ -119,13 +119,13 @@ impl Vault {
         let (fm_val, body) = Self::extract_frontmatter(content);
         let meta = fm_val.as_ref().map(|fm| {
             let title = fm
-                .get("titulo")
-                .or_else(|| fm.get("title"))
+                .get("title")
+                .or_else(|| fm.get("titulo"))
                 .and_then(serde_yaml::Value::as_str)
                 .map(ToString::to_string);
             let modified_at = fm
-                .get("modificado")
-                .or_else(|| fm.get("modified"))
+                .get("modified")
+                .or_else(|| fm.get("modificado"))
                 .and_then(serde_yaml::Value::as_str)
                 .map(ToString::to_string);
             let mut tags = Vec::new();
@@ -142,8 +142,8 @@ impl Vault {
             }
             let mut number_headings = false;
             if let Some(n) = fm
-                .get("numerar_titulos")
-                .or_else(|| fm.get("number_headings"))
+                .get("number_headings")
+                .or_else(|| fm.get("numerar_titulos"))
             {
                 if let Some(b) = n.as_bool() {
                     number_headings = b;
@@ -219,7 +219,7 @@ pub fn create_daily_note(
         t.to_string()
     } else {
         format!(
-            "---\ntipo: diario\ndata: {date}\ntags:\n  - diario\n---\n\n# {date}\n\n## Tarefas\n- [ ] \n\n## Notas do Dia\n"
+            "---\ndate: {date}\ntype: daily\ntags:\n  - daily\n---\n\n# {date}\n\n## Tasks\n- [ ] \n\n## Notes\n"
         )
     };
 
@@ -242,7 +242,7 @@ pub fn create_unique_note(
     let content = if let Some(t) = template {
         t.to_string()
     } else {
-        format!("---\nid: {id}\ntitulo: \"{title}\"\ntipo: nota\n---\n\n# {title}\n")
+        format!("---\nid: {id}\ntitle: \"{title}\"\ntype: note\n---\n\n# {title}\n")
     };
 
     fs::write(&target, content)?;
@@ -273,7 +273,7 @@ pub fn extract_to_new_note(
     );
 
     let new_note = format!(
-        "---\ntitulo: \"{new_note_title}\"\norigem: \"[[{origin_title}]]\"\ntipo: nota\n---\n\n# {new_note_title}\n\n{extracted_text}\n"
+        "---\ntitle: \"{new_note_title}\"\norigin: \"[[{origin_title}]]\"\ntype: note\n---\n\n# {new_note_title}\n\n{extracted_text}\n"
     );
 
     Ok((updated_source, new_note))

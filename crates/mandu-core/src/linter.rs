@@ -19,7 +19,7 @@ impl Linter {
 
         // 2. Tratar Frontmatter YAML
         let processed = if let Some((fm_content, body)) = split_frontmatter(&normalized) {
-            let updated_fm = update_or_insert_modificado(fm_content, timestamp);
+            let updated_fm = update_or_insert_modified(fm_content, timestamp);
             if body.is_empty() {
                 format!("---\n{updated_fm}\n---\n")
             } else {
@@ -27,7 +27,7 @@ impl Linter {
             }
         } else {
             // Não possui Frontmatter delimitado por ---
-            format!("---\nmodificado: {timestamp}\n---\n\n{normalized}")
+            format!("---\nmodified: {timestamp}\n---\n\n{normalized}")
         };
 
         // 3. Garantir terminação estrita com '\n'
@@ -59,14 +59,14 @@ fn split_frontmatter(content: &str) -> Option<(&str, &str)> {
     Some((yaml_content, body))
 }
 
-fn update_or_insert_modificado(fm_content: &str, timestamp: &str) -> String {
+fn update_or_insert_modified(fm_content: &str, timestamp: &str) -> String {
     let mut lines: Vec<String> = Vec::new();
     let mut found = false;
 
     for line in fm_content.lines() {
         let trimmed = line.trim_start();
         if trimmed.starts_with("modificado:") || trimmed.starts_with("modified:") {
-            lines.push(format!("modificado: {timestamp}"));
+            lines.push(format!("modified: {timestamp}"));
             found = true;
         } else {
             lines.push(line.to_string());
@@ -74,7 +74,7 @@ fn update_or_insert_modificado(fm_content: &str, timestamp: &str) -> String {
     }
 
     if !found {
-        lines.push(format!("modificado: {timestamp}"));
+        lines.push(format!("modified: {timestamp}"));
     }
 
     lines.join("\n")
@@ -93,7 +93,7 @@ mod tests {
     #[test]
     fn test_apply_save_hooks() {
         let res = Linter::apply_save_hooks("Sem frontmatter\r\n", "2026-10-17T15:00:00Z");
-        assert!(res.contains("modificado: 2026-10-17T15:00:00Z\n"));
+        assert!(res.contains("modified: 2026-10-17T15:00:00Z\n"));
         assert!(!res.contains("\r\n"));
     }
 }
