@@ -114,3 +114,40 @@ fn test_peek_note_and_reference() {
     let peek_none = peek_target(&db, "[[alvo_inexistente]]", Some(dir.path()));
     assert!(peek_none.is_none());
 }
+
+#[test]
+fn test_peek_with_alias_and_extract_target_edge_cases() {
+    use mandu_core::peek::extract_peek_target;
+
+    let db = ManduDb::open_in_memory().expect("open db");
+    let dir = tempdir().expect("tempdir");
+
+    let note_path = dir.path().join("genetica.md");
+    fs::write(
+        &note_path,
+        "---\ntitulo: Genética Clássica\n---\nConteudo sobre leis de Mendel.\n",
+    )
+    .expect("write");
+
+    let note = Vault::parse_note_content(&note_path, &fs::read_to_string(&note_path).unwrap());
+    db.index_note(&note).expect("index");
+
+    // Peek com alias [[genetica|Genética de Mendel]]
+    let peek = peek_target(&db, "[[genetica|Genética de Mendel]]", Some(dir.path())).expect("peek");
+    assert_eq!(peek.title, "Genética Clássica");
+    assert!(peek.content.contains("Mendel"));
+
+    // extract_peek_target em várias strings
+    assert_eq!(
+        extract_peek_target("Veja o documento [[genetica]] para detalhes"),
+        Some("[[genetica]]".to_string())
+    );
+    assert_eq!(
+        extract_peek_target("Conforme citado em @silva2026 no artigo"),
+        Some("@silva2026".to_string())
+    );
+    assert_eq!(extract_peek_target("Texto sem links ou citações"), None);
+    assert_eq!(extract_peek_target("Apenas um @ isolado"), None);
+    assert_eq!(extract_peek_target("Colchete aberto [[ mas nao fechado"), None);
+}
+
