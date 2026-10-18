@@ -48,3 +48,30 @@ fn test_resolve_default_vault_falls_back_to_current_dir() {
 
     assert_eq!(vault, current_dir);
 }
+
+#[test]
+fn test_resolve_relative_file_against_vault_root() {
+    let dir = tempdir().expect("tempdir");
+    let vault_path = dir.path().to_path_buf();
+    let subfile = vault_path.join("minhanota.md");
+    File::create(&subfile).expect("create minhanota.md");
+
+    let (vault, file) = resolve_vault_and_file(
+        Some(vault_path.clone()),
+        Some(PathBuf::from("minhanota.md")),
+    );
+
+    assert_eq!(vault, vault_path);
+    assert_eq!(file, Some(subfile));
+}
+
+#[test]
+fn test_resolve_empty_vault_returns_none_file() {
+    let dir = tempdir().expect("tempdir");
+    let vault_path = dir.path().to_path_buf();
+
+    let (vault, file) = resolve_vault_and_file(Some(vault_path.clone()), None);
+
+    assert_eq!(vault, vault_path);
+    assert_eq!(file, None);
+}
