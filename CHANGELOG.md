@@ -39,3 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Paleta modal flutuante de busca rápida (Ctrl+O) com casamento fuzzy de notas em tempo real via nucleo.
 - Integração de salvamento no buffer (Ctrl+S) persistindo em disco, acionando hooks de linter determinístico e indexando no SQLite.
 - Indicador de edições pendentes ([●]) na barra de status inferior de 1 linha e consulta de backlinks em tempo real.
+- Motor de visualização Joaju e Typst integrado no `mandu-core` com suporte a blocos de código com cercadura para diagramas, tabelas e árvores genealógicas (pedigree).
+- Sistema de cache SQLite in-memory de blocos vetoriais SVG indexados deterministicamente por hash BLAKE3 para renderização instantânea.
+- Pipeline de compilação e exportação direta de notas para PDF acadêmico (`Ctrl+D`) em conformidade com os modelos ABNT e UFSC.
+- Ativação do atalho `Ctrl+D` no `mandu-tui` com feedback de exportação e status de arquivo gerado em tempo real.
+
