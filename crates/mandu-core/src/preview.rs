@@ -143,6 +143,7 @@ fn is_supported_preview_engine(engine: &str) -> bool {
             | "mermaid"
             | "graphviz"
             | "typst"
+            | "joaju"
     )
 }
 

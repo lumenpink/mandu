@@ -273,6 +273,11 @@ impl ManduApp {
                 self.peek_current_cursor();
             }
 
+            // Ctrl+G: Seguir Link sob o cursor
+            if i.consume_key(egui::Modifiers::COMMAND, egui::Key::G) {
+                self.go_to_link_under_cursor();
+            }
+
             // Ctrl+Q: Sair
             if i.consume_key(egui::Modifiers::COMMAND, egui::Key::Q) {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
@@ -281,6 +286,9 @@ impl ManduApp {
 
         if self.is_peek_open {
             ctx.input_mut(|i| {
+                if i.consume_key(egui::Modifiers::NONE, egui::Key::Enter) {
+                    self.open_current_peek_target();
+                }
                 if i.consume_key(egui::Modifiers::NONE, egui::Key::Escape) {
                     self.is_peek_open = false;
                 }
@@ -428,12 +436,50 @@ impl ManduApp {
         }
     }
 
+    pub fn go_to_link_under_cursor(&mut self) {
+        if let Some(ref db) = self.db {
+            let text = &self.state.buffer;
+            if let Some(t) = mandu_core::peek::extract_peek_target(text) {
+                if let Some(path) =
+                    mandu_core::peek::resolve_target_path(db, &t, self.vault_path.as_deref())
+                {
+                    self.open_note(path);
+                    self.state.status_message = Some(format!("Abrindo: {t}"));
+                } else {
+                    self.state.status_message = Some(format!("Destino não encontrado: {t}"));
+                }
+            } else {
+                self.state.status_message =
+                    Some("Nenhum link ou citação para navegar".to_string());
+            }
+        }
+    }
+
+    pub fn open_current_peek_target(&mut self) {
+        if let Some(ref peek) = self.peek_content {
+            let target = peek.target.clone();
+            self.is_peek_open = false;
+            self.peek_content = None;
+            if let Some(ref db) = self.db {
+                if let Some(path) =
+                    mandu_core::peek::resolve_target_path(db, &target, self.vault_path.as_deref())
+                {
+                    self.open_note(path);
+                    self.state.status_message = Some(format!("Abrindo: {target}"));
+                }
+            }
+        } else {
+            self.is_peek_open = false;
+        }
+    }
+
     pub fn render_peek_modal(&mut self, ctx: &egui::Context) {
         if !self.is_peek_open {
             return;
         }
 
         let mut close_clicked = false;
+        let mut open_clicked = false;
         if let Some(ref peek) = self.peek_content {
             egui::Window::new(format!("🔍 Espiar (Peek): {}", peek.title))
                 .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, -50.0))
@@ -447,12 +493,19 @@ impl ManduApp {
                             ui.label(&peek.content);
                         });
                     ui.separator();
-                    if ui.button("Fechar (Esc)").clicked() {
-                        close_clicked = true;
-                    }
+                    ui.horizontal(|ui| {
+                        if ui.button("Abrir no Editor (Enter)").clicked() {
+                            open_clicked = true;
+                        }
+                        if ui.button("Fechar (Esc)").clicked() {
+                            close_clicked = true;
+                        }
+                    });
                 });
         }
-        if close_clicked {
+        if open_clicked {
+            self.open_current_peek_target();
+        } else if close_clicked {
             self.is_peek_open = false;
         }
     }

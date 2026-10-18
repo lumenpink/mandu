@@ -4308,7 +4308,7 @@ dependencies = [
 
 [[package]]
 name = "pedigree-rs"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "clap",
  "csv",
@@ -5655,7 +5655,7 @@ dependencies = [
 
 [[package]]
 name = "ssot-rs"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "clap",
  "csv",
@@ -5887,7 +5887,7 @@ dependencies = [
 
 [[package]]
 name = "table-rs"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "clap",
  "regex",
@@ -6753,7 +6753,7 @@ dependencies = [
 
 [[package]]
 name = "unfurl-rs"
-version = "0.1.0-dev.1"
+version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "clap",

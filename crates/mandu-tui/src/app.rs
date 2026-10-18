@@ -192,10 +192,41 @@ impl TuiApp<'_> {
         }
     }
 
+    pub fn go_to_link_under_cursor(&mut self) {
+        if let Some(ref db) = self.db {
+            let cursor_line = self.editor.textarea.cursor().0;
+            let lines = self.editor.textarea.lines();
+            let target = lines
+                .get(cursor_line)
+                .and_then(|l| mandu_core::peek::extract_peek_target(l))
+                .or_else(|| mandu_core::peek::extract_peek_target(&self.editor.get_text()));
+
+            if let Some(t) = target {
+                if let Some(path) =
+                    mandu_core::peek::resolve_target_path(db, &t, self.vault_path.as_deref())
+                {
+                    self.open_note(path);
+                    self.status_message = Some(format!("Abrindo: {t}"));
+                } else {
+                    self.status_message = Some(format!("Destino não encontrado: {t}"));
+                }
+            } else {
+                self.status_message =
+                    Some("Nenhum link ou citação encontrado sob o cursor".to_string());
+            }
+        }
+    }
+
     pub fn peek_current_cursor(&mut self) {
         if let Some(ref db) = self.db {
-            let text = self.editor.get_text();
-            if let Some(t) = mandu_core::peek::extract_peek_target(&text) {
+            let cursor_line = self.editor.textarea.cursor().0;
+            let lines = self.editor.textarea.lines();
+            let target = lines
+                .get(cursor_line)
+                .and_then(|l| mandu_core::peek::extract_peek_target(l))
+                .or_else(|| mandu_core::peek::extract_peek_target(&self.editor.get_text()));
+
+            if let Some(t) = target {
                 if let Some(content) =
                     mandu_core::peek::peek_target(db, &t, self.vault_path.as_deref())
                 {
@@ -271,13 +302,37 @@ impl TuiApp<'_> {
                     self.peek_current_cursor();
                     return true;
                 }
+                KeyCode::Char('g') => {
+                    self.go_to_link_under_cursor();
+                    return true;
+                }
                 _ => {}
             }
         }
 
         if self.is_peek_open {
             match key.code {
-                KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') => {
+                KeyCode::Enter => {
+                    if let Some(ref peek) = self.peek_content {
+                        let target = peek.target.clone();
+                        self.is_peek_open = false;
+                        self.peek_content = None;
+                        if let Some(ref db) = self.db {
+                            if let Some(path) = mandu_core::peek::resolve_target_path(
+                                db,
+                                &target,
+                                self.vault_path.as_deref(),
+                            ) {
+                                self.open_note(path);
+                                self.status_message = Some(format!("Abrindo: {target}"));
+                            }
+                        }
+                    } else {
+                        self.is_peek_open = false;
+                    }
+                    return true;
+                }
+                KeyCode::Esc | KeyCode::Char('q') => {
                     self.is_peek_open = false;
                     self.peek_content = None;
                     return true;

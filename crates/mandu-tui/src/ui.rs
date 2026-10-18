@@ -57,21 +57,14 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
 
             frame.render_widget(&app.editor.textarea, split_chunks[0]);
 
-            let preview_block = Block::default()
-                .borders(Borders::LEFT)
-                .title(" Visualização Joaju ");
-            let preview_text = Paragraph::new("Preview estruturado do Joaju (Typst / Documentos)")
-                .block(preview_block);
-            frame.render_widget(preview_text, split_chunks[1]);
+            let text = app.editor.get_text();
+            let preview_widget = render_preview_pane(&text, "Visualização Joaju");
+            frame.render_widget(preview_widget, split_chunks[1]);
         }
         ViewMode::Preview => {
-            let preview_block = Block::default()
-                .borders(Borders::ALL)
-                .title(" Visualização Joaju (Modo Leitura) ");
-            let preview_text =
-                Paragraph::new("100% da tela dedicada à leitura diagramada pelo Joaju.")
-                    .block(preview_block);
-            frame.render_widget(preview_text, main_area);
+            let text = app.editor.get_text();
+            let preview_widget = render_preview_pane(&text, "Visualização Joaju (Modo Leitura)");
+            frame.render_widget(preview_widget, main_area);
         }
     }
 
@@ -200,7 +193,10 @@ fn render_peek_modal(app: &TuiApp, frame: &mut Frame) {
     frame.render_widget(Clear, area);
 
     if let Some(ref peek) = app.peek_content {
-        let title = format!(" 🔍 Espiar (Peek): {} ", peek.title);
+        let title = format!(
+            " 🔍 Espiar (Peek): {} [Enter: Abrir | Esc: Fechar] ",
+            peek.title
+        );
         let block = Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan))
@@ -210,4 +206,96 @@ fn render_peek_modal(app: &TuiApp, frame: &mut Frame) {
             .style(Style::default().fg(Color::White));
         frame.render_widget(paragraph, area);
     }
+}
+
+fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
+    let mut lines = Vec::new();
+    let mut in_code_block = false;
+
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") {
+            if in_code_block {
+                in_code_block = false;
+                lines.push(Line::from(vec![Span::styled(
+                    "└──────────────────────────────────",
+                    Style::default().fg(Color::DarkGray),
+                )]));
+            } else {
+                in_code_block = true;
+                let code_engine = trimmed.trim_start_matches('`').trim();
+                let label = if code_engine.is_empty() {
+                    "código"
+                } else {
+                    code_engine
+                };
+                lines.push(Line::from(vec![Span::styled(
+                    format!("┌── Bloco [{label}] ────────────────"),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                )]));
+            }
+            continue;
+        }
+
+        if in_code_block {
+            lines.push(Line::from(vec![
+                Span::styled("│ ", Style::default().fg(Color::DarkGray)),
+                Span::styled(line, Style::default().fg(Color::Yellow)),
+            ]));
+            continue;
+        }
+
+        if trimmed.starts_with("# ") {
+            lines.push(Line::from(vec![Span::styled(
+                line,
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            )]));
+        } else if trimmed.starts_with("## ") {
+            lines.push(Line::from(vec![Span::styled(
+                line,
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            )]));
+        } else if trimmed.starts_with("### ") {
+            lines.push(Line::from(vec![Span::styled(
+                line,
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            )]));
+        } else if trimmed.starts_with('>') {
+            lines.push(Line::from(vec![
+                Span::styled("▍ ", Style::default().fg(Color::LightYellow)),
+                Span::styled(
+                    &trimmed[1..],
+                    Style::default()
+                        .fg(Color::Gray)
+                        .add_modifier(Modifier::ITALIC),
+                ),
+            ]));
+        } else if trimmed.starts_with("- ") || trimmed.starts_with("* ") {
+            lines.push(Line::from(vec![
+                Span::styled("  • ", Style::default().fg(Color::Cyan)),
+                Span::styled(&trimmed[2..], Style::default().fg(Color::White)),
+            ]));
+        } else {
+            lines.push(Line::from(vec![Span::styled(
+                line,
+                Style::default().fg(Color::Rgb(220, 220, 225)),
+            )]));
+        }
+    }
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .title(format!(" {title} "));
+
+    Paragraph::new(lines)
+        .block(block)
+        .wrap(ratatui::widgets::Wrap { trim: false })
 }
