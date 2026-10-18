@@ -69,6 +69,37 @@ fn test_parse_preview_segments() {
 }
 
 #[test]
+fn test_parse_preview_segments_edge_cases() {
+    let db = ManduDb::open_in_memory().unwrap();
+
+    // Texto sem blocos de código
+    let pure_text = "# Apenas texto puro\nSem nenhum bloco especial.";
+    let segments_pure = PreviewEngine::parse_preview_segments(pure_text, Some(&db)).unwrap();
+    assert_eq!(segments_pure.len(), 1);
+
+    // Bloco de código padrão não-suportado (ex: rust) deve permanecer como texto
+    let code_rust = "# Código\n\n```rust\nfn main() {}\n```\n\nContinuação.";
+    let segments_rust = PreviewEngine::parse_preview_segments(code_rust, Some(&db)).unwrap();
+    assert_eq!(segments_rust.len(), 1);
+    match &segments_rust[0] {
+        PreviewSegment::Text(t) => assert!(t.contains("```rust\nfn main() {}\n```")),
+        _ => panic!("Bloco rust deve permanecer como texto"),
+    }
+
+    // Bloco d2 suportado
+    let code_d2 = "# Diagrama\n\n```d2\nx -> y\n```";
+    let segments_d2 = PreviewEngine::parse_preview_segments(code_d2, Some(&db)).unwrap();
+    assert_eq!(segments_d2.len(), 2);
+    match &segments_d2[1] {
+        PreviewSegment::SvgBlock { engine, svg } => {
+            assert_eq!(engine, "d2");
+            assert!(svg.contains("<svg"));
+        }
+        _ => panic!("Bloco d2 deve ser convertido em SvgBlock"),
+    }
+}
+
+#[test]
 fn test_compile_markdown_to_pdf_and_export() {
     let tmp = TempDir::new().unwrap();
     let note_path = tmp.path().join("genetica.md");
@@ -84,4 +115,12 @@ fn test_compile_markdown_to_pdf_and_export() {
 
     let disk_bytes = fs::read(&exported_pdf).unwrap();
     assert!(disk_bytes.starts_with(b"%PDF-"));
+
+    // Template ABNT
+    let pdf_abnt = PreviewEngine::compile_markdown_to_pdf(markdown, Some("abnt")).unwrap();
+    assert!(pdf_abnt.starts_with(b"%PDF-"));
+
+    // Erro em markdown vazio
+    let err_empty = PreviewEngine::compile_markdown_to_pdf("", None);
+    assert!(err_empty.is_err());
 }
