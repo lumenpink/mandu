@@ -251,17 +251,27 @@ pub fn resolve_vault_and_file(
         std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
     });
 
-    let file = file_arg.or_else(|| {
-        let indice = vault.join("indice.md");
-        if indice.is_file() {
-            return Some(indice);
-        }
-        let readme = vault.join("README.md");
-        if readme.is_file() {
-            return Some(readme);
-        }
-        None
-    });
+    let file = file_arg
+        .map(|f| {
+            if f.is_relative() && !f.exists() {
+                let candidate = vault.join(&f);
+                if candidate.exists() {
+                    return candidate;
+                }
+            }
+            f
+        })
+        .or_else(|| {
+            let indice = vault.join("indice.md");
+            if indice.is_file() {
+                return Some(indice);
+            }
+            let readme = vault.join("README.md");
+            if readme.is_file() {
+                return Some(readme);
+            }
+            None
+        });
 
     (vault, file)
 }
