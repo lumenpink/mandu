@@ -321,6 +321,11 @@ pub fn apply_heading_numbering(content: &str) -> String {
     let mut h2 = 0;
     let mut h3 = 0;
 
+    #[inline]
+    fn starts_with_number(s: &str) -> bool {
+        s.chars().next().is_some_and(|c| c.is_ascii_digit())
+    }
+
     for line in content.lines() {
         let trimmed = line.trim_start();
         if trimmed.starts_with("```") {
@@ -338,7 +343,7 @@ pub fn apply_heading_numbering(content: &str) -> String {
             let rest_trimmed = rest.trim();
             h3 += 1;
             let prefix = format!("{h1}.{h2}.{h3}. ");
-            let new_heading = if rest_trimmed.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+            let new_heading = if starts_with_number(rest_trimmed) {
                 format!("### {rest_trimmed}")
             } else {
                 format!("### {prefix}{rest_trimmed}")
@@ -349,7 +354,7 @@ pub fn apply_heading_numbering(content: &str) -> String {
             h2 += 1;
             h3 = 0;
             let prefix = format!("{h1}.{h2}. ");
-            let new_heading = if rest_trimmed.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+            let new_heading = if starts_with_number(rest_trimmed) {
                 format!("## {rest_trimmed}")
             } else {
                 format!("## {prefix}{rest_trimmed}")
@@ -361,7 +366,7 @@ pub fn apply_heading_numbering(content: &str) -> String {
             h2 = 0;
             h3 = 0;
             let prefix = format!("{h1}. ");
-            let new_heading = if rest_trimmed.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+            let new_heading = if starts_with_number(rest_trimmed) {
                 format!("# {rest_trimmed}")
             } else {
                 format!("# {prefix}{rest_trimmed}")
