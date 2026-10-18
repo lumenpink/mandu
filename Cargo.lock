@@ -3461,10 +3461,12 @@ name = "mandu-gui"
 version = "0.1.0-dev.1"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "eframe",
  "egui",
  "mandu-core",
+ "tempfile",
 ]
 
 [[package]]

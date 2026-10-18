@@ -183,10 +183,9 @@ Texto final.
 
     // Executar frame egui completo para validar que a renderização com modal e preview não causa pânico
     let output = ctx.run(raw_input, |ctx| {
-        use eframe::App;
-        let mut frame = eframe::Frame::default();
-        app.update(ctx, &mut frame);
+        app.render_ui(ctx);
     });
 
     assert!(!output.shapes.is_empty(), "deve gerar formas visuais no egui");
 }
+
