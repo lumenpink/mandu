@@ -189,3 +189,66 @@ Texto final.
     assert!(!output.shapes.is_empty(), "deve gerar formas visuais no egui");
 }
 
+#[test]
+fn test_gui_edge_cases_nonexistent_paths_and_empty_search() {
+    use std::path::PathBuf;
+
+    // Inicialização com caminhos inexistentes não deve causar pânico
+    let mut app = ManduApp::new_with_vault(
+        Some(PathBuf::from("/nonexistent/vault_path")),
+        Some(PathBuf::from("/nonexistent/file.md")),
+    );
+
+    assert_eq!(app.search.all_items.len(), 0);
+    assert_eq!(app.state.word_count, 0);
+    assert_eq!(app.state.backlink_count, 0);
+
+    // Busca vazia em lista vazia
+    app.search_notes("");
+    assert_eq!(app.search.results.len(), 0);
+
+    // Busca sem correspondência
+    app.search_notes("xyz_inexistente_123");
+    assert_eq!(app.search.results.len(), 0);
+
+    // Navegação em resultados vazios
+    let ctx = Context::default();
+    app.state.is_search_open = true;
+    let mut input = RawInput::default();
+    input.events.push(Event::Key {
+        key: Key::ArrowDown,
+        physical_key: None,
+        pressed: true,
+        repeat: false,
+        modifiers: Modifiers::NONE,
+    });
+    input.events.push(Event::Key {
+        key: Key::Enter,
+        physical_key: None,
+        pressed: true,
+        repeat: false,
+        modifiers: Modifiers::NONE,
+    });
+    let _ = ctx.run(input, |ctx| {
+        app.handle_shortcuts(ctx);
+    });
+    assert_eq!(app.search.selected_index, 0);
+}
+
+#[test]
+fn test_gui_edge_cases_export_and_saving_without_file() {
+    let mut app = ManduApp::default();
+    app.state.buffer = "# Nota em Memória\n\nConteúdo sem arquivo no disco.".to_string();
+    app.is_dirty = true;
+
+    // Salvar sem arquivo associado
+    app.save_current_note();
+    assert!(!app.is_dirty);
+    assert!(app.state.status_message.as_deref().unwrap_or("").contains("salva"));
+
+    // Exportar sem arquivo associado
+    app.export_current_note_pdf();
+    assert!(app.state.status_message.as_deref().unwrap_or("").contains("Joaju"));
+}
+
+
