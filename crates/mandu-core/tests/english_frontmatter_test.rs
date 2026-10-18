@@ -92,3 +92,25 @@ numerar_titulos: true
     assert!(m_l.number_headings);
     assert_eq!(body_l.trim(), "# Corpo");
 }
+
+#[test]
+fn test_linter_mutation_whitespace_and_comments() {
+    // Espaços antes/depois do dois pontos
+    let weird_spacing = "---\ntitle: Espaçado\nmodified  :   2020-01-01T00:00:00Z\n---\nCorpo.";
+    let res = Linter::apply_save_hooks(weird_spacing, "2026-10-18T19:25:00Z");
+    assert!(res.contains("modified: 2026-10-18T19:25:00Z\n"));
+    assert!(!res.contains("2020-01-01"));
+
+    // Frontmatter vazio delimitado
+    let empty_block = "---\n---\nCorpo da nota";
+    let res_empty = Linter::apply_save_hooks(empty_block, "2026-10-18T19:26:00Z");
+    assert!(res_empty.contains("modified: 2026-10-18T19:26:00Z\n"));
+    assert!(res_empty.ends_with("Corpo da nota\n"));
+
+    // Frontmatter com apenas comentários
+    let comment_block = "---\n# Isto é um comentário YAML\n---\nTexto.";
+    let res_comment = Linter::apply_save_hooks(comment_block, "2026-10-18T19:27:00Z");
+    assert!(res_comment.contains("modified: 2026-10-18T19:27:00Z\n"));
+    assert!(res_comment.contains("# Isto é um comentário YAML"));
+}
+
