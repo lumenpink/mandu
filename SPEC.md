@@ -130,14 +130,15 @@ Para garantir 60/120 FPS no preview sem recompilar diagramas inalterados a cada 
 * Calcula o hash **BLAKE3** do conteúdo do bloco + diretivas (`%% layout.width=...`).
 * Se o hash existir na tabela `joaju_block_cache`, o SVG já renderizado é retornado em **0 ms**. Apenas os blocos modificados acionam os motores do Joaju.
 
-## 3.4. Hooks de Salvamento e Operações Nativas de Cofre
+## 3.4. Hooks de Salvamento, Gramática Canônica e Operações Nativas de Cofre
 
 Executados automaticamente na chamada `vault::save_note()`, eliminando plugins externos:
-* **Auto-Update Modified Date:** Compara o hash BLAKE3 do buffer atual com o salvo no disco; se houver mudança real, atualiza a chave `modified` / `atualizado` no YAML Frontmatter antes de persistir.
-* **Linter Nativo:** Normaliza a formatação do YAML Frontmatter, remove *trailing spaces*, garante quebra de linha única ao final do arquivo (POSIX) e padroniza espaçamento de títulos e blocos matemáticos.
-* **Title Indexer:** Sincroniza títulos e numeração progressiva quando exigido pelo perfil da nota.
-* **Compositor de Notas (Extract / Split):** Comando nativo que move o bloco de texto selecionado no editor para um novo arquivo `.md`, populando o cabeçalho YAML padrão e substituindo o trecho original pelo `[[link]]` correspondente.
-* **Gerador de Notas (Zettelkasten / Diárias / Modelos):** Criação instantânea de notas com prefixo de timestamp (`YYYYMMDDHHmm`), abertura da nota diária (`YYYY-MM-DD.md`) e aplicação de templates da pasta de modelos.
+* **Gramática Canônica em Inglês:** O YAML Frontmatter utiliza universalmente chaves em inglês: `title`, `type` (`note`, `daily`, `reference`), `modified`, `tags`, `number_headings`, `numbering`, `origin` e `date`. O parser preserva tolerância retroativa a arquivos legados, mas todos os geradores e hooks produzem exclusivamente chaves em inglês.
+* **Auto-Update Modified Date:** Atualiza ou insere deterministicamente a chave canônica `modified: <timestamp>` no YAML Frontmatter antes de persistir em disco.
+* **Linter Nativo POSIX:** Normaliza quebras de linha CRLF para `\n` e assegura terminação estrita com quebra final única.
+* **Numeração Automática Não-Destrutiva de Títulos:** Quando configurado com `number_headings: true` ou `numbering: "1.1"`, o Mandu mantém o texto-fonte limpo em Markdown padrão (`# Título`) e calcula a hierarquia dinâmica (`1.`, `1.1.`, `1.1.1.`) na camada de apresentação (Preview e Typst PDF), isolando comentários e blocos de código cercados.
+* **Compositor de Notas (Extract / Split):** Comando nativo que move o bloco selecionado para um novo arquivo `.md`, gerando cabeçalho com `title`, `origin` e `type: note`, e substituindo o trecho original pelo `[[link]]` correspondente.
+* **Gerador de Notas (Zettelkasten / Diárias / Modelos):** Criação instantânea com `id`, `date: YYYY-MM-DD`, `type: daily`/`type: note` e esqueleto estruturado.
 
 ---
 
