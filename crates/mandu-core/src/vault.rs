@@ -237,3 +237,31 @@ pub fn extract_to_new_note(
 
     Ok((updated_source, new_note))
 }
+
+/// Resolve a raiz do cofre e a nota inicial de forma determinística e zero-config.
+///
+/// Se `vault_arg` for `None`, utiliza o diretório de trabalho atual (`std::env::current_dir()`).
+/// Se `file_arg` for `None`, busca sequencialmente por `indice.md` ou `README.md` na raiz do cofre.
+#[must_use]
+pub fn resolve_vault_and_file(
+    vault_arg: Option<PathBuf>,
+    file_arg: Option<PathBuf>,
+) -> (PathBuf, Option<PathBuf>) {
+    let vault = vault_arg.unwrap_or_else(|| {
+        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
+    });
+
+    let file = file_arg.or_else(|| {
+        let indice = vault.join("indice.md");
+        if indice.is_file() {
+            return Some(indice);
+        }
+        let readme = vault.join("README.md");
+        if readme.is_file() {
+            return Some(readme);
+        }
+        None
+    });
+
+    (vault, file)
+}

@@ -20,10 +20,11 @@ struct Args {
 
 fn main() -> eframe::Result<()> {
     let args = Args::parse();
+    let (vault, file) = mandu_core::vault::resolve_vault_and_file(args.vault, args.file);
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
         "Mandu",
         native_options,
-        Box::new(move |_cc| Ok(Box::new(ManduApp::new_with_vault(args.vault, args.file)))),
+        Box::new(move |_cc| Ok(Box::new(ManduApp::new_with_vault(Some(vault), file)))),
     )
 }

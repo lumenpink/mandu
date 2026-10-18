@@ -19,5 +19,6 @@ struct Args {
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    mandu_tui::run(args.vault, args.file)
+    let (vault, file) = mandu_core::vault::resolve_vault_and_file(args.vault, args.file);
+    mandu_tui::run(Some(vault), file)
 }
