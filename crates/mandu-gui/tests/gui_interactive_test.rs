@@ -1,7 +1,7 @@
 use egui::{Context, Event, Key, Modifiers, RawInput};
-use mandu_core::preview::PreviewSegment;
 use mandu_gui::{GuiViewMode, ManduApp};
 use std::fs;
+
 use tempfile::tempdir;
 
 #[test]
