@@ -53,5 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modal flutuante de espreitar página/fichamento (Peek via `Ctrl+P`) implementado tanto no `mandu-tui` quanto no `mandu-gui` para visualização rápida de contexto sem perder a posição do cursor.
 - Extração determinística de referências e wikilinks sob o cursor compartilhada via helper unificado `extract_peek_target` no `mandu-core`.
 - Mecanismo de escape hatch (`Ctrl+E`) no `mandu-tui` com suspensão segura do terminal via raw mode do crossterm e transição transparente para o editor configurado em `$EDITOR` ou `nano`.
+- Resolução automática zero-config do cofre padrão para o diretório de trabalho atual (`.`) quando `--vault` for omitido em ambos os executáveis `mandu-tui` e `mandu-gui`.
+- Abertura automática inteligente do ponto de entrada inicial (`indice.md` ou `README.md`) quando nenhum arquivo for passado na linha de comando.
+- Resolução dinâmica de caminhos de arquivos relativos informados em relação à raiz do cofre.
 
 
