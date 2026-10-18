@@ -65,12 +65,15 @@ fn update_or_insert_modified(fm_content: &str, timestamp: &str) -> String {
 
     for line in fm_content.lines() {
         let trimmed = line.trim_start();
-        if trimmed.starts_with("modificado:") || trimmed.starts_with("modified:") {
-            lines.push(format!("modified: {timestamp}"));
-            found = true;
-        } else {
-            lines.push(line.to_string());
+        if let Some((key, _)) = trimmed.split_once(':') {
+            let k = key.trim();
+            if k == "modified" || k == "modificado" {
+                lines.push(format!("modified: {timestamp}"));
+                found = true;
+                continue;
+            }
         }
+        lines.push(line.to_string());
     }
 
     if !found {
