@@ -59,5 +59,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renderização dinâmica em tempo real do conteúdo formatado do Markdown e blocos Joaju/Typst no painel de visualização (Split e Leitura) no terminal e na interface gráfica.
 - Navegação direta para notas e referências bibliográficas sob o cursor com o atalho `Ctrl+G` ("Go to link") no `mandu-tui` e `mandu-gui`.
 - Ação imediata de abertura de notas no editor a partir da janela suspensa de Peek (`Ctrl+P`) pressionando a tecla `Enter`.
+- Quebra automática de linha (*soft wrap*) no painel esquerdo de edição do terminal (`mandu-tui`) com `ratatui-textarea` e Ratatui 0.30 (`WrapMode::WordOrGlyph`), adaptando linhas longas à largura da janela sem mutar o texto subjacente.
+- Renderização tipográfica rica no painel de visualização do `mandu-tui` e `mandu-gui`, substituindo o frontmatter bruto por cabeçalho/badge estilizado de metadados e colorindo com destaque links internos (`[[...]]`) e citações acadêmicas (`@citekey`).
+- Numeração automática hierárquica de títulos (`# 1.`, `## 1.1.`, `### 1.1.1.`) configurável no Frontmatter (`numerar_titulos: true` ou `numbering: "1.1"`), preservando blocos de código e integrando à compilação Typst em PDF.
 
 
