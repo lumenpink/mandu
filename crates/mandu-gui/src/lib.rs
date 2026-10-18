@@ -138,7 +138,6 @@ impl ManduApp {
         }
     }
 
-
     pub fn save_current_note(&mut self) {
         let content = &self.state.buffer;
         let timestamp = chrono::Utc::now().to_rfc3339();
@@ -182,8 +181,7 @@ impl ManduApp {
             let _ = std::fs::write(&path, &self.state.buffer);
             match PreviewEngine::export_note_to_pdf(&path, None) {
                 Ok(_) => {
-                    self.state.status_message =
-                        Some("Documento exportado via Joaju".to_string());
+                    self.state.status_message = Some("Documento exportado via Joaju".to_string());
                 }
                 Err(e) => {
                     self.state.status_message = Some(format!("Erro ao exportar PDF: {e}"));
@@ -193,7 +191,6 @@ impl ManduApp {
             self.state.status_message = Some("Documento exportado via Joaju".to_string());
         }
     }
-
 
     pub fn search_notes(&mut self, query: &str) {
         self.search.query = query.to_string();
@@ -300,32 +297,29 @@ impl ManduApp {
 
                 ui.separator();
 
-                egui::ScrollArea::vertical().max_height(200.0).show(ui, |ui| {
-                    let mut chosen_path = None;
-                    for (idx, item) in self.search.results.iter().enumerate() {
-                        let is_selected = idx == self.search.selected_index;
-                        let file_label = item
-                            .path
-                            .file_name()
-                            .and_then(|f| f.to_str())
-                            .unwrap_or("");
-                        let label_text = format!("📄 {} ({file_label})", item.title);
-                        if ui.selectable_label(is_selected, label_text).clicked() {
-                            self.search.selected_index = idx;
-                            chosen_path = Some(item.path.clone());
+                egui::ScrollArea::vertical()
+                    .max_height(200.0)
+                    .show(ui, |ui| {
+                        let mut chosen_path = None;
+                        for (idx, item) in self.search.results.iter().enumerate() {
+                            let is_selected = idx == self.search.selected_index;
+                            let file_label =
+                                item.path.file_name().and_then(|f| f.to_str()).unwrap_or("");
+                            let label_text = format!("📄 {} ({file_label})", item.title);
+                            if ui.selectable_label(is_selected, label_text).clicked() {
+                                self.search.selected_index = idx;
+                                chosen_path = Some(item.path.clone());
+                            }
                         }
-                    }
-                    if let Some(path) = chosen_path {
-                        self.open_note(path);
-                        self.state.is_search_open = false;
-                    }
-                });
+                        if let Some(path) = chosen_path {
+                            self.open_note(path);
+                            self.state.is_search_open = false;
+                        }
+                    });
 
                 ui.separator();
                 ui.horizontal(|ui| {
-                    if ui.button("Abrir (Enter)").clicked()
-                        && !self.search.results.is_empty()
-                    {
+                    if ui.button("Abrir (Enter)").clicked() && !self.search.results.is_empty() {
                         if let Some(item) = self.search.results.get(self.search.selected_index) {
                             let path = item.path.clone();
                             self.open_note(path);
@@ -420,4 +414,3 @@ fn resolve_backlinks(db: Option<&ManduDb>, path: &std::path::Path) -> usize {
         0
     }
 }
-

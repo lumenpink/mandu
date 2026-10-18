@@ -22,11 +22,15 @@ fn test_gui_interactive_search_modal_and_open_note() {
     )
     .expect("write note2");
 
-    let mut app = ManduApp::new_with_vault(Some(dir.path().to_path_buf()), Some(note1_path.clone()));
+    let mut app =
+        ManduApp::new_with_vault(Some(dir.path().to_path_buf()), Some(note1_path.clone()));
 
     assert_eq!(app.search.all_items.len(), 2);
     assert!(!app.state.is_search_open);
-    assert_eq!(app.state.current_file, Some(note1_path.to_string_lossy().to_string()));
+    assert_eq!(
+        app.state.current_file,
+        Some(note1_path.to_string_lossy().to_string())
+    );
 
     // Abrir modal de busca e pesquisar "beta"
     app.state.is_search_open = true;
@@ -61,19 +65,31 @@ fn test_gui_interactive_save_with_linter_and_dirty_flag() {
     let mut app = ManduApp::new_with_vault(Some(dir.path().to_path_buf()), Some(note_path.clone()));
 
     // Modificar buffer
-    app.state.buffer = "---\ntitulo: Modificado\n---\nNovo conteudo editado sem quebra final".to_string();
+    app.state.buffer =
+        "---\ntitulo: Modificado\n---\nNovo conteudo editado sem quebra final".to_string();
     app.is_dirty = true;
 
     // Salvar nota
     app.save_current_note();
 
     assert!(!app.is_dirty);
-    assert!(app.state.status_message.as_deref().unwrap_or("").contains("salva"));
+    assert!(app
+        .state
+        .status_message
+        .as_deref()
+        .unwrap_or("")
+        .contains("salva"));
 
     let saved_content = fs::read_to_string(&note_path).expect("read saved");
-    assert!(saved_content.ends_with('\n'), "deve terminar com quebra POSIX");
+    assert!(
+        saved_content.ends_with('\n'),
+        "deve terminar com quebra POSIX"
+    );
     assert!(!saved_content.contains("\r\n"), "nao deve conter CRLF");
-    assert!(saved_content.contains("modificado:"), "deve injetar campo modificado no frontmatter");
+    assert!(
+        saved_content.contains("modificado:"),
+        "deve injetar campo modificado no frontmatter"
+    );
 }
 
 #[test]
@@ -92,9 +108,24 @@ fn test_gui_interactive_export_pdf_via_joaju() {
     app.export_current_note_pdf();
 
     let pdf_path = dir.path().join("artigo.pdf");
-    assert!(pdf_path.exists(), "arquivo PDF deve ser gerado pelo PreviewEngine");
+    assert!(
+        pdf_path.exists(),
+        "arquivo PDF deve ser gerado pelo PreviewEngine"
+    );
     assert!(fs::metadata(&pdf_path).expect("meta").len() > 0);
-    assert!(app.state.status_message.as_deref().unwrap_or("").contains("PDF") || app.state.status_message.as_deref().unwrap_or("").contains("exportado"));
+    assert!(
+        app.state
+            .status_message
+            .as_deref()
+            .unwrap_or("")
+            .contains("PDF")
+            || app
+                .state
+                .status_message
+                .as_deref()
+                .unwrap_or("")
+                .contains("exportado")
+    );
 }
 
 #[test]
@@ -136,8 +167,18 @@ fn test_gui_shortcuts_handling_and_no_fkeys() {
 
     // Teclas F1 a F12 NÃO alteram modo nem fecham busca
     for fkey in [
-        Key::F1, Key::F2, Key::F3, Key::F4, Key::F5, Key::F6,
-        Key::F7, Key::F8, Key::F9, Key::F10, Key::F11, Key::F12,
+        Key::F1,
+        Key::F2,
+        Key::F3,
+        Key::F4,
+        Key::F5,
+        Key::F6,
+        Key::F7,
+        Key::F8,
+        Key::F9,
+        Key::F10,
+        Key::F11,
+        Key::F12,
     ] {
         let mut input = RawInput::default();
         input.events.push(Event::Key {
@@ -150,8 +191,15 @@ fn test_gui_shortcuts_handling_and_no_fkeys() {
         let _ = ctx.run(input, |ctx| {
             app.handle_shortcuts(ctx);
         });
-        assert_eq!(app.state.mode, GuiViewMode::Preview, "F-key nao deve alterar modo");
-        assert!(app.state.is_search_open, "F-key nao deve alterar estado de busca");
+        assert_eq!(
+            app.state.mode,
+            GuiViewMode::Preview,
+            "F-key nao deve alterar modo"
+        );
+        assert!(
+            app.state.is_search_open,
+            "F-key nao deve alterar estado de busca"
+        );
     }
 }
 
@@ -186,7 +234,10 @@ Texto final.
         app.render_ui(ctx);
     });
 
-    assert!(!output.shapes.is_empty(), "deve gerar formas visuais no egui");
+    assert!(
+        !output.shapes.is_empty(),
+        "deve gerar formas visuais no egui"
+    );
 }
 
 #[test]
@@ -244,11 +295,19 @@ fn test_gui_edge_cases_export_and_saving_without_file() {
     // Salvar sem arquivo associado
     app.save_current_note();
     assert!(!app.is_dirty);
-    assert!(app.state.status_message.as_deref().unwrap_or("").contains("salva"));
+    assert!(app
+        .state
+        .status_message
+        .as_deref()
+        .unwrap_or("")
+        .contains("salva"));
 
     // Exportar sem arquivo associado
     app.export_current_note_pdf();
-    assert!(app.state.status_message.as_deref().unwrap_or("").contains("Joaju"));
+    assert!(app
+        .state
+        .status_message
+        .as_deref()
+        .unwrap_or("")
+        .contains("Joaju"));
 }
-
-
