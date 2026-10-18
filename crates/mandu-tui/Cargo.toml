@@ -10,9 +10,9 @@ description = "Interface de Terminal (Ratatui) para o Mandu"
 
 [dependencies]
 mandu-core = { path = "../mandu-core" }
-ratatui = "0.29"
-crossterm = "0.28"
-tui-textarea = "0.7"
+ratatui = "0.30"
+crossterm = "0.29"
+ratatui-textarea = "0.9"
 clap = { version = "4.5", features = ["derive"] }
 anyhow = "1.0"
 chrono = "0.4"

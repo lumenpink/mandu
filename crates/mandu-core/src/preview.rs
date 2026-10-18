@@ -112,7 +112,27 @@ impl PreviewEngine {
         markdown: &str,
         template: Option<&str>,
     ) -> Result<Vec<u8>, PreviewError> {
-        joaju::compiler::compile_markdown_to_pdf_with_options(markdown, template)
+        let (fm, _) = crate::vault::Vault::extract_frontmatter(markdown);
+        let number_headings = fm.as_ref().is_some_and(|val| {
+            val.get("numerar_titulos")
+                .or_else(|| val.get("number_headings"))
+                .and_then(serde_yaml::Value::as_bool)
+                .unwrap_or_else(|| {
+                    val.get("numbering")
+                        .or_else(|| val.get("numeracao"))
+                        .is_some_and(|v| {
+                            v.as_str().is_some_and(|s| !s.is_empty()) || v.as_bool().unwrap_or(false)
+                        })
+                })
+        });
+
+        let final_markdown = if number_headings && !markdown.contains("#set heading") {
+            format!("```typst\n#set heading(numbering: \"1.1\")\n```\n\n{markdown}")
+        } else {
+            markdown.to_string()
+        };
+
+        joaju::compiler::compile_markdown_to_pdf_with_options(&final_markdown, template)
             .map_err(PreviewError::RenderError)
     }
 

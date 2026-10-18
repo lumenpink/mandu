@@ -208,17 +208,137 @@ fn render_peek_modal(app: &TuiApp, frame: &mut Frame) {
     }
 }
 
+fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    let mut rest = line;
+
+    while !rest.is_empty() {
+        if let Some(start) = rest.find("[[") {
+            if let Some(end) = rest[start..].find("]]") {
+                if start > 0 {
+                    spans.push(Span::styled(
+                        rest[..start].to_string(),
+                        Style::default().fg(Color::Rgb(220, 220, 225)),
+                    ));
+                }
+                let link_text = &rest[start..start + end + 2];
+                let display = if let Some(pipe) = link_text.find('|') {
+                    format!("🔗 {}", link_text[pipe + 1..link_text.len() - 2].trim())
+                } else {
+                    format!("🔗 {}", link_text[2..link_text.len() - 2].trim())
+                };
+                spans.push(Span::styled(
+                    display,
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::UNDERLINED),
+                ));
+                rest = &rest[start + end + 2..];
+                continue;
+            }
+        }
+
+        if let Some(start) = rest.find('@') {
+            if start == 0
+                || rest[..start].ends_with(|c: char| {
+                    c.is_whitespace() || c == '(' || c == '[' || c == '{'
+                })
+            {
+                if start > 0 {
+                    spans.push(Span::styled(
+                        rest[..start].to_string(),
+                        Style::default().fg(Color::Rgb(220, 220, 225)),
+                    ));
+                }
+                let after = &rest[start..];
+                let end = after
+                    .find(|c: char| {
+                        c.is_whitespace()
+                            || c == ','
+                            || c == '.'
+                            || c == ')'
+                            || c == ']'
+                            || c == ';'
+                    })
+                    .unwrap_or(after.len());
+                let cite = &after[..end];
+                spans.push(Span::styled(
+                    cite.to_string(),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ));
+                rest = &after[end..];
+                continue;
+            }
+        }
+
+        spans.push(Span::styled(
+            rest.to_string(),
+            Style::default().fg(Color::Rgb(220, 220, 225)),
+        ));
+        break;
+    }
+
+    if spans.is_empty() {
+        spans.push(Span::styled(
+            line.to_string(),
+            Style::default().fg(Color::Rgb(220, 220, 225)),
+        ));
+    }
+
+    spans
+}
+
 fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
     let mut lines = Vec::new();
+    let (meta_opt, raw_body) = mandu_core::vault::Vault::extract_metadata(text);
+
+    let number_headings = meta_opt.as_ref().map_or(false, |m| m.number_headings);
+
+    if let Some(ref meta) = meta_opt {
+        let mut meta_spans = vec![Span::styled(" [ 📑 ", Style::default().fg(Color::Cyan))];
+        if let Some(ref t) = meta.title {
+            meta_spans.push(Span::styled(
+                t.clone(),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ));
+        }
+        if !meta.tags.is_empty() {
+            meta_spans.push(Span::styled(" | 🏷 ", Style::default().fg(Color::Yellow)));
+            meta_spans.push(Span::styled(
+                meta.tags.join(", "),
+                Style::default().fg(Color::LightYellow),
+            ));
+        }
+        if number_headings {
+            meta_spans.push(Span::styled(
+                " | 🔢 1.1 ",
+                Style::default().fg(Color::Green),
+            ));
+        }
+        meta_spans.push(Span::styled(" ]", Style::default().fg(Color::Cyan)));
+        lines.push(Line::from(meta_spans));
+        lines.push(Line::from(""));
+    }
+
+    let processed_body = if number_headings {
+        mandu_core::vault::apply_heading_numbering(raw_body)
+    } else {
+        raw_body.to_string()
+    };
+
     let mut in_code_block = false;
 
-    for line in text.lines() {
+    for line in processed_body.lines() {
         let trimmed = line.trim_start();
         if trimmed.starts_with("```") {
             if in_code_block {
                 in_code_block = false;
                 lines.push(Line::from(vec![Span::styled(
-                    "└──────────────────────────────────",
+                    "└──────────────────────────────────────────",
                     Style::default().fg(Color::DarkGray),
                 )]));
             } else {
@@ -230,7 +350,7 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
                     code_engine
                 };
                 lines.push(Line::from(vec![Span::styled(
-                    format!("┌── Bloco [{label}] ────────────────"),
+                    format!("┌── Bloco [{label}] ────────────────────────"),
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
@@ -242,55 +362,82 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
         if in_code_block {
             lines.push(Line::from(vec![
                 Span::styled("│ ", Style::default().fg(Color::DarkGray)),
-                Span::styled(line, Style::default().fg(Color::Yellow)),
+                Span::styled(line.to_string(), Style::default().fg(Color::Yellow)),
             ]));
             continue;
         }
 
-        if trimmed.starts_with("# ") {
-            lines.push(Line::from(vec![Span::styled(
-                line,
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            )]));
-        } else if trimmed.starts_with("## ") {
-            lines.push(Line::from(vec![Span::styled(
-                line,
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::BOLD),
-            )]));
-        } else if trimmed.starts_with("### ") {
-            lines.push(Line::from(vec![Span::styled(
-                line,
-                Style::default()
-                    .fg(Color::Magenta)
-                    .add_modifier(Modifier::BOLD),
-            )]));
-        } else if let Some(stripped) = trimmed.strip_prefix('>') {
+        if let Some(stripped) = trimmed.strip_prefix("# ") {
             lines.push(Line::from(vec![
-                Span::styled("▍ ", Style::default().fg(Color::LightYellow)),
                 Span::styled(
-                    stripped,
+                    "▌ ",
                     Style::default()
-                        .fg(Color::Gray)
-                        .add_modifier(Modifier::ITALIC),
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
+        } else if let Some(stripped) = trimmed.strip_prefix("## ") {
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▍ ",
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                ),
+            ]));
+        } else if let Some(stripped) = trimmed.strip_prefix("### ") {
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▎ ",
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
+                ),
+            ]));
+        } else if let Some(stripped) = trimmed.strip_prefix('>') {
+            let mut quote_spans = vec![Span::styled(
+                "▍ ",
+                Style::default().fg(Color::LightYellow),
+            )];
+            quote_spans.push(Span::styled(
+                stripped.to_string(),
+                Style::default()
+                    .fg(Color::Gray)
+                    .add_modifier(Modifier::ITALIC),
+            ));
+            lines.push(Line::from(quote_spans));
         } else if let Some(stripped) = trimmed
             .strip_prefix("- ")
             .or_else(|| trimmed.strip_prefix("* "))
         {
-            lines.push(Line::from(vec![
-                Span::styled("  • ", Style::default().fg(Color::Cyan)),
-                Span::styled(stripped, Style::default().fg(Color::White)),
-            ]));
-        } else {
+            let mut list_spans = vec![Span::styled("  • ", Style::default().fg(Color::Cyan))];
+            list_spans.extend(parse_inline_spans(stripped));
+            lines.push(Line::from(list_spans));
+        } else if trimmed == "---" || trimmed == "***" || trimmed == "___" {
             lines.push(Line::from(vec![Span::styled(
-                line,
-                Style::default().fg(Color::Rgb(220, 220, 225)),
+                "──────────────────────────────────────────",
+                Style::default().fg(Color::DarkGray),
             )]));
+        } else {
+            lines.push(Line::from(parse_inline_spans(line)));
         }
     }
 

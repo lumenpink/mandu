@@ -83,19 +83,97 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
         egui::ScrollArea::vertical().show(ui, |ui| {
             if let Some(ref svg) = state.preview_svg {
                 ui.label(format!("Bloco SVG ({}) bytes", svg.len()));
-            } else if let Ok(segments) =
-                mandu_core::preview::PreviewEngine::parse_preview_segments(&state.buffer, None)
+                return;
+            }
+
+            let (meta_opt, raw_body) = mandu_core::vault::Vault::extract_metadata(&state.buffer);
+            let number_headings = meta_opt.as_ref().map_or(false, |m| m.number_headings);
+
+            if let Some(ref meta) = meta_opt {
+                egui::Frame::group(ui.style()).show(ui, |ui| {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(
+                            egui::RichText::new("📑").color(egui::Color32::from_rgb(100, 200, 250)),
+                        );
+                        if let Some(ref t) = meta.title {
+                            ui.label(egui::RichText::new(t).strong());
+                        }
+                        if !meta.tags.is_empty() {
+                            ui.label(
+                                egui::RichText::new(format!("🏷 {}", meta.tags.join(", ")))
+                                    .color(egui::Color32::from_rgb(220, 200, 100)),
+                            );
+                        }
+                        if number_headings {
+                            ui.label(
+                                egui::RichText::new("🔢 Numeração 1.1")
+                                    .color(egui::Color32::from_rgb(120, 220, 120)),
+                            );
+                        }
+                    });
+                });
+                ui.add_space(6.0);
+            }
+
+            let processed = if number_headings {
+                mandu_core::vault::apply_heading_numbering(raw_body)
+            } else {
+                raw_body.to_string()
+            };
+
+            if let Ok(segments) =
+                mandu_core::preview::PreviewEngine::parse_preview_segments(&processed, None)
             {
                 for segment in segments {
                     match segment {
                         mandu_core::preview::PreviewSegment::Text(text) => {
-                            ui.label(text);
+                            for line in text.lines() {
+                                let trimmed = line.trim_start();
+                                if let Some(stripped) = trimmed.strip_prefix("# ") {
+                                    ui.label(
+                                        egui::RichText::new(stripped)
+                                            .size(20.0)
+                                            .strong()
+                                            .color(egui::Color32::from_rgb(100, 200, 250)),
+                                    );
+                                } else if let Some(stripped) = trimmed.strip_prefix("## ") {
+                                    ui.label(
+                                        egui::RichText::new(stripped)
+                                            .size(16.0)
+                                            .strong()
+                                            .color(egui::Color32::from_rgb(120, 220, 150)),
+                                    );
+                                } else if let Some(stripped) = trimmed.strip_prefix("### ") {
+                                    ui.label(
+                                        egui::RichText::new(stripped)
+                                            .size(14.0)
+                                            .strong()
+                                            .color(egui::Color32::from_rgb(200, 150, 230)),
+                                    );
+                                } else if let Some(stripped) = trimmed.strip_prefix('>') {
+                                    ui.label(
+                                        egui::RichText::new(format!("▍ {stripped}"))
+                                            .italics()
+                                            .color(egui::Color32::from_rgb(200, 200, 160)),
+                                    );
+                                } else if let Some(stripped) = trimmed
+                                    .strip_prefix("- ")
+                                    .or_else(|| trimmed.strip_prefix("* "))
+                                {
+                                    ui.label(format!("  • {stripped}"));
+                                } else if trimmed == "---" {
+                                    ui.separator();
+                                } else {
+                                    ui.label(line);
+                                }
+                            }
                         }
                         mandu_core::preview::PreviewSegment::SvgBlock { engine, svg } => {
                             egui::Frame::group(ui.style()).show(ui, |ui| {
                                 ui.label(
                                     egui::RichText::new(format!("📊 Bloco Joaju [{engine}]"))
-                                        .strong(),
+                                        .strong()
+                                        .color(egui::Color32::from_rgb(100, 220, 250)),
                                 );
                                 ui.label(format!("Bloco SVG ({}) bytes", svg.len()));
                             });
@@ -103,7 +181,7 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                     }
                 }
             } else {
-                ui.label(&state.buffer);
+                ui.label(&processed);
             }
         });
     });

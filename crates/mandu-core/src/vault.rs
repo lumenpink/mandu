@@ -26,6 +26,7 @@ pub struct Note {
     pub word_count: usize,
     pub modified_at: Option<String>,
     pub tags: Vec<String>,
+    pub number_headings: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -84,44 +85,19 @@ impl Vault {
             .unwrap_or("Sem título")
             .to_string();
 
-        let (frontmatter_value, body) = Self::extract_frontmatter(content);
+        let (metadata, body) = Self::extract_metadata(content);
 
-        let mut title = default_title;
-        let mut modified_at = None;
-        let mut tags = Vec::new();
-        let mut frontmatter_json = None;
-
-        if let Some(fm) = frontmatter_value {
-            if let Some(t) = fm
-                .get("titulo")
-                .or_else(|| fm.get("title"))
-                .and_then(serde_yaml::Value::as_str)
-            {
-                title = t.to_string();
-            }
-
-            if let Some(m) = fm
-                .get("modificado")
-                .or_else(|| fm.get("modified"))
-                .and_then(serde_yaml::Value::as_str)
-            {
-                modified_at = Some(m.to_string());
-            }
-
-            if let Some(tag_seq) = fm.get("tags") {
-                if let Some(seq) = tag_seq.as_sequence() {
-                    for item in seq {
-                        if let Some(tag_str) = item.as_str() {
-                            tags.push(tag_str.to_string());
-                        }
-                    }
-                } else if let Some(tag_str) = tag_seq.as_str() {
-                    tags.push(tag_str.to_string());
-                }
-            }
-
-            frontmatter_json = serde_json::to_string(&fm).ok();
-        }
+        let (title, modified_at, tags, number_headings, frontmatter_json) = if let Some(m) = metadata {
+            (
+                m.title.unwrap_or(default_title),
+                m.modified_at,
+                m.tags,
+                m.number_headings,
+                m.raw_json,
+            )
+        } else {
+            (default_title, None, Vec::new(), false, None)
+        };
 
         let word_count = body.split_whitespace().count();
 
@@ -134,10 +110,61 @@ impl Vault {
             word_count,
             modified_at,
             tags,
+            number_headings,
         }
     }
 
-    fn extract_frontmatter(content: &str) -> (Option<serde_yaml::Value>, &str) {
+    pub fn extract_metadata(content: &str) -> (Option<FrontmatterMetadata>, &str) {
+        let (fm_val, body) = Self::extract_frontmatter(content);
+        let meta = fm_val.as_ref().map(|fm| {
+            let title = fm
+                .get("titulo")
+                .or_else(|| fm.get("title"))
+                .and_then(serde_yaml::Value::as_str)
+                .map(ToString::to_string);
+            let modified_at = fm
+                .get("modificado")
+                .or_else(|| fm.get("modified"))
+                .and_then(serde_yaml::Value::as_str)
+                .map(ToString::to_string);
+            let mut tags = Vec::new();
+            if let Some(tag_seq) = fm.get("tags") {
+                if let Some(seq) = tag_seq.as_sequence() {
+                    for item in seq {
+                        if let Some(tag_str) = item.as_str() {
+                            tags.push(tag_str.to_string());
+                        }
+                    }
+                } else if let Some(tag_str) = tag_seq.as_str() {
+                    tags.push(tag_str.to_string());
+                }
+            }
+            let mut number_headings = false;
+            if let Some(n) = fm.get("numerar_titulos").or_else(|| fm.get("number_headings")) {
+                if let Some(b) = n.as_bool() {
+                    number_headings = b;
+                }
+            }
+            if let Some(n) = fm.get("numbering").or_else(|| fm.get("numeracao")) {
+                if let Some(s) = n.as_str() {
+                    number_headings = !s.trim().is_empty();
+                } else if let Some(b) = n.as_bool() {
+                    number_headings = b;
+                }
+            }
+            let raw_json = serde_json::to_string(fm).ok();
+            FrontmatterMetadata {
+                title,
+                modified_at,
+                tags,
+                number_headings,
+                raw_json,
+            }
+        });
+        (meta, body)
+    }
+
+    pub fn extract_frontmatter(content: &str) -> (Option<serde_yaml::Value>, &str) {
         let trimmed = content.trim_start();
         if !trimmed.starts_with("---") {
             return (None, content);
@@ -160,6 +187,16 @@ impl Vault {
         let parsed: Option<serde_yaml::Value> = serde_yaml::from_str(yaml_str).ok();
         (parsed, body)
     }
+}
+
+/// Metadados extraídos do frontmatter de uma nota Markdown.
+#[derive(Debug, Clone, Default)]
+pub struct FrontmatterMetadata {
+    pub title: Option<String>,
+    pub modified_at: Option<String>,
+    pub tags: Vec<String>,
+    pub number_headings: bool,
+    pub raw_json: Option<String>,
 }
 
 pub fn create_daily_note(
@@ -273,4 +310,67 @@ pub fn resolve_vault_and_file(
         });
 
     (vault, file)
+}
+
+/// Aplica numeração hierárquica automática nos títulos (# 1., ## 1.1., ### 1.1.1.)
+#[must_use]
+pub fn apply_heading_numbering(content: &str) -> String {
+    let mut result = Vec::new();
+    let mut in_code_block = false;
+    let mut h1 = 0;
+    let mut h2 = 0;
+    let mut h3 = 0;
+
+    for line in content.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") {
+            in_code_block = !in_code_block;
+            result.push(line.to_string());
+            continue;
+        }
+
+        if in_code_block {
+            result.push(line.to_string());
+            continue;
+        }
+
+        if let Some(rest) = trimmed.strip_prefix("### ") {
+            let rest_trimmed = rest.trim();
+            h3 += 1;
+            let prefix = format!("{h1}.{h2}.{h3}. ");
+            let new_heading = if rest_trimmed.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+                format!("### {rest_trimmed}")
+            } else {
+                format!("### {prefix}{rest_trimmed}")
+            };
+            result.push(new_heading);
+        } else if let Some(rest) = trimmed.strip_prefix("## ") {
+            let rest_trimmed = rest.trim();
+            h2 += 1;
+            h3 = 0;
+            let prefix = format!("{h1}.{h2}. ");
+            let new_heading = if rest_trimmed.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+                format!("## {rest_trimmed}")
+            } else {
+                format!("## {prefix}{rest_trimmed}")
+            };
+            result.push(new_heading);
+        } else if let Some(rest) = trimmed.strip_prefix("# ") {
+            let rest_trimmed = rest.trim();
+            h1 += 1;
+            h2 = 0;
+            h3 = 0;
+            let prefix = format!("{h1}. ");
+            let new_heading = if rest_trimmed.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+                format!("# {rest_trimmed}")
+            } else {
+                format!("# {prefix}{rest_trimmed}")
+            };
+            result.push(new_heading);
+        } else {
+            result.push(line.to_string());
+        }
+    }
+
+    result.join("\n")
 }
