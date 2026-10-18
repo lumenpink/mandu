@@ -272,6 +272,55 @@ impl ManduDb {
         }
     }
 
+    pub fn list_all_references(&self) -> Result<Vec<crate::refs::ReferenceMd>> {
+        let mut stmt = self.conn.prepare(
+            r#"
+            SELECT citekey, note_path, doi, title, authors_json, year, csl_yaml
+            FROM references_md
+            ORDER BY citekey
+            "#,
+        )?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok(crate::refs::ReferenceMd {
+                citekey: row.get(0)?,
+                note_path: row.get(1)?,
+                doi: row.get(2)?,
+                title: row.get(3)?,
+                authors_json: row.get(4)?,
+                year: row.get(5)?,
+                csl_yaml: row.get(6)?,
+            })
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
+    pub fn list_all_notes(&self) -> Result<Vec<(String, String)>> {
+        let mut stmt = self.conn.prepare(
+            r#"
+            SELECT path, title
+            FROM notes
+            ORDER BY title
+            "#,
+        )?;
+
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get(0)?, row.get(1)?))
+        })?;
+
+        let mut results = Vec::new();
+        for r in rows {
+            results.push(r?);
+        }
+        Ok(results)
+    }
+
+
     pub fn get_cached_block_svg(&self, block_blake3: &str) -> Result<Option<String>> {
         let mut stmt = self.conn.prepare(
             r#"

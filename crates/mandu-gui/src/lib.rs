@@ -33,7 +33,10 @@ pub struct ManduApp {
     pub is_dirty: bool,
     pub db: Option<ManduDb>,
     pub search: SearchModalState,
+    pub is_peek_open: bool,
+    pub peek_content: Option<mandu_core::peek::PeekContent>,
 }
+
 
 impl Default for ManduApp {
     fn default() -> Self {
@@ -103,8 +106,11 @@ impl ManduApp {
                 selected_index: 0,
                 all_items,
             },
+            is_peek_open: false,
+            peek_content: None,
         }
     }
+
 
     #[must_use]
     pub fn status_text(&self) -> String {
@@ -264,12 +270,26 @@ impl ManduApp {
                 self.export_current_note_pdf();
             }
 
+            // Ctrl+P: Peek (Espiar Link/Citação)
+            if i.consume_key(egui::Modifiers::COMMAND, egui::Key::P) {
+                self.peek_current_cursor();
+            }
+
             // Ctrl+Q: Sair
             if i.consume_key(egui::Modifiers::COMMAND, egui::Key::Q) {
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             }
         });
+
+        if self.is_peek_open {
+            ctx.input_mut(|i| {
+                if i.consume_key(egui::Modifiers::NONE, egui::Key::Escape) {
+                    self.is_peek_open = false;
+                }
+            });
+        }
     }
+
 
     pub fn render_search_modal(&mut self, ctx: &egui::Context) {
         if !self.state.is_search_open {
@@ -388,8 +408,78 @@ impl ManduApp {
 
         // Modal flutuante de busca rápida
         self.render_search_modal(ctx);
+
+        // Modal flutuante de Peek (Espiar Conteúdo)
+        self.render_peek_modal(ctx);
     }
+
+    pub fn peek_current_cursor(&mut self) {
+        if let Some(ref db) = self.db {
+            let text = &self.state.buffer;
+            let mut target = None;
+            for line in text.lines() {
+                if let Some(start) = line.find("[[") {
+                    if let Some(end) = line[start..].find("]]") {
+                        target = Some(line[start..start + end + 2].to_string());
+                        break;
+                    }
+                }
+                if let Some(start) = line.find('@') {
+                    let word = line[start..].split_whitespace().next().unwrap_or("");
+                    if word.len() > 1 {
+                        target = Some(word.to_string());
+                        break;
+                    }
+                }
+            }
+
+            if let Some(t) = target {
+                if let Some(content) =
+                    mandu_core::peek::peek_target(db, &t, self.vault_path.as_deref())
+                {
+                    self.peek_content = Some(content);
+                    self.is_peek_open = true;
+                } else {
+                    self.state.status_message = Some(format!("Nenhum destino para peek: {t}"));
+                }
+            } else {
+                self.state.status_message =
+                    Some("Nenhum link ou citação para espiar".to_string());
+            }
+        }
+    }
+
+    pub fn render_peek_modal(&mut self, ctx: &egui::Context) {
+        if !self.is_peek_open {
+            return;
+        }
+
+        let mut close_clicked = false;
+        if let Some(ref peek) = self.peek_content {
+            egui::Window::new(format!("🔍 Espiar (Peek): {}", peek.title))
+                .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, -50.0))
+                .fixed_size(egui::vec2(520.0, 360.0))
+                .show(ctx, |ui| {
+                    ui.label(egui::RichText::new(format!("Alvo: {}", peek.target)).italics());
+                    ui.separator();
+                    egui::ScrollArea::vertical()
+                        .max_height(260.0)
+                        .show(ui, |ui| {
+                            ui.label(&peek.content);
+                        });
+                    ui.separator();
+                    if ui.button("Fechar (Esc)").clicked() {
+                        close_clicked = true;
+                    }
+                });
+        }
+        if close_clicked {
+            self.is_peek_open = false;
+        }
+    }
+
 }
+
 
 impl eframe::App for ManduApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {

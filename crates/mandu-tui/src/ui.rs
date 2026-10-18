@@ -89,7 +89,13 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
     if app.is_search_open {
         render_search_modal(app, frame);
     }
+
+    // Modal de Peek overlay (Ctrl+P)
+    if app.is_peek_open {
+        render_peek_modal(app, frame);
+    }
 }
+
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()
@@ -189,3 +195,21 @@ fn render_search_modal(app: &TuiApp, frame: &mut Frame) {
     )]);
     frame.render_widget(Paragraph::new(footer), modal_chunks[2]);
 }
+
+fn render_peek_modal(app: &TuiApp, frame: &mut Frame) {
+    let area = centered_rect(65, 60, frame.area());
+    frame.render_widget(Clear, area);
+
+    if let Some(ref peek) = app.peek_content {
+        let title = format!(" 🔍 Espiar (Peek): {} ", peek.title);
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan))
+            .title(title);
+        let paragraph = Paragraph::new(peek.content.as_str())
+            .block(block)
+            .style(Style::default().fg(Color::White));
+        frame.render_widget(paragraph, area);
+    }
+}
+

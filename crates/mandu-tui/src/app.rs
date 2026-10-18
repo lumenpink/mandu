@@ -34,9 +34,12 @@ pub struct TuiApp<'a> {
     pub should_quit: bool,
     pub is_search_open: bool,
     pub search: SearchModalState,
+    pub is_peek_open: bool,
+    pub peek_content: Option<mandu_core::peek::PeekContent>,
     pub status_message: Option<String>,
     pub db: Option<ManduDb>,
 }
+
 
 impl Default for TuiApp<'_> {
     fn default() -> Self {
@@ -109,10 +112,13 @@ impl TuiApp<'_> {
                 selected_index: 0,
                 all_items,
             },
+            is_peek_open: false,
+            peek_content: None,
             status_message: None,
             db,
         }
     }
+
 
     pub fn open_note(&mut self, path: PathBuf) {
         if path.is_file() {
@@ -171,7 +177,62 @@ impl TuiApp<'_> {
         }
     }
 
+    #[must_use]
+    pub fn get_editor_command() -> String {
+        std::env::var("EDITOR").unwrap_or_else(|_| "nvim".to_string())
+    }
+
+    pub fn escape_hatch_editor(&mut self) {
+        if let Some(path) = self.current_file.clone() {
+            self.save_current_note();
+            let editor = Self::get_editor_command();
+            let _ = std::process::Command::new(&editor).arg(&path).status();
+            self.open_note(path);
+            self.status_message = Some(format!("Retornado de {editor}"));
+        } else {
+            self.status_message =
+                Some("Nenhum arquivo ativo para editar externamente".to_string());
+        }
+    }
+
+
+    pub fn peek_current_cursor(&mut self) {
+        if let Some(ref db) = self.db {
+            let text = self.editor.get_text();
+            let mut target = None;
+            for line in text.lines() {
+                if let Some(start) = line.find("[[") {
+                    if let Some(end) = line[start..].find("]]") {
+                        target = Some(line[start..start + end + 2].to_string());
+                        break;
+                    }
+                }
+                if let Some(start) = line.find('@') {
+                    let word = line[start..].split_whitespace().next().unwrap_or("");
+                    if word.len() > 1 {
+                        target = Some(word.to_string());
+                        break;
+                    }
+                }
+            }
+
+            if let Some(t) = target {
+                if let Some(content) =
+                    mandu_core::peek::peek_target(db, &t, self.vault_path.as_deref())
+                {
+                    self.peek_content = Some(content);
+                    self.is_peek_open = true;
+                } else {
+                    self.status_message = Some(format!("Nenhum destino para peek: {t}"));
+                }
+            } else {
+                self.status_message = Some("Nenhum link ou citação para espiar".to_string());
+            }
+        }
+    }
+
     pub fn update_search_results(&mut self) {
+
         if self.search.query.is_empty() {
             self.search.results = self.search.all_items.clone();
         } else {
@@ -224,7 +285,26 @@ impl TuiApp<'_> {
                     self.export_pdf();
                     return true;
                 }
+                KeyCode::Char('e') => {
+                    self.escape_hatch_editor();
+                    return true;
+                }
+                KeyCode::Char('p') => {
+                    self.peek_current_cursor();
+                    return true;
+                }
                 _ => {}
+            }
+        }
+
+        if self.is_peek_open {
+            match key.code {
+                KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') => {
+                    self.is_peek_open = false;
+                    self.peek_content = None;
+                    return true;
+                }
+                _ => return true,
             }
         }
 
@@ -236,6 +316,7 @@ impl TuiApp<'_> {
                     self.update_search_results();
                     return true;
                 }
+
                 KeyCode::Up => {
                     self.search.selected_index = self.search.selected_index.saturating_sub(1);
                     return true;
