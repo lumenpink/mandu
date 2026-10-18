@@ -53,7 +53,11 @@ fn test_autocomplete_wikilinks_from_database() {
     let note2_path = dir.path().join("metodologia.md");
 
     fs::write(&note1_path, "---\ntitulo: Introducao ao Tema\n---\nCorpo\n").expect("write");
-    fs::write(&note2_path, "---\ntitulo: Metodologia Experimental\n---\nCorpo\n").expect("write");
+    fs::write(
+        &note2_path,
+        "---\ntitulo: Metodologia Experimental\n---\nCorpo\n",
+    )
+    .expect("write");
 
     let n1 = Vault::parse_note_content(&note1_path, &fs::read_to_string(&note1_path).unwrap());
     let n2 = Vault::parse_note_content(&note2_path, &fs::read_to_string(&note2_path).unwrap());
@@ -148,6 +152,8 @@ fn test_peek_with_alias_and_extract_target_edge_cases() {
     );
     assert_eq!(extract_peek_target("Texto sem links ou citações"), None);
     assert_eq!(extract_peek_target("Apenas um @ isolado"), None);
-    assert_eq!(extract_peek_target("Colchete aberto [[ mas nao fechado"), None);
+    assert_eq!(
+        extract_peek_target("Colchete aberto [[ mas nao fechado"),
+        None
+    );
 }
-

@@ -40,8 +40,11 @@ pub fn extract_peek_target(text: &str) -> Option<String> {
 
 /// Consulta o alvo sob o cursor ([[nota]] ou @citekey) e retorna o preview do conteúdo
 #[must_use]
-pub fn peek_target(db: &ManduDb, raw_target: &str, vault_path: Option<&Path>) -> Option<PeekContent> {
-
+pub fn peek_target(
+    db: &ManduDb,
+    raw_target: &str,
+    vault_path: Option<&Path>,
+) -> Option<PeekContent> {
     let trimmed = raw_target.trim();
 
     if trimmed.starts_with('@') {

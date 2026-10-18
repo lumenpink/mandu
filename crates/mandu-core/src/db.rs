@@ -309,9 +309,7 @@ impl ManduDb {
             "#,
         )?;
 
-        let rows = stmt.query_map([], |row| {
-            Ok((row.get(0)?, row.get(1)?))
-        })?;
+        let rows = stmt.query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?;
 
         let mut results = Vec::new();
         for r in rows {
@@ -319,7 +317,6 @@ impl ManduDb {
         }
         Ok(results)
     }
-
 
     pub fn get_cached_block_svg(&self, block_blake3: &str) -> Result<Option<String>> {
         let mut stmt = self.conn.prepare(

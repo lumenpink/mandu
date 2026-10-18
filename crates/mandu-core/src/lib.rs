@@ -9,6 +9,5 @@ pub mod preview;
 pub mod refs;
 pub mod vault;
 
-
 /// Versão do núcleo Mandu Core
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -96,7 +96,6 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
     }
 }
 
-
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()
         .direction(Direction::Vertical)
@@ -212,4 +211,3 @@ fn render_peek_modal(app: &TuiApp, frame: &mut Frame) {
         frame.render_widget(paragraph, area);
     }
 }
-

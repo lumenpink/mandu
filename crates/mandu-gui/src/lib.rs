@@ -37,7 +37,6 @@ pub struct ManduApp {
     pub peek_content: Option<mandu_core::peek::PeekContent>,
 }
 
-
 impl Default for ManduApp {
     fn default() -> Self {
         Self::new_with_vault(None, None)
@@ -110,7 +109,6 @@ impl ManduApp {
             peek_content: None,
         }
     }
-
 
     #[must_use]
     pub fn status_text(&self) -> String {
@@ -290,7 +288,6 @@ impl ManduApp {
         }
     }
 
-
     pub fn render_search_modal(&mut self, ctx: &egui::Context) {
         if !self.state.is_search_open {
             return;
@@ -426,12 +423,10 @@ impl ManduApp {
                     self.state.status_message = Some(format!("Nenhum destino para peek: {t}"));
                 }
             } else {
-                self.state.status_message =
-                    Some("Nenhum link ou citação para espiar".to_string());
+                self.state.status_message = Some("Nenhum link ou citação para espiar".to_string());
             }
         }
     }
-
 
     pub fn render_peek_modal(&mut self, ctx: &egui::Context) {
         if !self.is_peek_open {
@@ -461,9 +456,7 @@ impl ManduApp {
             self.is_peek_open = false;
         }
     }
-
 }
-
 
 impl eframe::App for ManduApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {

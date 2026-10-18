@@ -40,7 +40,6 @@ pub struct TuiApp<'a> {
     pub db: Option<ManduDb>,
 }
 
-
 impl Default for TuiApp<'_> {
     fn default() -> Self {
         Self::new(None)
@@ -119,7 +118,6 @@ impl TuiApp<'_> {
         }
     }
 
-
     pub fn open_note(&mut self, path: PathBuf) {
         if path.is_file() {
             if let Ok(content) = std::fs::read_to_string(&path) {
@@ -190,11 +188,9 @@ impl TuiApp<'_> {
             self.open_note(path);
             self.status_message = Some(format!("Retornado de {editor}"));
         } else {
-            self.status_message =
-                Some("Nenhum arquivo ativo para editar externamente".to_string());
+            self.status_message = Some("Nenhum arquivo ativo para editar externamente".to_string());
         }
     }
-
 
     pub fn peek_current_cursor(&mut self) {
         if let Some(ref db) = self.db {
@@ -214,9 +210,7 @@ impl TuiApp<'_> {
         }
     }
 
-
     pub fn update_search_results(&mut self) {
-
         if self.search.query.is_empty() {
             self.search.results = self.search.all_items.clone();
         } else {
