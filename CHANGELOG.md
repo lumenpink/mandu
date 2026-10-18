@@ -43,4 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sistema de cache SQLite in-memory de blocos vetoriais SVG indexados deterministicamente por hash BLAKE3 para renderização instantânea.
 - Pipeline de compilação e exportação direta de notas para PDF acadêmico (`Ctrl+D`) em conformidade com os modelos ABNT e UFSC.
 - Ativação do atalho `Ctrl+D` no `mandu-tui` com feedback de exportação e status de arquivo gerado em tempo real.
+- Runtime interativo completo do `mandu-gui` conectado com banco SQLite in-memory, scanner e motor de preview.
+- Paleta modal flutuante de busca rápida (`Ctrl+O`) na interface gráfica com casamento fuzzy em tempo real via nucleo.
+- Salvamento reativo (`Ctrl+S`) com hooks de linter determinístico, timestamp `modificado` e indicador de edições pendentes (`[●]`).
+- Painel de visualização com renderização de segmentos estruturados Joaju e exportação direta para PDF acadêmico (`Ctrl+D`).
+- Suporte a argumentos de linha de comando (`--vault` e arquivo Markdown posicional) via `clap`.
+- Conformidade estrita com a diretriz de zero teclas de função (`F1`–`F12`) na GUI.
+
 
