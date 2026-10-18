@@ -416,24 +416,7 @@ impl ManduApp {
     pub fn peek_current_cursor(&mut self) {
         if let Some(ref db) = self.db {
             let text = &self.state.buffer;
-            let mut target = None;
-            for line in text.lines() {
-                if let Some(start) = line.find("[[") {
-                    if let Some(end) = line[start..].find("]]") {
-                        target = Some(line[start..start + end + 2].to_string());
-                        break;
-                    }
-                }
-                if let Some(start) = line.find('@') {
-                    let word = line[start..].split_whitespace().next().unwrap_or("");
-                    if word.len() > 1 {
-                        target = Some(word.to_string());
-                        break;
-                    }
-                }
-            }
-
-            if let Some(t) = target {
+            if let Some(t) = mandu_core::peek::extract_peek_target(text) {
                 if let Some(content) =
                     mandu_core::peek::peek_target(db, &t, self.vault_path.as_deref())
                 {
@@ -448,6 +431,7 @@ impl ManduApp {
             }
         }
     }
+
 
     pub fn render_peek_modal(&mut self, ctx: &egui::Context) {
         if !self.is_peek_open {

@@ -19,9 +19,29 @@ pub struct PeekContent {
     pub target: String,
 }
 
+/// Extrai o primeiro link [[alvo]] ou citação @citekey de um texto
+#[must_use]
+pub fn extract_peek_target(text: &str) -> Option<String> {
+    for line in text.lines() {
+        if let Some(start) = line.find("[[") {
+            if let Some(end) = line[start..].find("]]") {
+                return Some(line[start..start + end + 2].to_string());
+            }
+        }
+        if let Some(start) = line.find('@') {
+            let word = line[start..].split_whitespace().next().unwrap_or("");
+            if word.len() > 1 {
+                return Some(word.to_string());
+            }
+        }
+    }
+    None
+}
+
 /// Consulta o alvo sob o cursor ([[nota]] ou @citekey) e retorna o preview do conteúdo
 #[must_use]
 pub fn peek_target(db: &ManduDb, raw_target: &str, vault_path: Option<&Path>) -> Option<PeekContent> {
+
     let trimmed = raw_target.trim();
 
     if trimmed.starts_with('@') {
