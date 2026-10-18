@@ -83,17 +83,7 @@ impl ManduApp {
                     state.current_file = Some(path.to_string_lossy().to_string());
 
                     if let Some(ref d) = db {
-                        let path_str = path.to_string_lossy();
-                        let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-                        let file_name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-                        let mut count = d.get_backlinks(&path_str).map_or(0, |b| b.len());
-                        if count == 0 && !stem.is_empty() {
-                            count = d.get_backlinks(stem).map_or(0, |b| b.len());
-                        }
-                        if count == 0 && !file_name.is_empty() {
-                            count = d.get_backlinks(file_name).map_or(0, |b| b.len());
-                        }
-                        state.backlink_count = count;
+                        state.backlink_count = resolve_backlinks(Some(d), path);
                     }
                 }
             }
@@ -143,23 +133,11 @@ impl ManduApp {
                 self.current_file = Some(path.clone());
                 self.is_dirty = false;
                 self.state.is_dirty = false;
-
-                if let Some(ref db) = self.db {
-                    let path_str = path.to_string_lossy();
-                    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-                    let file_name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-                    let mut count = db.get_backlinks(&path_str).map_or(0, |b| b.len());
-                    if count == 0 && !stem.is_empty() {
-                        count = db.get_backlinks(stem).map_or(0, |b| b.len());
-                    }
-                    if count == 0 && !file_name.is_empty() {
-                        count = db.get_backlinks(file_name).map_or(0, |b| b.len());
-                    }
-                    self.state.backlink_count = count;
-                }
+                self.state.backlink_count = resolve_backlinks(self.db.as_ref(), &path);
             }
         }
     }
+
 
     pub fn save_current_note(&mut self) {
         let content = &self.state.buffer;
@@ -424,3 +402,22 @@ impl eframe::App for ManduApp {
         self.render_ui(ctx);
     }
 }
+
+fn resolve_backlinks(db: Option<&ManduDb>, path: &std::path::Path) -> usize {
+    if let Some(d) = db {
+        let path_str = path.to_string_lossy();
+        let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+        let file_name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
+        let mut count = d.get_backlinks(&path_str).map_or(0, |b| b.len());
+        if count == 0 && !stem.is_empty() {
+            count = d.get_backlinks(stem).map_or(0, |b| b.len());
+        }
+        if count == 0 && !file_name.is_empty() {
+            count = d.get_backlinks(file_name).map_or(0, |b| b.len());
+        }
+        count
+    } else {
+        0
+    }
+}
+
