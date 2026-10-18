@@ -62,5 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quebra automática de linha (*soft wrap*) no painel esquerdo de edição do terminal (`mandu-tui`) com `ratatui-textarea` e Ratatui 0.30 (`WrapMode::WordOrGlyph`), adaptando linhas longas à largura da janela sem mutar o texto subjacente.
 - Renderização tipográfica rica no painel de visualização do `mandu-tui` e `mandu-gui`, substituindo o frontmatter bruto por cabeçalho/badge estilizado de metadados e colorindo com destaque links internos (`[[...]]`) e citações acadêmicas (`@citekey`).
 - Numeração automática hierárquica de títulos (`# 1.`, `## 1.1.`, `### 1.1.1.`) configurável no Frontmatter (`numerar_titulos: true` ou `numbering: "1.1"`), preservando blocos de código e integrando à compilação Typst em PDF.
+- Padronização canônica e universal de metadados no YAML Frontmatter em língua inglesa (`title`, `modified`, `type`, `tags`, `number_headings`, `origin`, `date`), atualizando geradores nativos e hooks de salvamento com tolerância retroativa a notas legadas.
+- Documentação formal e aprofundada em `SPEC.md` e `docs/specs/14_english_frontmatter_and_deep_docs.md` sobre a gramática de metadados e o modelo não-destrutivo de numeração de títulos.
 
 
