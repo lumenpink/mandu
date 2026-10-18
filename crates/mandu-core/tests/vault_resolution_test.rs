@@ -8,7 +8,8 @@ fn test_resolve_with_explicit_vault_and_file() {
     let custom_vault = PathBuf::from("/tmp/custom-vault");
     let custom_file = PathBuf::from("/tmp/custom-vault/nota.md");
 
-    let (vault, file) = resolve_vault_and_file(Some(custom_vault.clone()), Some(custom_file.clone()));
+    let (vault, file) =
+        resolve_vault_and_file(Some(custom_vault.clone()), Some(custom_file.clone()));
 
     assert_eq!(vault, custom_vault);
     assert_eq!(file, Some(custom_file));

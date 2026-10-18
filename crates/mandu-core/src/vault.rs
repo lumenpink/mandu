@@ -247,9 +247,8 @@ pub fn resolve_vault_and_file(
     vault_arg: Option<PathBuf>,
     file_arg: Option<PathBuf>,
 ) -> (PathBuf, Option<PathBuf>) {
-    let vault = vault_arg.unwrap_or_else(|| {
-        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))
-    });
+    let vault =
+        vault_arg.unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
 
     let file = file_arg
         .map(|f| {
