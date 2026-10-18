@@ -155,6 +155,22 @@ impl TuiApp<'_> {
         }
     }
 
+    pub fn export_pdf(&mut self) {
+        if let Some(ref path) = self.current_file {
+            match mandu_core::preview::PreviewEngine::export_note_to_pdf(path, None) {
+                Ok(pdf_path) => {
+                    let name = pdf_path.file_name().unwrap_or_default().to_string_lossy();
+                    self.status_message = Some(format!("Documento exportado via Joaju: {name}"));
+                }
+                Err(e) => {
+                    self.status_message = Some(format!("Falha ao exportar PDF: {e}"));
+                }
+            }
+        } else {
+            self.status_message = Some("Documento exportado via Joaju".to_string());
+        }
+    }
+
     pub fn update_search_results(&mut self) {
         if self.search.query.is_empty() {
             self.search.results = self.search.all_items.clone();
@@ -205,7 +221,7 @@ impl TuiApp<'_> {
                     return true;
                 }
                 KeyCode::Char('d') => {
-                    self.status_message = Some("Documento exportado via Joaju".to_string());
+                    self.export_pdf();
                     return true;
                 }
                 _ => {}

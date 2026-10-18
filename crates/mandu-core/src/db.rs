@@ -271,6 +271,43 @@ impl ManduDb {
             Ok(None)
         }
     }
+
+    pub fn get_cached_block_svg(&self, block_blake3: &str) -> Result<Option<String>> {
+        let mut stmt = self.conn.prepare(
+            r#"
+            SELECT rendered_svg
+            FROM joaju_block_cache
+            WHERE block_blake3 = ?1
+            "#,
+        )?;
+
+        let mut rows = stmt.query([block_blake3])?;
+        if let Some(row) = rows.next()? {
+            let blob: Vec<u8> = row.get(0)?;
+            let s = String::from_utf8(blob).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    0,
+                    rusqlite::types::Type::Blob,
+                    Box::new(e),
+                )
+            })?;
+            Ok(Some(s))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn cache_block_svg(&self, block_blake3: &str, engine: &str, svg: &str) -> Result<()> {
+        let now = chrono::Utc::now().timestamp();
+        self.conn.execute(
+            r#"
+            INSERT OR REPLACE INTO joaju_block_cache (block_blake3, engine, rendered_svg, created_at)
+            VALUES (?1, ?2, ?3, ?4)
+            "#,
+            (block_blake3, engine, svg.as_bytes(), now),
+        )?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
