@@ -84,3 +84,32 @@ titulo: Nota Sem Numeração
     let note_false = Vault::parse_note_content(Path::new("nota.md"), content_false);
     assert!(!note_false.number_headings);
 }
+
+#[test]
+fn test_heading_numbering_skip_levels_and_empty() {
+    // Empty document
+    assert_eq!(apply_heading_numbering(""), "");
+
+    // Skip levels: # directly to ###
+    let input_skip = r#"# Título Principal
+### Subseção Direta
+## Seção Secundária
+"#;
+    let numbered = apply_heading_numbering(input_skip);
+    assert!(numbered.contains("# 1. Título Principal"));
+    assert!(numbered.contains("### 1.0.1. Subseção Direta"));
+    assert!(numbered.contains("## 1.1. Seção Secundária"));
+}
+
+#[test]
+fn test_heading_numbering_preserves_existing_numbers_and_whitespace() {
+    let input_existing = r#"# 1. Já Numerado
+## 1.1. Subtópico Já Numerado
+# Novo Título Sem Número
+"#;
+    let numbered = apply_heading_numbering(input_existing);
+    assert!(numbered.contains("# 1. Já Numerado"));
+    assert!(numbered.contains("## 1.1. Subtópico Já Numerado"));
+    assert!(numbered.contains("# 2. Novo Título Sem Número"));
+}
+
