@@ -44,9 +44,13 @@ fn test_generators_emit_canonical_english_frontmatter() {
     assert!(!unique_content.contains("tipo:"));
 
     // 3. Atomic extraction: title: ..., origin: ..., type: note
-    let (source, new_note) =
-        extract_to_new_note("Prefácio trecho atômico posfácio", 8..23, "Trecho", "Origem")
-            .expect("extract");
+    let (source, new_note) = extract_to_new_note(
+        "Prefácio trecho atômico posfácio",
+        8..23,
+        "Trecho",
+        "Origem",
+    )
+    .expect("extract");
     assert!(source.contains("[[Trecho]]"));
     assert!(new_note.contains("title: \"Trecho\""));
     assert!(new_note.contains("origin: \"[[Origem]]\""));
@@ -113,4 +117,3 @@ fn test_linter_mutation_whitespace_and_comments() {
     assert!(res_comment.contains("modified: 2026-10-18T19:27:00Z\n"));
     assert!(res_comment.contains("# Isto é um comentário YAML"));
 }
-
