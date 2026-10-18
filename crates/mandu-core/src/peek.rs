@@ -30,8 +30,9 @@ pub fn extract_peek_target(text: &str) -> Option<String> {
         }
         if let Some(start) = line.find('@') {
             let word = line[start..].split_whitespace().next().unwrap_or("");
-            if word.len() > 1 {
-                return Some(word.to_string());
+            let clean = word.trim_end_matches([',', '.', ';', ':', ')', ']', '?', '!']);
+            if clean.len() > 1 {
+                return Some(clean.to_string());
             }
         }
     }
@@ -48,7 +49,9 @@ pub fn resolve_target_path(
     let trimmed = raw_target.trim();
 
     if trimmed.starts_with('@') {
-        let citekey = trimmed.trim_start_matches('@');
+        let citekey = trimmed
+            .trim_start_matches('@')
+            .trim_end_matches([',', '.', ';', ':', ')', ']', '?', '!']);
         if let Ok(Some(ref_item)) = db.find_reference(citekey) {
             let p = Path::new(&ref_item.note_path);
             let full_path = if p.is_absolute() {
