@@ -449,8 +449,7 @@ impl ManduApp {
                     self.state.status_message = Some(format!("Destino não encontrado: {t}"));
                 }
             } else {
-                self.state.status_message =
-                    Some("Nenhum link ou citação para navegar".to_string());
+                self.state.status_message = Some("Nenhum link ou citação para navegar".to_string());
             }
         }
     }

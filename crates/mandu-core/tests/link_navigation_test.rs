@@ -79,10 +79,7 @@ fn test_resolve_target_path_nonexistent_returns_none() {
         resolve_target_path(&db, "@inexistente", Some(&vault_path)),
         None
     );
-    assert_eq!(
-        resolve_target_path(&db, "[[]]", Some(&vault_path)),
-        None
-    );
+    assert_eq!(resolve_target_path(&db, "[[]]", Some(&vault_path)), None);
 }
 
 #[test]

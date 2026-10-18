@@ -268,20 +268,23 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
                     .fg(Color::Magenta)
                     .add_modifier(Modifier::BOLD),
             )]));
-        } else if trimmed.starts_with('>') {
+        } else if let Some(stripped) = trimmed.strip_prefix('>') {
             lines.push(Line::from(vec![
                 Span::styled("▍ ", Style::default().fg(Color::LightYellow)),
                 Span::styled(
-                    &trimmed[1..],
+                    stripped,
                     Style::default()
                         .fg(Color::Gray)
                         .add_modifier(Modifier::ITALIC),
                 ),
             ]));
-        } else if trimmed.starts_with("- ") || trimmed.starts_with("* ") {
+        } else if let Some(stripped) = trimmed
+            .strip_prefix("- ")
+            .or_else(|| trimmed.strip_prefix("* "))
+        {
             lines.push(Line::from(vec![
                 Span::styled("  • ", Style::default().fg(Color::Cyan)),
-                Span::styled(&trimmed[2..], Style::default().fg(Color::White)),
+                Span::styled(stripped, Style::default().fg(Color::White)),
             ]));
         } else {
             lines.push(Line::from(vec![Span::styled(
