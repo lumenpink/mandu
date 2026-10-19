@@ -40,6 +40,13 @@ pub struct ViewsState {
     pub is_dirty: bool,
     pub trigger_save: bool,
     pub trigger_export: bool,
+    pub scroll_ratio: f32,
+}
+
+impl ViewsState {
+    pub fn set_scroll_ratio(&mut self, ratio: f32) {
+        self.scroll_ratio = ratio.clamp(0.0, 1.0);
+    }
 }
 
 impl Default for ViewsState {
@@ -56,6 +63,7 @@ impl Default for ViewsState {
             is_dirty: false,
             trigger_save: false,
             trigger_export: false,
+            scroll_ratio: 0.0,
         }
     }
 }
@@ -63,16 +71,27 @@ impl Default for ViewsState {
 pub fn render_editor(ui: &mut egui::Ui, state: &mut ViewsState) {
     ui.vertical(|ui| {
         ui.label(egui::RichText::new("Editor Markdown (Monoespaçado)").strong());
-        let response = ui.add_sized(
-            ui.available_size(),
-            egui::TextEdit::multiline(&mut state.buffer)
-                .font(egui::TextStyle::Monospace)
-                .code_editor()
-                .desired_width(f32::INFINITY),
-        );
-        if response.changed() {
-            state.word_count = state.buffer.split_whitespace().count();
-            state.is_dirty = true;
+        let output = egui::ScrollArea::vertical()
+            .id_salt("editor_scroll_area")
+            .show(ui, |ui| {
+                let response = ui.add_sized(
+                    egui::vec2(ui.available_width(), ui.available_height().max(300.0)),
+                    egui::TextEdit::multiline(&mut state.buffer)
+                        .font(egui::TextStyle::Monospace)
+                        .code_editor()
+                        .desired_width(f32::INFINITY),
+                );
+                if response.changed() {
+                    state.word_count = state.buffer.split_whitespace().count();
+                    state.is_dirty = true;
+                }
+            });
+
+        let max_scroll = (output.content_size.y - output.inner_rect.height()).max(0.0);
+        if max_scroll > 0.0 {
+            state.set_scroll_ratio(output.state.offset.y / max_scroll);
+        } else {
+            state.set_scroll_ratio(0.0);
         }
     });
 }
@@ -80,7 +99,18 @@ pub fn render_editor(ui: &mut egui::Ui, state: &mut ViewsState) {
 pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
     ui.vertical(|ui| {
         ui.label(egui::RichText::new("Visualização Joaju (Preview Estruturado)").strong());
-        egui::ScrollArea::vertical().show(ui, |ui| {
+        let preview_max_scroll: f32 = ui.ctx().data(|d| {
+            d.get_temp(egui::Id::new("preview_max_scroll"))
+                .unwrap_or(0.0)
+        });
+
+        let mut scroll_area = egui::ScrollArea::vertical().id_salt("preview_scroll_area");
+        if state.mode == GuiViewMode::Split && preview_max_scroll > 0.0 {
+            scroll_area =
+                scroll_area.vertical_scroll_offset(state.scroll_ratio * preview_max_scroll);
+        }
+
+        let output = scroll_area.show(ui, |ui| {
             if let Some(ref svg) = state.preview_svg {
                 ui.label(format!("Bloco SVG ({}) bytes", svg.len()));
                 return;
@@ -218,6 +248,11 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
             } else {
                 ui.label(&processed);
             }
+        });
+
+        let current_max = (output.content_size.y - output.inner_rect.height()).max(0.0);
+        ui.ctx().data_mut(|d| {
+            d.insert_temp(egui::Id::new("preview_max_scroll"), current_max);
         });
     });
 }

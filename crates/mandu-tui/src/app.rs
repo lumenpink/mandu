@@ -41,6 +41,7 @@ pub struct TuiApp<'a> {
     pub last_edit_time: Option<std::time::Instant>,
     pub autosave_delay: std::time::Duration,
     pub autosave_feedback_until: Option<std::time::Instant>,
+    pub preview_scroll: u16,
 }
 
 impl Default for TuiApp<'_> {
@@ -121,6 +122,7 @@ impl TuiApp<'_> {
             last_edit_time: None,
             autosave_delay: std::time::Duration::from_millis(1000),
             autosave_feedback_until: None,
+            preview_scroll: 0,
         }
     }
 
@@ -138,6 +140,7 @@ impl TuiApp<'_> {
                 self.is_dirty = false;
                 self.last_edit_time = None;
                 self.autosave_feedback_until = None;
+                self.preview_scroll = 0;
 
                 if let Some(ref db) = self.db {
                     let path_str = path.to_string_lossy();
@@ -203,6 +206,27 @@ impl TuiApp<'_> {
     #[must_use]
     pub fn get_editor_command() -> String {
         std::env::var("EDITOR").unwrap_or_else(|_| "nvim".to_string())
+    }
+
+    /// Calcula o offset de scroll vertical do painel de preview proporcional à linha do cursor no editor.
+    #[must_use]
+    pub fn calculate_preview_scroll(&self, pane_height: u16, total_preview_lines: usize) -> u16 {
+        let cursor_row = self.editor.textarea.cursor().0;
+        let total_editor_lines = self.editor.textarea.lines().len();
+        if total_editor_lines <= 1 {
+            return 0;
+        }
+
+        let visible_height = pane_height.saturating_sub(2) as usize;
+        let max_scroll = total_preview_lines.saturating_sub(visible_height);
+        if max_scroll == 0 {
+            return 0;
+        }
+
+        let ratio = cursor_row as f32 / (total_editor_lines - 1) as f32;
+        (ratio * max_scroll as f32)
+            .round()
+            .clamp(0.0, max_scroll as f32) as u16
     }
 
     pub fn escape_hatch_editor(&mut self) {
@@ -416,9 +440,35 @@ impl TuiApp<'_> {
             }
         }
 
-        // No modo Leitura (Preview), não repassar digitação para a textarea
+        // No modo Leitura (Preview), tratar navegação de rolagem sem repassar digitação para a textarea
         if self.mode == crate::ui::ViewMode::Preview {
-            return false;
+            match key.code {
+                KeyCode::Up => {
+                    self.preview_scroll = self.preview_scroll.saturating_sub(1);
+                    return true;
+                }
+                KeyCode::Down => {
+                    self.preview_scroll = self.preview_scroll.saturating_add(1);
+                    return true;
+                }
+                KeyCode::PageUp => {
+                    self.preview_scroll = self.preview_scroll.saturating_sub(10);
+                    return true;
+                }
+                KeyCode::PageDown => {
+                    self.preview_scroll = self.preview_scroll.saturating_add(10);
+                    return true;
+                }
+                KeyCode::Home => {
+                    self.preview_scroll = 0;
+                    return true;
+                }
+                KeyCode::End => {
+                    self.preview_scroll = u16::MAX;
+                    return true;
+                }
+                _ => return false,
+            }
         }
 
         // Teclas normais de edição no editor

@@ -58,15 +58,19 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
             frame.render_widget(&app.editor.textarea, split_chunks[0]);
 
             let text = app.editor.get_text();
-            let preview_widget =
+            let (preview_widget, total_lines) =
                 render_preview_pane(&text, "Visualização Joaju", split_chunks[1].width);
-            frame.render_widget(preview_widget, split_chunks[1]);
+            let scroll = app.calculate_preview_scroll(split_chunks[1].height, total_lines);
+            frame.render_widget(preview_widget.scroll((scroll, 0)), split_chunks[1]);
         }
         ViewMode::Preview => {
             let text = app.editor.get_text();
-            let preview_widget =
+            let (preview_widget, total_lines) =
                 render_preview_pane(&text, "Visualização Joaju (Modo Leitura)", main_area.width);
-            frame.render_widget(preview_widget, main_area);
+            let visible_height = main_area.height.saturating_sub(2) as usize;
+            let max_scroll = total_lines.saturating_sub(visible_height) as u16;
+            let scroll = app.preview_scroll.min(max_scroll);
+            frame.render_widget(preview_widget.scroll((scroll, 0)), main_area);
         }
     }
 
@@ -210,7 +214,11 @@ fn render_peek_modal(app: &TuiApp, frame: &mut Frame) {
     }
 }
 
-fn render_preview_pane<'a>(text: &'a str, title: &'a str, pane_width: u16) -> Paragraph<'a> {
+fn render_preview_pane<'a>(
+    text: &'a str,
+    title: &'a str,
+    pane_width: u16,
+) -> (Paragraph<'a>, usize) {
     let mut lines = Vec::new();
     let (meta_opt, raw_body) = mandu_core::vault::Vault::extract_metadata(text);
 
@@ -259,7 +267,11 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str, pane_width: u16) -> Pa
         .borders(Borders::ALL)
         .title(format!(" {title} "));
 
-    Paragraph::new(lines)
-        .block(block)
-        .wrap(ratatui::widgets::Wrap { trim: false })
+    let total_lines = lines.len();
+    (
+        Paragraph::new(lines)
+            .block(block)
+            .wrap(ratatui::widgets::Wrap { trim: false }),
+        total_lines,
+    )
 }
