@@ -1,0 +1,22 @@
+[package]
+name = "mandu-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Despachante inteligente CLI para o ecossistema Mandu"
+
+[dependencies]
+
+[lib]
+name = "mandu_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mandu"
+path = "src/main.rs"
+
+[dev-dependencies]
+tempfile = "3.10"

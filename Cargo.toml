@@ -3,6 +3,7 @@ members = [
     "crates/mandu-core",
     "crates/mandu-tui",
     "crates/mandu-gui",
+    "crates/mandu-cli",
 ]
 resolver = "2"
 
