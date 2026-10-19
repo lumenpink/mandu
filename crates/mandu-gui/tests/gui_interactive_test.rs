@@ -147,7 +147,11 @@ fn test_gui_shortcuts_handling_and_no_fkeys() {
     let _ = ctx.run(input_sp, |ctx| {
         app.handle_shortcuts(ctx);
     });
-    assert_eq!(app.state.mode, GuiViewMode::Split, "Ctrl+Space não deve alterar modo");
+    assert_eq!(
+        app.state.mode,
+        GuiViewMode::Split,
+        "Ctrl+Space não deve alterar modo"
+    );
 
     // Ctrl+T alterna modo de Split para Preview
     let mut input = RawInput::default();
@@ -334,8 +338,7 @@ fn test_export_pdf_with_empty_buffer_does_not_zero_existing_file() {
     let initial_content = "# Meu Trabalho Precioso\n\nTexto importante que não pode ser zerado.\n";
     std::fs::write(&file_path, initial_content).expect("write initial");
 
-    let mut app =
-        ManduApp::new_with_vault(Some(dir.path().to_path_buf()), Some(file_path.clone()));
+    let mut app = ManduApp::new_with_vault(Some(dir.path().to_path_buf()), Some(file_path.clone()));
     // Simular que o buffer em memória foi limpo/vazio acidentalmente
     app.state.buffer = String::new();
     app.is_dirty = false;
@@ -345,6 +348,12 @@ fn test_export_pdf_with_empty_buffer_does_not_zero_existing_file() {
 
     // O arquivo em disco NÃO deve ter sido truncado para 0 bytes!
     let content_after = std::fs::read_to_string(&file_path).expect("read after");
-    assert!(!content_after.is_empty(), "Arquivo não pode ser zerado para 0 bytes!");
-    assert_eq!(content_after, initial_content, "Conteúdo original deve ser preservado integralmente!");
+    assert!(
+        !content_after.is_empty(),
+        "Arquivo não pode ser zerado para 0 bytes!"
+    );
+    assert_eq!(
+        content_after, initial_content,
+        "Conteúdo original deve ser preservado integralmente!"
+    );
 }

@@ -73,5 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gramática universal e modular de numeração hierárquica de cabeçalhos configurável no frontmatter YAML via `number_type` ou `numbering` (com ativação automática de `number_headings`), suportando arábicos (`1`), alfabéticos minúsculos (`a`), maiúsculos (`A`), romanos minúsculos (`i`), maiúsculos (`I`) e supressão de nível (`_`) até o 6º nível hierárquico (closes #18).
 - Regra determinística de herança de padrão para níveis hierárquicos não declarados (ex: `"1.1.a"` aplica `'a'` para H4 a H6) e repasse do padrão configurado para a diretiva `#set heading(numbering: "<pattern>")` na compilação Typst em PDF (closes #18).
 - Suporte a cabeçalhos não-numerados avulsos (`#_`, `# _` e `{-}`) para seções especiais (Introdução, Conclusão, Referências, Anexos), com remoção limpa do marcador na visualização e preservação integral dos contadores das seções numeradas (closes #18).
+- Substituição universal do atalho de alternância de modos de visualização para `Ctrl+T` tanto no `mandu-tui` quanto no `mandu-gui`, eliminando conflitos de sistema operacional (IME IBus/Fcitx com `Ctrl+Space`) e respeitando a política estrita de zero teclas Alt e ausência de atalhos conflitantes com `tmux`/`byobu` (`Ctrl+A`/`Ctrl+B`) (closes #19).
+- Bloqueio e isolamento total contra inserção acidental de texto no buffer do editor do terminal (`mandu-tui`) durante a permanência no modo exclusivo de leitura (`ViewMode::Preview`) (closes #19).
+- Blindagem e proteção estrita contra corrupção ou sobrescrita do arquivo em disco com zero bytes na rotina de exportação PDF (`export_current_note_pdf`) no `mandu-gui` quando o buffer em memória estiver vazio (closes #19).
 
 
