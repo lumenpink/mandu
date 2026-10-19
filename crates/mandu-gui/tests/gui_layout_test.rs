@@ -22,7 +22,11 @@ fn test_gui_mode_toggle_and_shortcuts_without_fkeys() {
     let _ = ctx.run(input_space, |_ctx| {
         app.handle_shortcuts(&ctx);
     });
-    assert_eq!(app.state.mode, GuiViewMode::Split, "Ctrl+Espaço não deve alterar modo");
+    assert_eq!(
+        app.state.mode,
+        GuiViewMode::Split,
+        "Ctrl+Espaço não deve alterar modo"
+    );
 
     // Simular evento de teclado Ctrl+T (avança de Split para Preview)
     let mut input = RawInput::default();

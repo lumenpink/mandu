@@ -9,7 +9,11 @@ fn test_tui_mode_toggle_with_ctrl_t_and_no_fkeys() {
     // Ctrl+Espaço NÃO deve mais alterar o modo
     let ctrl_space = KeyEvent::new(KeyCode::Char(' '), KeyModifiers::CONTROL);
     app.handle_key(ctrl_space);
-    assert_eq!(app.mode, ViewMode::Split, "Ctrl+Espaço não deve alterar modo");
+    assert_eq!(
+        app.mode,
+        ViewMode::Split,
+        "Ctrl+Espaço não deve alterar modo"
+    );
 
     // Pressionar Ctrl+T alterna Split -> Preview
     let ctrl_t = KeyEvent::new(KeyCode::Char('t'), KeyModifiers::CONTROL);
@@ -36,7 +40,11 @@ fn test_tui_preview_mode_ignores_text_input() {
 
     assert!(!handled, "Input de texto no Preview não deve ser consumido");
     assert!(!app.is_dirty, "Input no Preview não deve sujar o buffer");
-    assert_eq!(app.editor.get_text(), initial_text, "Texto não deve ser alterado");
+    assert_eq!(
+        app.editor.get_text(),
+        initial_text,
+        "Texto não deve ser alterado"
+    );
 }
 
 #[test]
@@ -117,4 +125,29 @@ fn test_tui_ctrl_shortcuts_and_no_fkeys() {
     assert!(!app.should_quit);
     app.handle_key(KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL));
     assert!(app.should_quit);
+}
+
+#[test]
+fn test_mutation_tui_rapid_mode_cycling_and_preview_isolation() {
+    let mut app = TuiApp::new(None);
+    let ctrl_t = KeyEvent::new(KeyCode::Char('t'), KeyModifiers::CONTROL);
+
+    // 9 ciclos de 3 modos retornam exatamente para Split (3 * 3 = 9)
+    for _ in 0..9 {
+        app.handle_key(ctrl_t);
+    }
+    assert_eq!(app.mode, ViewMode::Split);
+
+    // Alternar para Preview (Split -> Preview)
+    app.handle_key(ctrl_t);
+    assert_eq!(app.mode, ViewMode::Preview);
+
+    // Tentar digitar múltiplos caracteres alfanuméricos e caracteres de controle de edição
+    for c in ['a', 'b', 'c', '1', '2', '3', ' ', '\n'] {
+        let key = KeyEvent::new(KeyCode::Char(c), KeyModifiers::empty());
+        let res = app.handle_key(key);
+        assert!(!res);
+    }
+    assert!(!app.is_dirty);
+    assert!(app.last_edit_time.is_none());
 }
