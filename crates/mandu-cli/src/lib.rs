@@ -49,12 +49,10 @@ pub fn resolve_target(args: &[String], has_wayland: bool, has_x11: bool) -> Disp
         }
     }
 
-    let resolved_target = target.unwrap_or_else(|| {
-        if has_wayland || has_x11 {
-            TargetMode::Gui
-        } else {
-            TargetMode::Tui
-        }
+    let resolved_target = target.unwrap_or(if has_wayland || has_x11 {
+        TargetMode::Gui
+    } else {
+        TargetMode::Tui
     });
 
     DispatchDecision {
@@ -101,8 +99,8 @@ pub fn resolve_and_find_binary(
     args: &[String],
     current_exe_dir: Option<&Path>,
 ) -> Result<(PathBuf, Vec<String>), String> {
-    let has_wayland = env::var("WAYLAND_DISPLAY").map_or(false, |v| !v.trim().is_empty());
-    let has_x11 = env::var("DISPLAY").map_or(false, |v| !v.trim().is_empty());
+    let has_wayland = env::var("WAYLAND_DISPLAY").is_ok_and(|v| !v.trim().is_empty());
+    let has_x11 = env::var("DISPLAY").is_ok_and(|v| !v.trim().is_empty());
     let path_env = env::var("PATH").ok();
 
     let decision = resolve_target(args, has_wayland, has_x11);
