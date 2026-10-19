@@ -67,5 +67,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Salvamento automático transparente (*autosave*) estilo Obsidian no `mandu-tui` e `mandu-gui` com debounce de inatividade (1.000 ms), disparando o pipeline seguro de normalização POSIX, injeção de `modified` e reindexação no SQLite in-memory.
 - Persistência imediata compulsória em mudanças de contexto (*save-on-switch* e *save-on-exit*), salvando o buffer ativo antes de carregar novas notas via busca rápida (`Ctrl+O`), navegação de links (`Ctrl+G`), abertura na modal de Peek (`Enter`) e encerramento (`Ctrl+Q`).
 - Feedback visual suave na barra de status inferior de 1 linha, exibindo indicador `[●]` durante a digitação e `[✓ Salvo]` temporariamente (por 2 segundos) após a persistência automática.
+- Renderização rica e especializada de blocos Joaju e prévias de link na TUI (`mandu-tui::blocks`), com correção de alinhamento geométrico via `unicode-width`, bordas fechadas retas, tabelas tabulares formatadas, fichas clínicas estruturadas para heredogramas e separação arquitetural estrita que mantém o `joaju-core` agnóstico e desonerado de código de terminal (closes #16).
 
 
