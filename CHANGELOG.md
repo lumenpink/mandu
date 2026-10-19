@@ -68,5 +68,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistência imediata compulsória em mudanças de contexto (*save-on-switch* e *save-on-exit*), salvando o buffer ativo antes de carregar novas notas via busca rápida (`Ctrl+O`), navegação de links (`Ctrl+G`), abertura na modal de Peek (`Enter`) e encerramento (`Ctrl+Q`).
 - Feedback visual suave na barra de status inferior de 1 linha, exibindo indicador `[●]` durante a digitação e `[✓ Salvo]` temporariamente (por 2 segundos) após a persistência automática.
 - Renderização rica e especializada de blocos Joaju e prévias de link na TUI (`mandu-tui::blocks`), com correção de alinhamento geométrico via `unicode-width`, bordas fechadas retas, tabelas tabulares formatadas, fichas clínicas estruturadas para heredogramas e separação arquitetural estrita que mantém o `joaju-core` agnóstico e desonerado de código de terminal (closes #16).
+- Renderização tipográfica rica na TUI para blocos Joaju e Typst (fórmulas matemáticas com notação Unicode limpa, títulos de seções, listas estilizadas, tabelas tabulares e supressão de diretivas de compilação) e proteção estrita do buffer no editor do terminal, preservando frontmatter YAML e evitando sobrescrita concorrente no salvamento/autosave (closes #17).
 
 
