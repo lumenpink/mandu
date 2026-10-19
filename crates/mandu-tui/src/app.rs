@@ -302,7 +302,7 @@ impl TuiApp<'_> {
                     self.should_quit = true;
                     return true;
                 }
-                KeyCode::Char(' ') => {
+                KeyCode::Char('t') => {
                     self.mode = self.mode.next();
                     return true;
                 }
@@ -416,6 +416,11 @@ impl TuiApp<'_> {
             }
         }
 
+        // No modo Leitura (Preview), não repassar digitação para a textarea
+        if self.mode == crate::ui::ViewMode::Preview {
+            return false;
+        }
+
         // Teclas normais de edição no editor
         if self.editor.textarea.input(key) {
             self.is_dirty = true;
@@ -457,7 +462,7 @@ impl TuiApp<'_> {
         };
 
         format!(
-            "[ 📁 Buscar/Abrir ]  {file_name}{dirty_indicator} ({words_formatted} pal. | 🔗 {} backlinks)  [ 👁 {} ]  [ 📄 Gerar PDF ]",
+            "[ 📁 Buscar/Abrir ]  {file_name}{dirty_indicator} ({words_formatted} pal. | 🔗 {} backlinks)  [ 👁 {} (Ctrl+T) ]  [ 📄 Gerar PDF ]",
             self.backlink_count,
             self.mode.label()
         )

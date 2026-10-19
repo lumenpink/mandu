@@ -259,7 +259,7 @@ pub fn render_statusbar(ui: &mut egui::Ui, state: &mut ViewsState) {
                 state.status_message = Some("Documento exportado via Joaju".to_string());
             }
 
-            if ui.button(format!("[ 👁 {} ]", state.mode.label())).clicked() {
+            if ui.button(format!("[ 👁 {} (Ctrl+T) ]", state.mode.label())).clicked() {
                 state.mode = state.mode.next();
             }
         });

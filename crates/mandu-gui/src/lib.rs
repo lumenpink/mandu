@@ -226,7 +226,15 @@ impl ManduApp {
             .or_else(|| self.state.current_file.as_ref().map(PathBuf::from));
 
         if let Some(path) = path_opt {
-            let _ = std::fs::write(&path, &self.state.buffer);
+            let is_buffer_empty = self.state.buffer.trim().is_empty();
+            let file_exists = path.is_file();
+
+            if self.is_dirty && !is_buffer_empty {
+                self.save_current_note();
+            } else if !file_exists && !is_buffer_empty {
+                let _ = std::fs::write(&path, &self.state.buffer);
+            }
+
             match PreviewEngine::export_note_to_pdf(&path, None) {
                 Ok(_) => {
                     self.state.status_message = Some("Documento exportado via Joaju".to_string());
@@ -292,8 +300,8 @@ impl ManduApp {
         }
 
         ctx.input_mut(|i| {
-            // Ctrl+Espaço: Alternar Modo
-            if i.consume_key(egui::Modifiers::COMMAND, egui::Key::Space) {
+            // Ctrl+T: Alternar Modo
+            if i.consume_key(egui::Modifiers::COMMAND, egui::Key::T) {
                 self.state.mode = self.state.mode.next();
             }
 

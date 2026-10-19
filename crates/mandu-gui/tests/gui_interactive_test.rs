@@ -133,12 +133,27 @@ fn test_gui_shortcuts_handling_and_no_fkeys() {
     let mut app = ManduApp::default();
     let ctx = Context::default();
 
-    // Ctrl+Space alterna modo
+    // Ctrl+Space NÃO altera mais modo
     assert_eq!(app.state.mode, GuiViewMode::Split);
+    let mut input_sp = RawInput::default();
+    input_sp.modifiers.command = true;
+    input_sp.events.push(Event::Key {
+        key: Key::Space,
+        physical_key: None,
+        pressed: true,
+        repeat: false,
+        modifiers: Modifiers::COMMAND,
+    });
+    let _ = ctx.run(input_sp, |ctx| {
+        app.handle_shortcuts(ctx);
+    });
+    assert_eq!(app.state.mode, GuiViewMode::Split, "Ctrl+Space não deve alterar modo");
+
+    // Ctrl+T alterna modo de Split para Preview
     let mut input = RawInput::default();
     input.modifiers.command = true;
     input.events.push(Event::Key {
-        key: Key::Space,
+        key: Key::T,
         physical_key: None,
         pressed: true,
         repeat: false,
