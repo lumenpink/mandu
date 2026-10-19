@@ -22,7 +22,9 @@ fn test_render_link_card_exact_width_and_straight_borders() {
         );
         // Cada linha deve começar com '╭', '│' ou '╰' e terminar com '╮', '│' ou '╯'
         assert!(
-            plain_text.starts_with('╭') || plain_text.starts_with('│') || plain_text.starts_with('╰'),
+            plain_text.starts_with('╭')
+                || plain_text.starts_with('│')
+                || plain_text.starts_with('╰'),
             "Início de borda inválido na linha: {plain_text}"
         );
         assert!(
@@ -90,7 +92,8 @@ fn test_render_code_box_closed_rectangle() {
 fn test_render_link_card_truncation_with_cjk_and_emojis() {
     let title = "🚀 超级标题 — Long CJK Title with Japanese 日本語 and Emojis 🎉✨";
     let url = "https://example.com/very/long/nested/path/to/resource/that/definitely/exceeds/width";
-    let desc = "Descrição extensa que necessita de truncamento com reticências para manter retidão.";
+    let desc =
+        "Descrição extensa que necessita de truncamento com reticências para manter retidão.";
     let width = 36;
 
     let lines = render_link_card(title, url, Some(desc), width);
