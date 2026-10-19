@@ -19,7 +19,10 @@ fn test_tui_autosave_debounce_saves_when_elapsed() {
 
     // Verificar se o autosave dispara após decorrido o tempo de debounce
     let saved = app.check_autosave();
-    assert!(saved, "autosave deve retornar true quando decorrido o debounce");
+    assert!(
+        saved,
+        "autosave deve retornar true quando decorrido o debounce"
+    );
     assert!(!app.is_dirty, "is_dirty deve ser resetado após autosave");
 
     // Verificar se arquivo no disco foi atualizado
@@ -48,8 +51,14 @@ fn test_tui_autosave_debounce_does_not_save_while_typing() {
     app.last_edit_time = Some(Instant::now() - Duration::from_millis(200));
 
     let saved = app.check_autosave();
-    assert!(!saved, "autosave não deve disparar enquanto usuário estiver digitando ativamente");
-    assert!(app.is_dirty, "buffer deve permanecer dirty durante a digitação");
+    assert!(
+        !saved,
+        "autosave não deve disparar enquanto usuário estiver digitando ativamente"
+    );
+    assert!(
+        app.is_dirty,
+        "buffer deve permanecer dirty durante a digitação"
+    );
 
     let on_disk = fs::read_to_string(&note_path).expect("read");
     assert!(
@@ -138,4 +147,3 @@ fn test_tui_autosave_feedback_expiration() {
         "feedback de salvo não deve aparecer após expiração da janela de 2s"
     );
 }
-
