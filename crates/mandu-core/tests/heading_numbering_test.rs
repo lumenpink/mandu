@@ -134,12 +134,30 @@ Fim da seção.
     // Padrão _.1.a -> H1 sem número, H2 numérico, H3 alfabético minúsculo
     let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(input, "_.1.a");
 
-    assert!(numbered.contains("# Introdução"), "H1 deve estar desprovido de numeração");
-    assert!(!numbered.contains("# 1. Introdução"), "H1 não deve receber '1.'");
-    assert!(numbered.contains("## 1. Fundamentos"), "H2 deve receber '1.'");
-    assert!(numbered.contains("### 1.a. Detalhe Alfa"), "H3 deve receber '1.a.'");
-    assert!(numbered.contains("### 1.b. Detalhe Beta"), "H3 deve receber '1.b.'");
-    assert!(numbered.contains("## 2. Conclusão"), "H2 deve incrementar para '2.'");
+    assert!(
+        numbered.contains("# Introdução"),
+        "H1 deve estar desprovido de numeração"
+    );
+    assert!(
+        !numbered.contains("# 1. Introdução"),
+        "H1 não deve receber '1.'"
+    );
+    assert!(
+        numbered.contains("## 1. Fundamentos"),
+        "H2 deve receber '1.'"
+    );
+    assert!(
+        numbered.contains("### 1.a. Detalhe Alfa"),
+        "H3 deve receber '1.a.'"
+    );
+    assert!(
+        numbered.contains("### 1.b. Detalhe Beta"),
+        "H3 deve receber '1.b.'"
+    );
+    assert!(
+        numbered.contains("## 2. Conclusão"),
+        "H2 deve incrementar para '2.'"
+    );
 }
 
 #[test]
@@ -202,7 +220,10 @@ Texto de encerramento.
     let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(input, "1.1.1");
 
     // O marcador #_ deve ser limpo para # e não ter número
-    assert!(numbered.contains("# Prefácio"), "Prefácio deve ficar limpo sem #_");
+    assert!(
+        numbered.contains("# Prefácio"),
+        "Prefácio deve ficar limpo sem #_"
+    );
     assert!(!numbered.contains("# 1. Prefácio"));
 
     // O primeiro capítulo deve começar em 1, sem ser consumido pelo prefácio
@@ -232,6 +253,70 @@ number_type: "_.1.a"
 "#;
 
     let note = Vault::parse_note_content(Path::new("tese.md"), content);
-    assert!(note.number_headings, "number_type deve inferir number_headings = true");
+    assert!(
+        note.number_headings,
+        "number_type deve inferir number_headings = true"
+    );
     assert_eq!(note.number_type.as_deref(), Some("_.1.a"));
+}
+
+#[test]
+fn test_mutation_skip_in_middle_pattern() {
+    let input = r#"# Título Principal
+## Seção Oculta
+### Subtópico Alfa
+#### Nível Quatro Herdado
+"#;
+
+    // 1._.a -> H1 numérico, H2 suprimido, H3 alfabético, H4 herda alfabético
+    let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(input, "1._.a");
+
+    assert!(numbered.contains("# 1. Título Principal"));
+    assert!(numbered.contains("## Seção Oculta"));
+    assert!(!numbered.lines().any(|l| l.starts_with("## 1.")));
+    assert!(numbered.contains("### 1.a. Subtópico Alfa"));
+    assert!(numbered.contains("#### 1.a.a. Nível Quatro Herdado"));
+}
+
+#[test]
+fn test_mutation_frontmatter_aliases_and_subsequent_reset() {
+    let content_alias = r#"---
+title: Relatório
+tipo_numeracao: "I.A"
+---
+
+# Capítulo I
+## Seção A
+## Seção B
+# Capítulo II
+## Seção A
+"#;
+
+    let note = Vault::parse_note_content(Path::new("relatorio.md"), content_alias);
+    assert!(note.number_headings);
+    assert_eq!(note.number_type.as_deref(), Some("I.A"));
+
+    let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(
+        &note.body,
+        note.number_type.as_deref().unwrap(),
+    );
+    assert!(numbered.contains("# I. Capítulo I"));
+    assert!(numbered.contains("## I.A. Seção A"));
+    assert!(numbered.contains("## I.B. Seção B"));
+    assert!(numbered.contains("# II. Capítulo II"));
+    assert!(numbered.contains("## II.A. Seção A"));
+}
+
+#[test]
+fn test_mutation_roman_and_alpha_bounds() {
+    // Gerar 10 seções romanas para verificar IV, IX, X
+    let mut input = String::new();
+    for i in 1..=10 {
+        input.push_str(&format!("# Seção {i}\n"));
+    }
+
+    let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(&input, "i");
+    assert!(numbered.contains("# iv. Seção 4"));
+    assert!(numbered.contains("# ix. Seção 9"));
+    assert!(numbered.contains("# x. Seção 10"));
 }

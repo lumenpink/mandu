@@ -462,7 +462,7 @@ pub fn apply_heading_numbering_with_pattern(content: &str, pattern: &str) -> Str
         }
 
         let hashes_count = trimmed.chars().take_while(|&c| c == '#').count();
-        if hashes_count >= 1 && hashes_count <= 6 {
+        if (1..=6).contains(&hashes_count) {
             let after = &trimmed[hashes_count..];
 
             // 1. Cabeçalhos avulsos desvinculados: #_ ou ##_

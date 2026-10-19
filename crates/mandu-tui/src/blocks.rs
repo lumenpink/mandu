@@ -1013,11 +1013,15 @@ pub fn render_markdown_lines(
             lines.push(Line::from(vec![
                 Span::styled(
                     "▌ ",
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(
                     stripped.to_string(),
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
         } else if let Some(stripped) = trimmed.strip_prefix("## ") {
@@ -1025,11 +1029,15 @@ pub fn render_markdown_lines(
             lines.push(Line::from(vec![
                 Span::styled(
                     "▍ ",
-                    Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(
                     stripped.to_string(),
-                    Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
         } else if let Some(stripped) = trimmed.strip_prefix("### ") {
@@ -1037,11 +1045,15 @@ pub fn render_markdown_lines(
             lines.push(Line::from(vec![
                 Span::styled(
                     "▎ ",
-                    Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(
                     stripped.to_string(),
-                    Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
         } else if let Some(stripped) = trimmed.strip_prefix("#### ") {
@@ -1049,11 +1061,15 @@ pub fn render_markdown_lines(
             lines.push(Line::from(vec![
                 Span::styled(
                     "▏ ",
-                    Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Blue)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(
                     stripped.to_string(),
-                    Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Blue)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
         } else if let Some(stripped) = trimmed.strip_prefix("##### ") {
@@ -1061,11 +1077,15 @@ pub fn render_markdown_lines(
             lines.push(Line::from(vec![
                 Span::styled(
                     "▏ ",
-                    Style::default().fg(Color::LightBlue).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::LightBlue)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(
                     stripped.to_string(),
-                    Style::default().fg(Color::LightBlue).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::LightBlue)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
         } else if let Some(stripped) = trimmed.strip_prefix("###### ") {
@@ -1073,11 +1093,15 @@ pub fn render_markdown_lines(
             lines.push(Line::from(vec![
                 Span::styled(
                     "▏ ",
-                    Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::DarkGray)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(
                     stripped.to_string(),
-                    Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::DarkGray)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
         } else if let Some(stripped) = trimmed.strip_prefix('>') {
@@ -1085,7 +1109,9 @@ pub fn render_markdown_lines(
             let mut quote_spans = vec![Span::styled("▍ ", Style::default().fg(Color::LightYellow))];
             quote_spans.push(Span::styled(
                 stripped.to_string(),
-                Style::default().fg(Color::Gray).add_modifier(Modifier::ITALIC),
+                Style::default()
+                    .fg(Color::Gray)
+                    .add_modifier(Modifier::ITALIC),
             ));
             lines.push(Line::from(quote_spans));
         } else if let Some(stripped) = trimmed
@@ -1101,7 +1127,9 @@ pub fn render_markdown_lines(
             let prefix = format!("  {ordered_list_counter}. ");
             let mut list_spans = vec![Span::styled(
                 prefix,
-                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
             )];
             list_spans.extend(parse_inline_spans(rest));
             lines.push(Line::from(list_spans));
