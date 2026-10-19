@@ -10,10 +10,24 @@ fn test_gui_mode_toggle_and_shortcuts_without_fkeys() {
     let mut app = ManduApp::default();
     assert_eq!(app.state.mode, GuiViewMode::Split);
 
-    // Simular evento de teclado Ctrl+Espaço (avança de Split para Preview)
+    // Ctrl+Espaço NÃO deve mais alterar o modo
+    let mut input_space = RawInput::default();
+    input_space.events.push(Event::Key {
+        key: Key::Space,
+        physical_key: None,
+        pressed: true,
+        repeat: false,
+        modifiers: Modifiers::COMMAND,
+    });
+    let _ = ctx.run(input_space, |_ctx| {
+        app.handle_shortcuts(&ctx);
+    });
+    assert_eq!(app.state.mode, GuiViewMode::Split, "Ctrl+Espaço não deve alterar modo");
+
+    // Simular evento de teclado Ctrl+T (avança de Split para Preview)
     let mut input = RawInput::default();
     input.events.push(Event::Key {
-        key: Key::Space,
+        key: Key::T,
         physical_key: None,
         pressed: true,
         repeat: false,
@@ -26,10 +40,10 @@ fn test_gui_mode_toggle_and_shortcuts_without_fkeys() {
 
     assert_eq!(app.state.mode, GuiViewMode::Preview);
 
-    // Próximo Ctrl+Espaço vai de Preview para Source
+    // Próximo Ctrl+T vai de Preview para Source
     let mut input2 = RawInput::default();
     input2.events.push(Event::Key {
-        key: Key::Space,
+        key: Key::T,
         physical_key: None,
         pressed: true,
         repeat: false,

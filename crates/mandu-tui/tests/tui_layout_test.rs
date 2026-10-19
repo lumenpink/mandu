@@ -2,22 +2,41 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use mandu_tui::{app::TuiApp, ui::ViewMode};
 
 #[test]
-fn test_tui_mode_toggle_with_ctrl_space_and_no_fkeys() {
+fn test_tui_mode_toggle_with_ctrl_t_and_no_fkeys() {
     let mut app = TuiApp::new(None);
     assert_eq!(app.mode, ViewMode::Split);
 
-    // Pressionar Ctrl+Espaço alterna Split -> Preview
+    // Ctrl+Espaço NÃO deve mais alterar o modo
     let ctrl_space = KeyEvent::new(KeyCode::Char(' '), KeyModifiers::CONTROL);
     app.handle_key(ctrl_space);
+    assert_eq!(app.mode, ViewMode::Split, "Ctrl+Espaço não deve alterar modo");
+
+    // Pressionar Ctrl+T alterna Split -> Preview
+    let ctrl_t = KeyEvent::new(KeyCode::Char('t'), KeyModifiers::CONTROL);
+    app.handle_key(ctrl_t);
     assert_eq!(app.mode, ViewMode::Preview);
 
-    // Pressionar Ctrl+Espaço novamente alterna Preview -> Source
-    app.handle_key(ctrl_space);
+    // Pressionar Ctrl+T novamente alterna Preview -> Source
+    app.handle_key(ctrl_t);
     assert_eq!(app.mode, ViewMode::Source);
 
-    // Pressionar Ctrl+Espaço novamente alterna Source -> Split
-    app.handle_key(ctrl_space);
+    // Pressionar Ctrl+T novamente alterna Source -> Split
+    app.handle_key(ctrl_t);
     assert_eq!(app.mode, ViewMode::Split);
+}
+
+#[test]
+fn test_tui_preview_mode_ignores_text_input() {
+    let mut app = TuiApp::new(None);
+    app.mode = ViewMode::Preview;
+    let initial_text = app.editor.get_text();
+
+    let typing_key = KeyEvent::new(KeyCode::Char('z'), KeyModifiers::empty());
+    let handled = app.handle_key(typing_key);
+
+    assert!(!handled, "Input de texto no Preview não deve ser consumido");
+    assert!(!app.is_dirty, "Input no Preview não deve sujar o buffer");
+    assert_eq!(app.editor.get_text(), initial_text, "Texto não deve ser alterado");
 }
 
 #[test]
@@ -30,6 +49,7 @@ fn test_tui_statusbar_formatting() {
     assert!(status.contains("1.240 pal."));
     assert!(status.contains("🔗 5 backlinks"));
     assert!(status.contains("Modo: Split"));
+    assert!(status.contains("(Ctrl+T)"));
 }
 
 #[test]

@@ -311,3 +311,25 @@ fn test_gui_edge_cases_export_and_saving_without_file() {
         .unwrap_or("")
         .contains("Joaju"));
 }
+
+#[test]
+fn test_export_pdf_with_empty_buffer_does_not_zero_existing_file() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let file_path = dir.path().join("precioso.md");
+    let initial_content = "# Meu Trabalho Precioso\n\nTexto importante que não pode ser zerado.\n";
+    std::fs::write(&file_path, initial_content).expect("write initial");
+
+    let mut app =
+        ManduApp::new_with_vault(Some(dir.path().to_path_buf()), Some(file_path.clone()));
+    // Simular que o buffer em memória foi limpo/vazio acidentalmente
+    app.state.buffer = String::new();
+    app.is_dirty = false;
+
+    // Tentar exportar
+    app.export_current_note_pdf();
+
+    // O arquivo em disco NÃO deve ter sido truncado para 0 bytes!
+    let content_after = std::fs::read_to_string(&file_path).expect("read after");
+    assert!(!content_after.is_empty(), "Arquivo não pode ser zerado para 0 bytes!");
+    assert_eq!(content_after, initial_content, "Conteúdo original deve ser preservado integralmente!");
+}
