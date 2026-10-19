@@ -166,17 +166,18 @@ impl ManduApp {
     }
 
     pub fn check_autosave(&mut self) -> bool {
-        if self.is_dirty {
-            if let Some(last) = self.last_edit_time {
-                if last.elapsed() >= self.autosave_delay {
-                    self.save_current_note();
-                    self.autosave_feedback_until =
-                        Some(std::time::Instant::now() + std::time::Duration::from_secs(2));
-                    return true;
-                }
-            }
+        if self.is_dirty
+            && self
+                .last_edit_time
+                .is_some_and(|last| last.elapsed() >= self.autosave_delay)
+        {
+            self.save_current_note();
+            self.autosave_feedback_until =
+                Some(std::time::Instant::now() + std::time::Duration::from_secs(2));
+            true
+        } else {
+            false
         }
-        false
     }
 
     pub fn save_current_note(&mut self) {
