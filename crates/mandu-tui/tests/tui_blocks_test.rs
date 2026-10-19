@@ -163,7 +163,12 @@ Onde:
 
     let all_text: Vec<String> = lines
         .iter()
-        .map(|l| l.spans.iter().map(|s| s.content.as_ref()).collect::<String>())
+        .map(|l| {
+            l.spans
+                .iter()
+                .map(|s| s.content.as_ref())
+                .collect::<String>()
+        })
         .collect();
 
     // 1. Diretivas de compilação devem ser suprimidas da visão TUI
@@ -180,19 +185,25 @@ Onde:
 
     // 2. Título == deve ser formatado como cabeçalho
     assert!(
-        all_text.iter().any(|t| t.contains("Análise de Desempenho e Complexidade")),
+        all_text
+            .iter()
+            .any(|t| t.contains("Análise de Desempenho e Complexidade")),
         "título da seção deve estar presente formatado"
     );
 
     // 3. Fórmula matemática deve estar presente
     assert!(
-        all_text.iter().any(|t| t.contains("C = B") || t.contains("Shannon")),
+        all_text
+            .iter()
+            .any(|t| t.contains("C = B") || t.contains("Shannon")),
         "fórmula matemática ou texto explicativo deve estar presente"
     );
 
     // 4. Listas com marcadores devem conter o bullet '•'
     assert!(
-        all_text.iter().any(|t| t.contains('•') && t.contains("largura de banda")),
+        all_text
+            .iter()
+            .any(|t| t.contains('•') && t.contains("largura de banda")),
         "itens da lista devem conter marcador de lista '•'"
     );
 }

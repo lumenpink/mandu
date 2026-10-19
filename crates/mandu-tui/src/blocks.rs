@@ -538,11 +538,7 @@ fn parse_typst_table(code: &str, width: usize) -> Option<Vec<Line<'static>>> {
             }
             if end >= start {
                 let cell_raw = &code[start..end];
-                let cell_clean = cell_raw
-                    .trim()
-                    .trim_matches('*')
-                    .trim_matches('_')
-                    .trim();
+                let cell_clean = cell_raw.trim().trim_matches('*').trim_matches('_').trim();
                 cells.push(cell_clean.to_string());
             }
         }
@@ -552,10 +548,7 @@ fn parse_typst_table(code: &str, width: usize) -> Option<Vec<Line<'static>>> {
         return None;
     }
 
-    let rows: Vec<String> = cells
-        .chunks(cols)
-        .map(|chunk| chunk.join("\t"))
-        .collect();
+    let rows: Vec<String> = cells.chunks(cols).map(|chunk| chunk.join("\t")).collect();
 
     let tsv = rows.join("\n");
     Some(render_table_block(&tsv, width))
@@ -574,7 +567,10 @@ fn parse_typst_inline(text: &str) -> Vec<Span<'static>> {
                 continue;
             }
             if !current.is_empty() {
-                spans.push(Span::styled(current.clone(), Style::default().fg(Color::Gray)));
+                spans.push(Span::styled(
+                    current.clone(),
+                    Style::default().fg(Color::Gray),
+                ));
                 current.clear();
             }
             let mut math_content = String::new();
@@ -598,7 +594,10 @@ fn parse_typst_inline(text: &str) -> Vec<Span<'static>> {
                 continue;
             }
             if !current.is_empty() {
-                spans.push(Span::styled(current.clone(), Style::default().fg(Color::Gray)));
+                spans.push(Span::styled(
+                    current.clone(),
+                    Style::default().fg(Color::Gray),
+                ));
                 current.clear();
             }
             let mut bold_content = String::new();
@@ -651,9 +650,10 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
     let mut table_buf = String::new();
 
     // Cabeçalho estilizado discreto do Joaju
-    lines.push(Line::from(vec![
-        Span::styled("  [ 🖋 Joaju / Typst ]", Style::default().fg(Color::Cyan)),
-    ]));
+    lines.push(Line::from(vec![Span::styled(
+        "  [ 🖋 Joaju / Typst ]",
+        Style::default().fg(Color::Cyan),
+    )]));
     lines.push(Line::from(""));
 
     for raw_line in code.lines() {
@@ -699,8 +699,18 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
                 in_multiline_math = false;
                 let math_display = format_math_symbols(&multiline_math_buf);
                 lines.push(Line::from(vec![
-                    Span::styled("   ∑  ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-                    Span::styled(math_display, Style::default().fg(Color::LightYellow).add_modifier(Modifier::BOLD)),
+                    Span::styled(
+                        "   ∑  ",
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        math_display,
+                        Style::default()
+                            .fg(Color::LightYellow)
+                            .add_modifier(Modifier::BOLD),
+                    ),
                 ]));
                 lines.push(Line::from(""));
                 multiline_math_buf.clear();
@@ -713,8 +723,18 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
             let formula = line.trim_start_matches('$').trim_end_matches('$').trim();
             let math_display = format_math_symbols(formula);
             lines.push(Line::from(vec![
-                Span::styled("   ∑  ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-                Span::styled(math_display, Style::default().fg(Color::LightYellow).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "   ∑  ",
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    math_display,
+                    Style::default()
+                        .fg(Color::LightYellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ]));
             lines.push(Line::from(""));
             continue;
@@ -727,23 +747,63 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
         // 3. Títulos Typst (=, ==, ===, ====)
         if let Some(stripped) = line.strip_prefix("==== ") {
             lines.push(Line::from(vec![
-                Span::styled("▪ ", Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD)),
-                Span::styled(stripped.to_string(), Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "▪ ",
+                    Style::default()
+                        .fg(Color::DarkGray)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default()
+                        .fg(Color::DarkGray)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ]));
         } else if let Some(stripped) = line.strip_prefix("=== ") {
             lines.push(Line::from(vec![
-                Span::styled("▎ ", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
-                Span::styled(stripped.to_string(), Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "▎ ",
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ]));
         } else if let Some(stripped) = line.strip_prefix("== ") {
             lines.push(Line::from(vec![
-                Span::styled("▍ ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
-                Span::styled(stripped.to_string(), Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "▍ ",
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default()
+                        .fg(Color::Green)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ]));
         } else if let Some(stripped) = line.strip_prefix("= ") {
             lines.push(Line::from(vec![
-                Span::styled("▌ ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
-                Span::styled(stripped.to_string(), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "▌ ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                ),
             ]));
         } else if let Some(stripped) = line.strip_prefix("- ").or_else(|| line.strip_prefix("* ")) {
             // 4. Listas com marcadores
@@ -761,8 +821,18 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
     if in_multiline_math && !multiline_math_buf.is_empty() {
         let math_display = format_math_symbols(&multiline_math_buf);
         lines.push(Line::from(vec![
-            Span::styled("   ∑  ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::styled(math_display, Style::default().fg(Color::LightYellow).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "   ∑  ",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                math_display,
+                Style::default()
+                    .fg(Color::LightYellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
         ]));
     }
 
