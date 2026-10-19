@@ -58,12 +58,14 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
             frame.render_widget(&app.editor.textarea, split_chunks[0]);
 
             let text = app.editor.get_text();
-            let preview_widget = render_preview_pane(&text, "Visualização Joaju");
+            let preview_widget =
+                render_preview_pane(&text, "Visualização Joaju", split_chunks[1].width);
             frame.render_widget(preview_widget, split_chunks[1]);
         }
         ViewMode::Preview => {
             let text = app.editor.get_text();
-            let preview_widget = render_preview_pane(&text, "Visualização Joaju (Modo Leitura)");
+            let preview_widget =
+                render_preview_pane(&text, "Visualização Joaju (Modo Leitura)", main_area.width);
             frame.render_widget(preview_widget, main_area);
         }
     }
@@ -289,7 +291,7 @@ fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
     spans
 }
 
-fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
+fn render_preview_pane<'a>(text: &'a str, title: &'a str, pane_width: u16) -> Paragraph<'a> {
     let mut lines = Vec::new();
     let (meta_opt, raw_body) = mandu_core::vault::Vault::extract_metadata(text);
 
@@ -329,40 +331,56 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str) -> Paragraph<'a> {
         raw_body.to_string()
     };
 
-    let mut in_code_block = false;
+    let card_width = (pane_width as usize).saturating_sub(4).clamp(24, 76);
 
-    for line in processed_body.lines() {
+    let mut body_lines = processed_body.lines().peekable();
+    while let Some(line) = body_lines.next() {
         let trimmed = line.trim_start();
         if trimmed.starts_with("```") {
-            if in_code_block {
-                in_code_block = false;
-                lines.push(Line::from(vec![Span::styled(
-                    "└──────────────────────────────────────────",
-                    Style::default().fg(Color::DarkGray),
-                )]));
-            } else {
-                in_code_block = true;
-                let code_engine = trimmed.trim_start_matches('`').trim();
-                let label = if code_engine.is_empty() {
-                    "código"
-                } else {
-                    code_engine
-                };
-                lines.push(Line::from(vec![Span::styled(
-                    format!("┌── Bloco [{label}] ────────────────────────"),
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                )]));
+            let engine = trimmed.trim_start_matches('`').trim();
+            let mut code_lines = Vec::new();
+            while let Some(next_line) = body_lines.peek() {
+                if next_line.trim_start().starts_with("```") {
+                    body_lines.next();
+                    break;
+                }
+                code_lines.push(body_lines.next().unwrap());
+            }
+            let code = code_lines.join("\n");
+            match engine {
+                "unfurl" | "link" => {
+                    let mut parts = code.split('|').map(str::trim);
+                    let url = parts.next().unwrap_or("https://mandu.2lp.in");
+                    let title = parts.next().unwrap_or(url);
+                    let desc = parts.next();
+                    lines.extend(crate::blocks::render_link_card(
+                        title, url, desc, card_width,
+                    ));
+                }
+                "table" | "csv" => {
+                    lines.extend(crate::blocks::render_table_block(&code, card_width));
+                }
+                "pedigree" | "heredograma" | "kinship2" | "pedtools" => {
+                    lines.extend(crate::blocks::render_pedigree_summary(&code, card_width));
+                }
+                _ => {
+                    let label = if engine.is_empty() {
+                        "código"
+                    } else {
+                        engine
+                    };
+                    lines.extend(crate::blocks::render_code_box(label, &code, card_width));
+                }
             }
             continue;
         }
 
-        if in_code_block {
-            lines.push(Line::from(vec![
-                Span::styled("│ ", Style::default().fg(Color::DarkGray)),
-                Span::styled(line.to_string(), Style::default().fg(Color::Yellow)),
-            ]));
+        if (trimmed.starts_with("http://") || trimmed.starts_with("https://"))
+            && !trimmed.contains(' ')
+        {
+            lines.extend(crate::blocks::render_link_card(
+                trimmed, trimmed, None, card_width,
+            ));
             continue;
         }
 
