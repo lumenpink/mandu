@@ -291,3 +291,48 @@ fn test_render_typst_preview_edge_cases() {
     assert!(int_tbl_combined.contains("Chave"));
     assert!(int_tbl_combined.contains("Valor"));
 }
+
+#[test]
+fn test_render_ordered_lists_auto_increment() {
+    let markdown = r#"# Minha Lista
+1. Primeiro item
+1. Segundo item
+1. Terceiro item
+
+Texto separador.
+
+1. Novo bloco item 1
+1. Novo bloco item 2
+"#;
+
+    let lines = mandu_tui::blocks::render_markdown_lines(markdown, false, None, 60);
+
+    let rendered_text: Vec<String> = lines
+        .iter()
+        .map(|l| l.spans.iter().map(|s| s.content.as_ref()).collect::<String>())
+        .collect();
+
+    // Primeiro bloco de lista
+    assert!(
+        rendered_text.iter().any(|l| l.contains("1.") && l.contains("Primeiro item")),
+        "Esperado '1. Primeiro item'"
+    );
+    assert!(
+        rendered_text.iter().any(|l| l.contains("2.") && l.contains("Segundo item")),
+        "Esperado auto-incremento para '2. Segundo item'"
+    );
+    assert!(
+        rendered_text.iter().any(|l| l.contains("3.") && l.contains("Terceiro item")),
+        "Esperado auto-incremento para '3. Terceiro item'"
+    );
+
+    // Segundo bloco após o texto separador (deve resetar o contador)
+    assert!(
+        rendered_text.iter().any(|l| l.contains("1.") && l.contains("Novo bloco item 1")),
+        "Esperado reset do contador para '1. Novo bloco item 1'"
+    );
+    assert!(
+        rendered_text.iter().any(|l| l.contains("2.") && l.contains("Novo bloco item 2")),
+        "Esperado incremento para '2. Novo bloco item 2'"
+    );
+}

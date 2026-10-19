@@ -112,3 +112,126 @@ fn test_heading_numbering_preserves_existing_numbers_and_whitespace() {
     assert!(numbered.contains("## 1.1. Subtópico Já Numerado"));
     assert!(numbered.contains("# 2. Novo Título Sem Número"));
 }
+
+#[test]
+fn test_apply_heading_numbering_with_pattern_skip_and_alpha() {
+    let input = r#"# Introdução
+Texto aqui.
+
+## Fundamentos
+Mais texto.
+
+### Detalhe Alfa
+Detalhe 1.
+
+### Detalhe Beta
+Detalhe 2.
+
+## Conclusão
+Fim da seção.
+"#;
+
+    // Padrão _.1.a -> H1 sem número, H2 numérico, H3 alfabético minúsculo
+    let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(input, "_.1.a");
+
+    assert!(numbered.contains("# Introdução"), "H1 deve estar desprovido de numeração");
+    assert!(!numbered.contains("# 1. Introdução"), "H1 não deve receber '1.'");
+    assert!(numbered.contains("## 1. Fundamentos"), "H2 deve receber '1.'");
+    assert!(numbered.contains("### 1.a. Detalhe Alfa"), "H3 deve receber '1.a.'");
+    assert!(numbered.contains("### 1.b. Detalhe Beta"), "H3 deve receber '1.b.'");
+    assert!(numbered.contains("## 2. Conclusão"), "H2 deve incrementar para '2.'");
+}
+
+#[test]
+fn test_apply_heading_numbering_pattern_inheritance_to_h6() {
+    let input = r#"# Cap Um
+## Sec Um
+### Sub Um
+#### Nivel Quatro
+##### Nivel Cinco
+###### Nivel Seis
+"#;
+
+    // Padrão 1.1.a declara apenas 3 níveis. H4, H5, H6 devem herdar 'a'
+    let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(input, "1.1.a");
+
+    assert!(numbered.contains("# 1. Cap Um"));
+    assert!(numbered.contains("## 1.1. Sec Um"));
+    assert!(numbered.contains("### 1.1.a. Sub Um"));
+    assert!(numbered.contains("#### 1.1.a.a. Nivel Quatro"));
+    assert!(numbered.contains("##### 1.1.a.a.a. Nivel Cinco"));
+    assert!(numbered.contains("###### 1.1.a.a.a.a. Nivel Seis"));
+}
+
+#[test]
+fn test_apply_heading_numbering_roman_and_uppercase() {
+    let input = r#"# Parte Um
+## Seção A
+### Item 1
+# Parte Dois
+## Seção A
+"#;
+
+    let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(input, "I.A.1");
+
+    assert!(numbered.contains("# I. Parte Um"));
+    assert!(numbered.contains("## I.A. Seção A"));
+    assert!(numbered.contains("### I.A.1. Item 1"));
+    assert!(numbered.contains("# II. Parte Dois"));
+    assert!(numbered.contains("## II.A. Seção A"));
+}
+
+#[test]
+fn test_unassigned_adhoc_headings_suppression_and_counter_immunity() {
+    let input = r#"#_ Prefácio
+Texto do prefácio.
+
+# Primeiro Capítulo
+Texto do primeiro capítulo.
+
+##_ Nota Metodológica
+Aviso sem número.
+
+## Primeira Seção
+Conteúdo da primeira seção.
+
+# Conclusão {-}
+Texto de encerramento.
+"#;
+
+    let numbered = mandu_core::vault::apply_heading_numbering_with_pattern(input, "1.1.1");
+
+    // O marcador #_ deve ser limpo para # e não ter número
+    assert!(numbered.contains("# Prefácio"), "Prefácio deve ficar limpo sem #_");
+    assert!(!numbered.contains("# 1. Prefácio"));
+
+    // O primeiro capítulo deve começar em 1, sem ser consumido pelo prefácio
+    assert!(numbered.contains("# 1. Primeiro Capítulo"));
+
+    // Nota metodológica ##_ deve ficar limpa e sem número
+    assert!(numbered.contains("## Nota Metodológica"));
+    assert!(!numbered.contains("## 1.1. Nota Metodológica"));
+
+    // A primeira seção deve ser 1.1.
+    assert!(numbered.contains("## 1.1. Primeira Seção"));
+
+    // Conclusão {-} deve ter o {-} removido e não ter número
+    assert!(numbered.contains("# Conclusão"));
+    assert!(!numbered.contains("{-}"));
+}
+
+#[test]
+fn test_frontmatter_number_type_and_numbering_inference() {
+    let content = r#"---
+title: Tese de Doutorado
+number_type: "_.1.a"
+---
+
+# Introdução
+## Fundamentos
+"#;
+
+    let note = Vault::parse_note_content(Path::new("tese.md"), content);
+    assert!(note.number_headings, "number_type deve inferir number_headings = true");
+    assert_eq!(note.number_type.as_deref(), Some("_.1.a"));
+}
