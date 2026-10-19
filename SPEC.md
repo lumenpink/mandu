@@ -136,7 +136,19 @@ Executados automaticamente na chamada `vault::save_note()`, eliminando plugins e
 * **Gramática Canônica em Inglês:** O YAML Frontmatter utiliza universalmente chaves em inglês: `title`, `type` (`note`, `daily`, `reference`), `modified`, `tags`, `number_headings`, `numbering`, `origin` e `date`. O parser preserva tolerância retroativa a arquivos legados, mas todos os geradores e hooks produzem exclusivamente chaves em inglês.
 * **Auto-Update Modified Date:** Atualiza ou insere deterministicamente a chave canônica `modified: <timestamp>` no YAML Frontmatter antes de persistir em disco.
 * **Linter Nativo POSIX:** Normaliza quebras de linha CRLF para `\n` e assegura terminação estrita com quebra final única.
-* **Numeração Automática Não-Destrutiva de Títulos:** Quando configurado com `number_headings: true` ou `numbering: "1.1"`, o Mandu mantém o texto-fonte limpo em Markdown padrão (`# Título`) e calcula a hierarquia dinâmica (`1.`, `1.1.`, `1.1.1.`) na camada de apresentação (Preview e Typst PDF), isolando comentários e blocos de código cercados.
+* **Numeração Automática Não-Destrutiva de Títulos e Gramática de Padrões (`number_type` / `numbering`):**
+  Quando configurado com `number_headings: true` ou informando um padrão em `number_type: "<padrão>"` (a presença de `number_type` ou `numbering` presume e ativa automaticamente a numeração), o Mandu preserva o texto-fonte limpo em Markdown padrão (`# Título`) e calcula a hierarquia dinâmica na camada de apresentação (Preview TUI, GUI e exportação Typst PDF):
+  * **Tokens Suportados por Nível (H1 a H6):**
+    * `1`: Numerais arábicos (`1, 2, 3...`).
+    * `a`: Alfabeto latino minúsculo (`a, b, c...`).
+    * `A`: Alfabeto latino maiúsculo (`A, B, C...`).
+    * `i`: Numerais romanos minúsculos (`i, ii, iii, iv, v...`).
+    * `I`: Numerais romanos maiúsculos (`I, II, III, IV, V...`).
+    * `_`: **Supressão de nível** (ex: `"_.1.a"` omite a numeração em H1, aplica números em H2 e letras em H3, mantendo contadores isolados).
+  * **Regra de Herança de Padrão:** Níveis hierárquicos não explicitados no padrão herdam o token do último nível declarado (ex: `"1.1.a"` projeta `'a'` para H4, H5 e H6).
+  * **Cabeçalhos Não-Numerados Avulsos (`#_`, `# _` e `{-}`):** Seções documentais livres (ex: `#_ Introdução`, `##_ Contexto`, `# Conclusão {-}`) têm o marcador removido na apresentação visual (`▌ Introdução`), não recebem número e **não avançam nem corrompem os contadores** das seções numeradas subsequentes.
+  * **Repasse Typst PDF:** O padrão é compilado deterministicamente como `#set heading(numbering: "<pattern>")`.
+* **Listas Ordenadas Auto-Incrementais:** No painel de visualização (`mandu-tui` e `mandu-gui`), linhas iniciadas por `<digito>+. ` (mesmo que todas digitem `1. ` no código-fonte) são renderizadas com numeração sequencial real (` 1. `, ` 2. `, ` 3. `...), recuo estruturado e destaque tipográfico em amarelo/ciano negrito, reiniciando o contador para 1 após qualquer interrupção de bloco (linhas vazias, cabeçalhos, citações, blocos de código).
 * **Compositor de Notas (Extract / Split):** Comando nativo que move o bloco selecionado para um novo arquivo `.md`, gerando cabeçalho com `title`, `origin` e `type: note`, e substituindo o trecho original pelo `[[link]]` correspondente.
 * **Gerador de Notas (Zettelkasten / Diárias / Modelos):** Criação instantânea com `id`, `date: YYYY-MM-DD`, `type: daily`/`type: note` e esqueleto estruturado.
 

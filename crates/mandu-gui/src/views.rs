@@ -172,10 +172,8 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                                     ordered_list_counter = 0;
                                     ui.label(format!("  • {stripped}"));
                                 } else if let Some(stripped) = {
-                                    let digits = trimmed
-                                        .chars()
-                                        .take_while(|c| c.is_ascii_digit())
-                                        .count();
+                                    let digits =
+                                        trimmed.chars().take_while(|c| c.is_ascii_digit()).count();
                                     if digits > 0 && trimmed[digits..].starts_with(". ") {
                                         Some(&trimmed[digits + 2..])
                                     } else {
@@ -185,9 +183,11 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                                     ordered_list_counter += 1;
                                     ui.horizontal(|ui| {
                                         ui.label(
-                                            egui::RichText::new(format!("  {ordered_list_counter}."))
-                                                .strong()
-                                                .color(egui::Color32::from_rgb(250, 220, 100)),
+                                            egui::RichText::new(format!(
+                                                "  {ordered_list_counter}."
+                                            ))
+                                            .strong()
+                                            .color(egui::Color32::from_rgb(250, 220, 100)),
                                         );
                                         ui.label(stripped);
                                     });
