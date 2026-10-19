@@ -151,3 +151,59 @@ fn test_mutation_tui_rapid_mode_cycling_and_preview_isolation() {
     assert!(!app.is_dirty);
     assert!(app.last_edit_time.is_none());
 }
+
+#[test]
+fn test_tui_split_mode_sync_scroll_calculation() {
+    let mut app = TuiApp::new(None);
+    let lines: Vec<String> = (1..=100)
+        .map(|i| format!("Linha {i} de conteúdo extenso."))
+        .collect();
+    let text = lines.join("\n");
+    app.editor = mandu_tui::editor::Editor::from_text(&text);
+
+    // Quando cursor está na linha 0, scroll proporcional deve ser 0
+    let scroll_top = app.calculate_preview_scroll(20, 100);
+    assert_eq!(scroll_top, 0);
+
+    // Quando cursor está na linha 50 (50% do documento), scroll proporcional deve ser ~50% do max_scroll
+    // max_scroll = 100 - (20 - 2) = 82. 50% de 82 = 41.
+    app.editor
+        .textarea
+        .move_cursor(ratatui_textarea::CursorMove::Jump(50, 0));
+    let scroll_mid = app.calculate_preview_scroll(20, 100);
+    assert!(
+        scroll_mid >= 40 && scroll_mid <= 42,
+        "scroll_mid deve ser aprox 41, foi {scroll_mid}"
+    );
+
+    // Quando cursor está na última linha (99), scroll deve ser exatamente max_scroll (82)
+    app.editor
+        .textarea
+        .move_cursor(ratatui_textarea::CursorMove::Jump(99, 0));
+    let scroll_bottom = app.calculate_preview_scroll(20, 100);
+    assert_eq!(scroll_bottom, 82);
+}
+
+#[test]
+fn test_tui_preview_mode_navigation_keys_scroll() {
+    let mut app = TuiApp::new(None);
+    app.mode = ViewMode::Preview;
+    app.preview_scroll = 0;
+
+    // Pressionar Down no modo Preview incrementa o scroll do preview
+    let down_key = KeyEvent::new(KeyCode::Down, KeyModifiers::empty());
+    let handled = app.handle_key(down_key);
+    assert!(handled, "Down deve ser tratado no Preview para rolar");
+    assert_eq!(app.preview_scroll, 1);
+
+    // Pressionar PageDown avança várias linhas
+    let pagedown_key = KeyEvent::new(KeyCode::PageDown, KeyModifiers::empty());
+    app.handle_key(pagedown_key);
+    assert!(app.preview_scroll > 1);
+
+    // Pressionar Up decrementa
+    let up_key = KeyEvent::new(KeyCode::Up, KeyModifiers::empty());
+    let prev = app.preview_scroll;
+    app.handle_key(up_key);
+    assert_eq!(app.preview_scroll, prev - 1);
+}

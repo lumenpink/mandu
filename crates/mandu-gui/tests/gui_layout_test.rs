@@ -175,3 +175,16 @@ fn test_gui_rendering_cycle_without_panics() {
         "# Título Acadêmico\n\nConteúdo em Markdown com [[Wikilink]]."
     );
 }
+
+#[test]
+fn test_gui_split_mode_sync_scroll_ratio() {
+    let mut app = ManduApp::default();
+    assert_eq!(app.state.scroll_ratio, 0.0);
+    app.state.set_scroll_ratio(0.5);
+    assert!((app.state.scroll_ratio - 0.5).abs() < 1e-4);
+    // Deve limitar no intervalo 0.0 ..= 1.0
+    app.state.set_scroll_ratio(-0.2);
+    assert_eq!(app.state.scroll_ratio, 0.0);
+    app.state.set_scroll_ratio(1.5);
+    assert_eq!(app.state.scroll_ratio, 1.0);
+}
