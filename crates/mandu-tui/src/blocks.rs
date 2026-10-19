@@ -499,7 +499,7 @@ fn parse_typst_table(code: &str, width: usize) -> Option<Vec<Line<'static>>> {
 
     // Identificar a quantidade de colunas na assinatura de columns:
     let cols = if let Some(col_idx) = code.find("columns:") {
-        let rest = &code[col_idx + 8..];
+        let rest = code[col_idx + 8..].trim_start();
         if let Some(open_paren) = rest.find('(') {
             if let Some(close_paren) = rest[open_paren..].find(')') {
                 let inside = &rest[open_paren + 1..open_paren + close_paren];
@@ -508,16 +508,13 @@ fn parse_typst_table(code: &str, width: usize) -> Option<Vec<Line<'static>>> {
             } else {
                 3
             }
-        } else if let Some(first_num) = rest.chars().find(|c| c.is_ascii_digit()) {
-            first_num.to_digit(10).unwrap_or(3) as usize
         } else {
-            3
+            let num_str: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+            num_str.parse::<usize>().unwrap_or(3).max(1)
         }
     } else {
         3
     };
-
-    let cols = cols.max(1);
 
     // Extrair células delimitadas por [...]
     let mut cells = Vec::new();
@@ -572,6 +569,10 @@ fn parse_typst_inline(text: &str) -> Vec<Span<'static>> {
 
     while let Some(c) = chars.next() {
         if c == '$' {
+            if !chars.clone().any(|mc| mc == '$') {
+                current.push('$');
+                continue;
+            }
             if !current.is_empty() {
                 spans.push(Span::styled(current.clone(), Style::default().fg(Color::Gray)));
                 current.clear();
@@ -592,6 +593,10 @@ fn parse_typst_inline(text: &str) -> Vec<Span<'static>> {
                     .add_modifier(Modifier::BOLD | Modifier::ITALIC),
             ));
         } else if c == '*' {
+            if !chars.clone().any(|bc| bc == '*') {
+                current.push('*');
+                continue;
+            }
             if !current.is_empty() {
                 spans.push(Span::styled(current.clone(), Style::default().fg(Color::Gray)));
                 current.clear();
@@ -627,6 +632,10 @@ fn parse_typst_inline(text: &str) -> Vec<Span<'static>> {
 pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
     let width = width.max(20);
     let trimmed = code.trim();
+
+    if trimmed.is_empty() {
+        return Vec::new();
+    }
 
     // Se o bloco consistir inteiramente de uma tabela #table(...)
     if trimmed.starts_with("#table(") {
@@ -715,8 +724,13 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
             continue;
         }
 
-        // 3. Títulos Typst (=, ==, ===)
-        if let Some(stripped) = line.strip_prefix("=== ") {
+        // 3. Títulos Typst (=, ==, ===, ====)
+        if let Some(stripped) = line.strip_prefix("==== ") {
+            lines.push(Line::from(vec![
+                Span::styled("▪ ", Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD)),
+                Span::styled(stripped.to_string(), Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD)),
+            ]));
+        } else if let Some(stripped) = line.strip_prefix("=== ") {
             lines.push(Line::from(vec![
                 Span::styled("▎ ", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
                 Span::styled(stripped.to_string(), Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
@@ -742,6 +756,14 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
             // 5. Parágrafo / Texto comum com spans inline
             lines.push(Line::from(parse_typst_inline(line)));
         }
+    }
+
+    if in_multiline_math && !multiline_math_buf.is_empty() {
+        let math_display = format_math_symbols(&multiline_math_buf);
+        lines.push(Line::from(vec![
+            Span::styled("   ∑  ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::styled(math_display, Style::default().fg(Color::LightYellow).add_modifier(Modifier::BOLD)),
+        ]));
     }
 
     if in_table && !table_buf.is_empty() {

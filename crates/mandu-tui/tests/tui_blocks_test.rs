@@ -229,3 +229,54 @@ fn test_render_typst_preview_table() {
         "tabela typst deve conter linha de dados 'Atalho de Modo'"
     );
 }
+
+#[test]
+fn test_render_typst_preview_edge_cases() {
+    // 1. Bloco vazio ou apenas espaços
+    let empty_lines = render_typst_preview("   \n\t  ", 50);
+    assert!(empty_lines.is_empty(), "bloco vazio deve retornar vazio");
+
+    // 2. Título H4 (====)
+    let h4_code = "==== Subseção Profunda";
+    let h4_lines = render_typst_preview(h4_code, 50);
+    let h4_combined: String = h4_lines
+        .iter()
+        .flat_map(|l| l.spans.iter().map(|s| s.content.as_ref()))
+        .collect();
+    assert!(h4_combined.contains("Subseção Profunda"));
+
+    // 3. Fórmulas com símbolos gregos e sqrt
+    let greek_code = "$ alpha + beta = sqrt(gamma) $";
+    let greek_lines = render_typst_preview(greek_code, 50);
+    let greek_combined: String = greek_lines
+        .iter()
+        .flat_map(|l| l.spans.iter().map(|s| s.content.as_ref()))
+        .collect();
+    assert!(greek_combined.contains("α + β = √(γ)"));
+
+    // 4. Cifrão isolado sem par (não quebra nem come o restante do texto)
+    let price_code = "Preço total: $50 dólares por unidade.";
+    let price_lines = render_typst_preview(price_code, 50);
+    let price_combined: String = price_lines
+        .iter()
+        .flat_map(|l| l.spans.iter().map(|s| s.content.as_ref()))
+        .collect();
+    assert!(price_combined.contains("$50 dólares por unidade"));
+
+    // 5. Tabela com columns na forma de inteiro (columns: 2)
+    let int_col_table = r#"#table(
+  columns: 2,
+  [*Chave*], [*Valor*],
+  [A], [1],
+  [B], [2],
+)
+"#;
+    let int_tbl_lines = render_typst_preview(int_col_table, 40);
+    assert!(!int_tbl_lines.is_empty());
+    let int_tbl_combined: String = int_tbl_lines
+        .iter()
+        .flat_map(|l| l.spans.iter().map(|s| s.content.as_ref()))
+        .collect();
+    assert!(int_tbl_combined.contains("Chave"));
+    assert!(int_tbl_combined.contains("Valor"));
+}

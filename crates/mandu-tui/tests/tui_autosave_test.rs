@@ -200,3 +200,39 @@ Corpo do indice com links [[demonstracao-joaju]].
         "disco deve conter timestamp de modificação: {on_disk}"
     );
 }
+
+#[test]
+fn test_tui_autosave_preserves_cursor_and_buffer_during_active_editing() {
+    let dir = tempdir().expect("tempdir");
+    let note_path = dir.path().join("nota_digitando.md");
+    let original = "---\ntitulo: Teste Digitando\n---\nLinha 1\nLinha 2";
+    fs::write(&note_path, original).expect("write");
+
+    let mut app = TuiApp::new_with_vault(Some(dir.path().to_path_buf()), Some(note_path.clone()));
+
+    // Inserir caractere via input
+    let key = KeyEvent::new(KeyCode::Char('!'), KeyModifiers::NONE);
+    app.handle_key(key);
+    assert!(app.is_dirty);
+
+    let text_before = app.editor.get_text();
+    assert!(text_before.contains('!'));
+
+    // Salvar
+    app.save_current_note();
+    assert!(!app.is_dirty);
+
+    // O texto no editor deve ser rigorosamente o mesmo de antes do save
+    let text_after = app.editor.get_text();
+    assert_eq!(
+        text_before, text_after,
+        "editor não deve ter sido reinicializado ou corrompido após o save"
+    );
+
+    // Digitação subsequente não é resetada para (0, 0)
+    let key2 = KeyEvent::new(KeyCode::Char('?'), KeyModifiers::NONE);
+    app.handle_key(key2);
+    let text_next = app.editor.get_text();
+    assert!(text_next.contains("!?") || text_next.contains("?!") || text_next.contains('?'));
+    assert!(text_next.contains("titulo: Teste Digitando"));
+}
