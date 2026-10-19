@@ -5,13 +5,21 @@ use tempfile::tempdir;
 #[test]
 fn test_dispatcher_override_flags() {
     // Flag --tui força Tui mesmo se houver display gráfico
-    let args = vec!["mandu".to_string(), "--tui".to_string(), "nota.md".to_string()];
+    let args = vec![
+        "mandu".to_string(),
+        "--tui".to_string(),
+        "nota.md".to_string(),
+    ];
     let decision = resolve_target(&args, true, true);
     assert_eq!(decision.target, TargetMode::Tui);
     assert_eq!(decision.filtered_args, vec!["nota.md"]);
 
     // Flag --gui força Gui mesmo em ambiente sem display
-    let args_gui = vec!["mandu".to_string(), "--gui".to_string(), "tese.md".to_string()];
+    let args_gui = vec![
+        "mandu".to_string(),
+        "--gui".to_string(),
+        "tese.md".to_string(),
+    ];
     let decision_gui = resolve_target(&args_gui, false, false);
     assert_eq!(decision_gui.target, TargetMode::Gui);
     assert_eq!(decision_gui.filtered_args, vec!["tese.md"]);
