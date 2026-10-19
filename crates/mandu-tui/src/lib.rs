@@ -23,6 +23,7 @@ pub fn run(vault: Option<PathBuf>, file: Option<PathBuf>) -> anyhow::Result<()> 
                 app.handle_key(key);
             }
         }
+        app.check_autosave();
     }
 
     crossterm::terminal::disable_raw_mode()?;

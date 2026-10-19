@@ -35,6 +35,9 @@ pub struct ManduApp {
     pub search: SearchModalState,
     pub is_peek_open: bool,
     pub peek_content: Option<mandu_core::peek::PeekContent>,
+    pub last_edit_time: Option<std::time::Instant>,
+    pub autosave_delay: std::time::Duration,
+    pub autosave_feedback_until: Option<std::time::Instant>,
 }
 
 impl Default for ManduApp {
@@ -107,6 +110,9 @@ impl ManduApp {
             },
             is_peek_open: false,
             peek_content: None,
+            last_edit_time: None,
+            autosave_delay: std::time::Duration::from_millis(1000),
+            autosave_feedback_until: None,
         }
     }
 
@@ -118,16 +124,31 @@ impl ManduApp {
             .as_deref()
             .unwrap_or("nota_atual.md");
 
+        let dirty_suffix = if self.is_dirty {
+            " [●]"
+        } else if self
+            .autosave_feedback_until
+            .is_some_and(|until| std::time::Instant::now() < until)
+        {
+            " [✓ Salvo]"
+        } else {
+            ""
+        };
+
         let words_formatted = views::format_word_count(self.state.word_count);
 
         format!(
-            "[ 📁 Buscar/Abrir ]  {file_name} ({words_formatted} pal. | 🔗 {} backlinks)  [ 👁 {} ]  [ 📄 Gerar PDF ]",
+            "[ 📁 Buscar/Abrir ]  {file_name}{dirty_suffix} ({words_formatted} pal. | 🔗 {} backlinks)  [ 👁 {} ]  [ 📄 Gerar PDF ]",
             self.state.backlink_count,
             self.state.mode.label()
         )
     }
 
     pub fn open_note(&mut self, path: PathBuf) {
+        if self.is_dirty {
+            self.save_current_note();
+        }
+
         if path.is_file() {
             if let Ok(content) = std::fs::read_to_string(&path) {
                 let note = Vault::parse_note_content(&path, &content);
@@ -137,9 +158,25 @@ impl ManduApp {
                 self.current_file = Some(path.clone());
                 self.is_dirty = false;
                 self.state.is_dirty = false;
+                self.last_edit_time = None;
+                self.autosave_feedback_until = None;
                 self.state.backlink_count = resolve_backlinks(self.db.as_ref(), &path);
             }
         }
+    }
+
+    pub fn check_autosave(&mut self) -> bool {
+        if self.is_dirty {
+            if let Some(last) = self.last_edit_time {
+                if last.elapsed() >= self.autosave_delay {
+                    self.save_current_note();
+                    self.autosave_feedback_until =
+                        Some(std::time::Instant::now() + std::time::Duration::from_secs(2));
+                    return true;
+                }
+            }
+        }
+        false
     }
 
     pub fn save_current_note(&mut self) {
@@ -163,6 +200,9 @@ impl ManduApp {
                 self.state.buffer = formatted;
                 self.is_dirty = false;
                 self.state.is_dirty = false;
+                self.last_edit_time = None;
+                self.autosave_feedback_until =
+                    Some(std::time::Instant::now() + std::time::Duration::from_secs(2));
                 self.state.status_message = Some("Nota salva com sucesso".to_string());
             } else {
                 self.state.status_message = Some("Erro ao gravar arquivo em disco".to_string());
@@ -171,6 +211,9 @@ impl ManduApp {
             self.state.buffer = formatted;
             self.is_dirty = false;
             self.state.is_dirty = false;
+            self.last_edit_time = None;
+            self.autosave_feedback_until =
+                Some(std::time::Instant::now() + std::time::Duration::from_secs(2));
             self.state.status_message = Some("Nota salva com sucesso".to_string());
         }
     }
@@ -280,6 +323,9 @@ impl ManduApp {
 
             // Ctrl+Q: Sair
             if i.consume_key(egui::Modifiers::COMMAND, egui::Key::Q) {
+                if self.is_dirty {
+                    self.save_current_note();
+                }
                 ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             }
         });
@@ -373,8 +419,14 @@ impl ManduApp {
 
         // Sincronizar flag is_dirty com o estado visual
         if self.state.is_dirty {
+            if !self.is_dirty {
+                self.last_edit_time = Some(std::time::Instant::now());
+                self.autosave_feedback_until = None;
+            }
             self.is_dirty = true;
         }
+
+        self.check_autosave();
 
         // Barra de status inferior de 1 linha
         egui::TopBottomPanel::bottom("bottom_statusbar").show(ctx, |ui| {

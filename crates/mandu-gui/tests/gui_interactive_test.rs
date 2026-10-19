@@ -87,8 +87,8 @@ fn test_gui_interactive_save_with_linter_and_dirty_flag() {
     );
     assert!(!saved_content.contains("\r\n"), "nao deve conter CRLF");
     assert!(
-        saved_content.contains("modificado:"),
-        "deve injetar campo modificado no frontmatter"
+        saved_content.contains("modified:"),
+        "deve injetar campo modified no frontmatter"
     );
 }
 

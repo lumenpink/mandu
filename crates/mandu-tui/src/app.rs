@@ -38,6 +38,9 @@ pub struct TuiApp<'a> {
     pub peek_content: Option<mandu_core::peek::PeekContent>,
     pub status_message: Option<String>,
     pub db: Option<ManduDb>,
+    pub last_edit_time: Option<std::time::Instant>,
+    pub autosave_delay: std::time::Duration,
+    pub autosave_feedback_until: Option<std::time::Instant>,
 }
 
 impl Default for TuiApp<'_> {
@@ -115,10 +118,17 @@ impl TuiApp<'_> {
             peek_content: None,
             status_message: None,
             db,
+            last_edit_time: None,
+            autosave_delay: std::time::Duration::from_millis(1000),
+            autosave_feedback_until: None,
         }
     }
 
     pub fn open_note(&mut self, path: PathBuf) {
+        if self.is_dirty {
+            self.save_current_note();
+        }
+
         if path.is_file() {
             if let Ok(content) = std::fs::read_to_string(&path) {
                 let note = Vault::parse_note_content(&path, &content);
@@ -126,6 +136,8 @@ impl TuiApp<'_> {
                 self.editor = Editor::from_text(&note.body);
                 self.current_file = Some(path.clone());
                 self.is_dirty = false;
+                self.last_edit_time = None;
+                self.autosave_feedback_until = None;
 
                 if let Some(ref db) = self.db {
                     let path_str = path.to_string_lossy();
@@ -133,6 +145,20 @@ impl TuiApp<'_> {
                 }
             }
         }
+    }
+
+    pub fn check_autosave(&mut self) -> bool {
+        if self.is_dirty {
+            if let Some(last) = self.last_edit_time {
+                if last.elapsed() >= self.autosave_delay {
+                    self.save_current_note();
+                    self.autosave_feedback_until =
+                        Some(std::time::Instant::now() + std::time::Duration::from_secs(2));
+                    return true;
+                }
+            }
+        }
+        false
     }
 
     pub fn save_current_note(&mut self) {
@@ -271,6 +297,9 @@ impl TuiApp<'_> {
         if key.modifiers.contains(KeyModifiers::CONTROL) {
             match key.code {
                 KeyCode::Char('q') => {
+                    if self.is_dirty {
+                        self.save_current_note();
+                    }
                     self.should_quit = true;
                     return true;
                 }
@@ -391,6 +420,8 @@ impl TuiApp<'_> {
         // Teclas normais de edição no editor
         if self.editor.textarea.input(key) {
             self.is_dirty = true;
+            self.last_edit_time = Some(std::time::Instant::now());
+            self.autosave_feedback_until = None;
             self.word_count = self.editor.get_text().split_whitespace().count();
             true
         } else {
@@ -401,7 +432,16 @@ impl TuiApp<'_> {
     /// Gera o texto canônico da barra de status inferior de 1 linha
     #[must_use]
     pub fn status_text(&self) -> String {
-        let dirty_indicator = if self.is_dirty { " [●]" } else { "" };
+        let dirty_indicator = if self.is_dirty {
+            " [●]"
+        } else if self
+            .autosave_feedback_until
+            .is_some_and(|until| std::time::Instant::now() < until)
+        {
+            " [✓ Salvo]"
+        } else {
+            ""
+        };
         let file_name = self
             .current_file
             .as_ref()

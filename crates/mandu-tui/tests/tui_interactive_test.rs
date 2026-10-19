@@ -29,9 +29,9 @@ fn test_tui_interactive_saving_with_linter() {
     assert!(!app.is_dirty);
     assert!(!app.status_text().contains("[●]"));
 
-    // Verificar arquivo no disco: deve conter modificado e quebra POSIX
+    // Verificar arquivo no disco: deve conter modified e quebra POSIX
     let saved_content = fs::read_to_string(&note_path).unwrap();
-    assert!(saved_content.contains("modificado:"));
+    assert!(saved_content.contains("modified:"));
     assert!(saved_content.ends_with('\n'));
 }
 
