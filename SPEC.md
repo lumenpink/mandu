@@ -162,8 +162,10 @@ Ambas as interfaces obedecem à diretriz de **mínima poluição visual**, sem b
 
 Alternados rapidamente via teclado (`Ctrl+T`) ou toque na barra de status (com estrita proibição de teclas de função F1–F12 e zero conflitos com multiplexadores ou IBus/Fcitx):
 1. **`[Modo 1: Escrita (Source)]`** — 100% da tela dedicada ao editor de texto monoespaçado.
-2. **`[Modo 2: Split (HedgeDoc)]`** — Tela dividida ao meio: Editor Markdown à esquerda e Preview renderizado pelo Joaju à direita, com *scroll sync* proporcional baseado nos offsets de linha da AST.
-3. **`[Modo 3: Leitura (Preview)]`** — 100% da tela dedicada ao documento diagramado pelo Joaju, com links navegáveis, inspeção de diagramas e isolamento total contra inserção acidental de texto no buffer.
+2. **`[Modo 2: Split (HedgeDoc)]`** — Tela dividida ao meio: Editor Markdown à esquerda e Preview renderizado pelo Joaju à direita, com *scroll sync* proporcional contínuo:
+   - **TUI (`mandu-tui`):** A fração vertical da linha do cursor $\text{ratio} = \text{row} / \max(1, \text{linhas} - 1)$ orienta o offset do preview `preview_scroll = (ratio * max_scroll).round()`, atualizando o `Paragraph.scroll((scroll, 0))` instantaneamente.
+   - **GUI (`mandu-gui`):** O deslocamento vertical do editor atualiza `scroll_ratio: f32`, que é transferido para o `ScrollArea` do preview com desacoplamento temporal via `ctx.data()`, prevenindo oscilações e loops de retorno.
+3. **`[Modo 3: Leitura (Preview)]`** — 100% da tela dedicada ao documento diagramado pelo Joaju, com links navegáveis, inspeção de diagramas, navegação por teclado (<kbd>Up</kbd>, <kbd>Down</kbd>, <kbd>PageUp</kbd>, <kbd>PageDown</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>) e isolamento total contra inserção acidental de texto no buffer.
 
 ## 4.2. Barra de Status de 1 Linha (Rodapé Único)
 

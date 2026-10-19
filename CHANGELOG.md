@@ -76,5 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Substituição universal do atalho de alternância de modos de visualização para `Ctrl+T` tanto no `mandu-tui` quanto no `mandu-gui`, eliminando conflitos de sistema operacional (IME IBus/Fcitx com `Ctrl+Space`) e respeitando a política estrita de zero teclas Alt e ausência de atalhos conflitantes com `tmux`/`byobu` (`Ctrl+A`/`Ctrl+B`) (closes #19).
 - Bloqueio e isolamento total contra inserção acidental de texto no buffer do editor do terminal (`mandu-tui`) durante a permanência no modo exclusivo de leitura (`ViewMode::Preview`) (closes #19).
 - Blindagem e proteção estrita contra corrupção ou sobrescrita do arquivo em disco com zero bytes na rotina de exportação PDF (`export_current_note_pdf`) no `mandu-gui` quando o buffer em memória estiver vazio (closes #19).
+- Rolagem vertical sincronizada (*synchronized scroll*) contínua entre o painel de edição e o painel de prévia no modo Split do `mandu-tui`, orientada pela fração de linha do cursor do editor e aplicada dinamicamente ao offset do widget `Paragraph` da prévia (closes #20).
+- Sincronização proporcional de rolagem no `mandu-gui` entre o `ScrollArea` do editor e da prévia via `scroll_ratio` normalizado e persistência desacoplada da geometria vertical em `ctx.data()`, prevenindo loops de eco e trepidações (closes #20).
+- Suporte a navegação autônoma por teclado (<kbd>Up</kbd>, <kbd>Down</kbd>, <kbd>PageUp</kbd>, <kbd>PageDown</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>) e mouse wheel no modo exclusivo de leitura (`ViewMode::Preview`) na TUI, com retenção do percentual relativo ao alternar modos (closes #20).
 
 
