@@ -147,3 +147,56 @@ fn test_tui_autosave_feedback_expiration() {
         "feedback de salvo não deve aparecer após expiração da janela de 2s"
     );
 }
+
+#[test]
+fn test_tui_preserves_yaml_frontmatter_on_save_and_does_not_zero_metadata() {
+    let dir = tempdir().expect("tempdir");
+    let note_path = dir.path().join("indice.md");
+    let initial_content = r#"---
+titulo: Indice Geral do Conhecimento
+tags:
+  - moc
+  - epistemologia
+criado: 2026-10-18
+modificado: 2026-10-18
+---
+
+# Indice Geral
+Corpo do indice com links [[demonstracao-joaju]].
+"#;
+    fs::write(&note_path, initial_content).expect("write");
+
+    let mut app = TuiApp::new_with_vault(Some(dir.path().to_path_buf()), Some(note_path.clone()));
+
+    // O editor DEVE carregar o arquivo integralmente, incluindo o frontmatter
+    let editor_text = app.editor.get_text();
+    assert!(
+        editor_text.contains("titulo: Indice Geral do Conhecimento"),
+        "editor deve conter o frontmatter completo, obtido: {editor_text}"
+    );
+
+    // Salvar sem alterar o buffer não deve zerar metadados
+    app.save_current_note();
+
+    let on_disk = fs::read_to_string(&note_path).expect("read");
+    assert!(
+        on_disk.contains("titulo: Indice Geral do Conhecimento"),
+        "disco deve preservar o campo titulo após save: {on_disk}"
+    );
+    assert!(
+        on_disk.contains("tags:"),
+        "disco deve preservar tags após save: {on_disk}"
+    );
+    assert!(
+        on_disk.contains("epistemologia"),
+        "disco deve preservar itens de tags após save: {on_disk}"
+    );
+    assert!(
+        on_disk.contains("criado: 2026-10-18"),
+        "disco deve preservar data de criação: {on_disk}"
+    );
+    assert!(
+        on_disk.contains("modified: ") || on_disk.contains("modificado: "),
+        "disco deve conter timestamp de modificação: {on_disk}"
+    );
+}

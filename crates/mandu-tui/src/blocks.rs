@@ -468,3 +468,9 @@ pub fn render_code_box(engine: &str, code: &str, width: usize) -> Vec<Line<'stat
 
     lines
 }
+
+/// Renderiza prévia tipográfica de blocos Typst/Joaju na TUI.
+#[must_use]
+pub fn render_typst_preview(_code: &str, _width: usize) -> Vec<Line<'static>> {
+    Vec::new()
+}

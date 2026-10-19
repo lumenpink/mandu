@@ -1,5 +1,6 @@
 use mandu_tui::blocks::{
     render_code_box, render_link_card, render_pedigree_summary, render_table_block,
+    render_typst_preview,
 };
 use unicode_width::UnicodeWidthStr;
 
@@ -138,4 +139,93 @@ fn test_render_pedigree_summary_empty_and_comments() {
         let plain_text: String = line.spans.iter().map(|s| s.content.as_ref()).collect();
         assert_eq!(UnicodeWidthStr::width(plain_text.as_str()), width);
     }
+}
+
+#[test]
+fn test_render_typst_preview_renders_headings_math_and_strips_set_directives() {
+    let typst_code = r#"#set page(paper: "a4", margin: 2.5cm)
+#set text(font: "Liberation Serif", lang: "pt", size: 12pt)
+
+== Análise de Desempenho e Complexidade
+A taxa de transmissão ótima de dados em canais com ruído gaussiano aditivo (AWGN) é delimitada pelo Teorema de Shannon-Hartley:
+
+$ C = B log_2 (1 + (S) / (N)) $
+
+Onde:
+- $B$ é a largura de banda do canal em Hertz;
+- $S$ é a potência total do sinal;
+- $N$ é a potência do ruído gaussiano.
+"#;
+    let width = 60;
+    let lines = render_typst_preview(typst_code, width);
+
+    assert!(!lines.is_empty(), "prévia typst não deve ser vazia");
+
+    let all_text: Vec<String> = lines
+        .iter()
+        .map(|l| l.spans.iter().map(|s| s.content.as_ref()).collect::<String>())
+        .collect();
+
+    // 1. Diretivas de compilação devem ser suprimidas da visão TUI
+    for text in &all_text {
+        assert!(
+            !text.contains("#set page"),
+            "diretiva #set page não deve aparecer na prévia: {text}"
+        );
+        assert!(
+            !text.contains("#set text"),
+            "diretiva #set text não deve aparecer na prévia: {text}"
+        );
+    }
+
+    // 2. Título == deve ser formatado como cabeçalho
+    assert!(
+        all_text.iter().any(|t| t.contains("Análise de Desempenho e Complexidade")),
+        "título da seção deve estar presente formatado"
+    );
+
+    // 3. Fórmula matemática deve estar presente
+    assert!(
+        all_text.iter().any(|t| t.contains("C = B") || t.contains("Shannon")),
+        "fórmula matemática ou texto explicativo deve estar presente"
+    );
+
+    // 4. Listas com marcadores devem conter o bullet '•'
+    assert!(
+        all_text.iter().any(|t| t.contains('•') && t.contains("largura de banda")),
+        "itens da lista devem conter marcador de lista '•'"
+    );
+}
+
+#[test]
+fn test_render_typst_preview_table() {
+    let table_code = r#"#table(
+  columns: (1fr, 1fr, 1fr),
+  fill: (x, y) => if y == 0 { rgb("e0e0e0") } else { none },
+  [*Recurso*], [*TUI (Ratatui)*], [*GUI (egui)*],
+  [Atalho de Modo], [Ctrl+Espaço], [Ctrl+Espaço],
+  [Busca Rápida], [Ctrl+O], [Ctrl+O],
+)
+"#;
+    let width = 50;
+    let lines = render_typst_preview(table_code, width);
+
+    assert!(!lines.is_empty());
+    let combined: String = lines
+        .iter()
+        .flat_map(|l| l.spans.iter().map(|s| s.content.as_ref()))
+        .collect();
+
+    assert!(
+        combined.contains("Recurso"),
+        "tabela typst deve conter cabeçalho 'Recurso'"
+    );
+    assert!(
+        combined.contains("TUI (Ratatui)"),
+        "tabela typst deve conter 'TUI (Ratatui)'"
+    );
+    assert!(
+        combined.contains("Atalho de Modo"),
+        "tabela typst deve conter linha de dados 'Atalho de Modo'"
+    );
 }
