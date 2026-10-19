@@ -85,3 +85,54 @@ fn test_render_code_box_closed_rectangle() {
         );
     }
 }
+
+#[test]
+fn test_render_link_card_truncation_with_cjk_and_emojis() {
+    let title = "🚀 超级标题 — Long CJK Title with Japanese 日本語 and Emojis 🎉✨";
+    let url = "https://example.com/very/long/nested/path/to/resource/that/definitely/exceeds/width";
+    let desc = "Descrição extensa que necessita de truncamento com reticências para manter retidão.";
+    let width = 36;
+
+    let lines = render_link_card(title, url, Some(desc), width);
+    assert!(!lines.is_empty());
+
+    for line in &lines {
+        let plain_text: String = line.spans.iter().map(|s| s.content.as_ref()).collect();
+        let visual_w = UnicodeWidthStr::width(plain_text.as_str());
+        assert_eq!(
+            visual_w, width,
+            "Linha truncada '{plain_text}' tem largura {visual_w}, esperada {width}"
+        );
+    }
+}
+
+#[test]
+fn test_render_table_block_empty_and_irregular() {
+    let width = 42;
+
+    // Tabela vazia
+    let empty_lines = render_table_block("", width);
+    for line in &empty_lines {
+        let plain_text: String = line.spans.iter().map(|s| s.content.as_ref()).collect();
+        assert_eq!(UnicodeWidthStr::width(plain_text.as_str()), width);
+    }
+
+    // Tabela com apenas diretivas
+    let directive_only = render_table_block("%% caption = Teste\n%% align = left", width);
+    for line in &directive_only {
+        let plain_text: String = line.spans.iter().map(|s| s.content.as_ref()).collect();
+        assert_eq!(UnicodeWidthStr::width(plain_text.as_str()), width);
+    }
+}
+
+#[test]
+fn test_render_pedigree_summary_empty_and_comments() {
+    let width = 38;
+    let code = "# Comentário\n# Outro comentário\n";
+    let lines = render_pedigree_summary(code, width);
+
+    for line in &lines {
+        let plain_text: String = line.spans.iter().map(|s| s.content.as_ref()).collect();
+        assert_eq!(UnicodeWidthStr::width(plain_text.as_str()), width);
+    }
+}
