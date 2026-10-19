@@ -64,5 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Numeração automática hierárquica de títulos (`# 1.`, `## 1.1.`, `### 1.1.1.`) configurável no Frontmatter (`numerar_titulos: true` ou `numbering: "1.1"`), preservando blocos de código e integrando à compilação Typst em PDF.
 - Padronização canônica e universal de metadados no YAML Frontmatter em língua inglesa (`title`, `modified`, `type`, `tags`, `number_headings`, `origin`, `date`), atualizando geradores nativos e hooks de salvamento com tolerância retroativa a notas legadas.
 - Documentação formal e aprofundada em `SPEC.md` e `docs/specs/14_english_frontmatter_and_deep_docs.md` sobre a gramática de metadados e o modelo não-destrutivo de numeração de títulos.
+- Salvamento automático transparente (*autosave*) estilo Obsidian no `mandu-tui` e `mandu-gui` com debounce de inatividade (1.000 ms), disparando o pipeline seguro de normalização POSIX, injeção de `modified` e reindexação no SQLite in-memory.
+- Persistência imediata compulsória em mudanças de contexto (*save-on-switch* e *save-on-exit*), salvando o buffer ativo antes de carregar novas notas via busca rápida (`Ctrl+O`), navegação de links (`Ctrl+G`), abertura na modal de Peek (`Enter`) e encerramento (`Ctrl+Q`).
+- Feedback visual suave na barra de status inferior de 1 linha, exibindo indicador `[●]` durante a digitação e `[✓ Salvo]` temporariamente (por 2 segundos) após a persistência automática.
 
 
