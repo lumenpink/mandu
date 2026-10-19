@@ -210,87 +210,6 @@ fn render_peek_modal(app: &TuiApp, frame: &mut Frame) {
     }
 }
 
-fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
-    let mut spans = Vec::new();
-    let mut rest = line;
-
-    while !rest.is_empty() {
-        if let Some(start) = rest.find("[[") {
-            if let Some(end) = rest[start..].find("]]") {
-                if start > 0 {
-                    spans.push(Span::styled(
-                        rest[..start].to_string(),
-                        Style::default().fg(Color::Rgb(220, 220, 225)),
-                    ));
-                }
-                let link_text = &rest[start..start + end + 2];
-                let display = if let Some(pipe) = link_text.find('|') {
-                    format!("🔗 {}", link_text[pipe + 1..link_text.len() - 2].trim())
-                } else {
-                    format!("🔗 {}", link_text[2..link_text.len() - 2].trim())
-                };
-                spans.push(Span::styled(
-                    display,
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::UNDERLINED),
-                ));
-                rest = &rest[start + end + 2..];
-                continue;
-            }
-        }
-
-        if let Some(start) = rest.find('@') {
-            if start == 0
-                || rest[..start]
-                    .ends_with(|c: char| c.is_whitespace() || c == '(' || c == '[' || c == '{')
-            {
-                if start > 0 {
-                    spans.push(Span::styled(
-                        rest[..start].to_string(),
-                        Style::default().fg(Color::Rgb(220, 220, 225)),
-                    ));
-                }
-                let after = &rest[start..];
-                let end = after
-                    .find(|c: char| {
-                        c.is_whitespace()
-                            || c == ','
-                            || c == '.'
-                            || c == ')'
-                            || c == ']'
-                            || c == ';'
-                    })
-                    .unwrap_or(after.len());
-                let cite = &after[..end];
-                spans.push(Span::styled(
-                    cite.to_string(),
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                ));
-                rest = &after[end..];
-                continue;
-            }
-        }
-
-        spans.push(Span::styled(
-            rest.to_string(),
-            Style::default().fg(Color::Rgb(220, 220, 225)),
-        ));
-        break;
-    }
-
-    if spans.is_empty() {
-        spans.push(Span::styled(
-            line.to_string(),
-            Style::default().fg(Color::Rgb(220, 220, 225)),
-        ));
-    }
-
-    spans
-}
-
 fn render_preview_pane<'a>(text: &'a str, title: &'a str, pane_width: u16) -> Paragraph<'a> {
     let mut lines = Vec::new();
     let (meta_opt, raw_body) = mandu_core::vault::Vault::extract_metadata(text);
@@ -315,144 +234,26 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str, pane_width: u16) -> Pa
             ));
         }
         if number_headings {
-            meta_spans.push(Span::styled(
-                " | 🔢 1.1 ",
-                Style::default().fg(Color::Green),
-            ));
+            let badge = if let Some(ref pat) = meta.number_type {
+                format!(" | 🔢 {pat} ")
+            } else {
+                " | 🔢 1.1 ".to_string()
+            };
+            meta_spans.push(Span::styled(badge, Style::default().fg(Color::Green)));
         }
         meta_spans.push(Span::styled(" ]", Style::default().fg(Color::Cyan)));
         lines.push(Line::from(meta_spans));
         lines.push(Line::from(""));
     }
 
-    let processed_body = if number_headings {
-        mandu_core::vault::apply_heading_numbering(raw_body)
-    } else {
-        raw_body.to_string()
-    };
-
+    let pattern = meta_opt.as_ref().and_then(|m| m.number_type.as_deref());
     let card_width = (pane_width as usize).saturating_sub(4).clamp(24, 76);
-
-    let mut body_lines = processed_body.lines().peekable();
-    while let Some(line) = body_lines.next() {
-        let trimmed = line.trim_start();
-        if trimmed.starts_with("```") {
-            let engine = trimmed.trim_start_matches('`').trim();
-            let mut code_lines = Vec::new();
-            while let Some(next_line) = body_lines.peek() {
-                if next_line.trim_start().starts_with("```") {
-                    body_lines.next();
-                    break;
-                }
-                code_lines.push(body_lines.next().unwrap());
-            }
-            let code = code_lines.join("\n");
-            match engine {
-                "unfurl" | "link" => {
-                    let mut parts = code.split('|').map(str::trim);
-                    let url = parts.next().unwrap_or("https://mandu.2lp.in");
-                    let title = parts.next().unwrap_or(url);
-                    let desc = parts.next();
-                    lines.extend(crate::blocks::render_link_card(
-                        title, url, desc, card_width,
-                    ));
-                }
-                "table" | "csv" => {
-                    lines.extend(crate::blocks::render_table_block(&code, card_width));
-                }
-                "pedigree" | "heredograma" | "kinship2" | "pedtools" => {
-                    lines.extend(crate::blocks::render_pedigree_summary(&code, card_width));
-                }
-                "typst" | "joaju" => {
-                    lines.extend(crate::blocks::render_typst_preview(&code, card_width));
-                }
-                _ => {
-                    let label = if engine.is_empty() { "código" } else { engine };
-                    lines.extend(crate::blocks::render_code_box(label, &code, card_width));
-                }
-            }
-            continue;
-        }
-
-        if (trimmed.starts_with("http://") || trimmed.starts_with("https://"))
-            && !trimmed.contains(' ')
-        {
-            lines.extend(crate::blocks::render_link_card(
-                trimmed, trimmed, None, card_width,
-            ));
-            continue;
-        }
-
-        if let Some(stripped) = trimmed.strip_prefix("# ") {
-            lines.push(Line::from(vec![
-                Span::styled(
-                    "▌ ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::styled(
-                    stripped.to_string(),
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                ),
-            ]));
-        } else if let Some(stripped) = trimmed.strip_prefix("## ") {
-            lines.push(Line::from(vec![
-                Span::styled(
-                    "▍ ",
-                    Style::default()
-                        .fg(Color::Green)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::styled(
-                    stripped.to_string(),
-                    Style::default()
-                        .fg(Color::Green)
-                        .add_modifier(Modifier::BOLD),
-                ),
-            ]));
-        } else if let Some(stripped) = trimmed.strip_prefix("### ") {
-            lines.push(Line::from(vec![
-                Span::styled(
-                    "▎ ",
-                    Style::default()
-                        .fg(Color::Magenta)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::styled(
-                    stripped.to_string(),
-                    Style::default()
-                        .fg(Color::Magenta)
-                        .add_modifier(Modifier::BOLD),
-                ),
-            ]));
-        } else if let Some(stripped) = trimmed.strip_prefix('>') {
-            let mut quote_spans = vec![Span::styled("▍ ", Style::default().fg(Color::LightYellow))];
-            quote_spans.push(Span::styled(
-                stripped.to_string(),
-                Style::default()
-                    .fg(Color::Gray)
-                    .add_modifier(Modifier::ITALIC),
-            ));
-            lines.push(Line::from(quote_spans));
-        } else if let Some(stripped) = trimmed
-            .strip_prefix("- ")
-            .or_else(|| trimmed.strip_prefix("* "))
-        {
-            let mut list_spans = vec![Span::styled("  • ", Style::default().fg(Color::Cyan))];
-            list_spans.extend(parse_inline_spans(stripped));
-            lines.push(Line::from(list_spans));
-        } else if trimmed == "---" || trimmed == "***" || trimmed == "___" {
-            lines.push(Line::from(vec![Span::styled(
-                "──────────────────────────────────────────",
-                Style::default().fg(Color::DarkGray),
-            )]));
-        } else {
-            lines.push(Line::from(parse_inline_spans(line)));
-        }
-    }
+    lines.extend(crate::blocks::render_markdown_lines(
+        raw_body,
+        number_headings,
+        pattern,
+        card_width,
+    ));
 
     let block = Block::default()
         .borders(Borders::ALL)

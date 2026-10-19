@@ -844,3 +844,281 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
 
     lines
 }
+
+/// Analisa spans inline em Markdown reconhecendo wikilinks [[...]] e tags @citação
+#[must_use]
+pub fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    let mut rest = line;
+
+    while !rest.is_empty() {
+        if let Some(start) = rest.find("[[") {
+            if let Some(end) = rest[start..].find("]]") {
+                if start > 0 {
+                    spans.push(Span::styled(
+                        rest[..start].to_string(),
+                        Style::default().fg(Color::Rgb(220, 220, 225)),
+                    ));
+                }
+                let link_text = &rest[start..start + end + 2];
+                let display = if let Some(pipe) = link_text.find('|') {
+                    format!("🔗 {}", link_text[pipe + 1..link_text.len() - 2].trim())
+                } else {
+                    format!("🔗 {}", link_text[2..link_text.len() - 2].trim())
+                };
+                spans.push(Span::styled(
+                    display,
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::UNDERLINED),
+                ));
+                rest = &rest[start + end + 2..];
+                continue;
+            }
+        }
+
+        if let Some(start) = rest.find('@') {
+            if start == 0
+                || rest[..start]
+                    .ends_with(|c: char| c.is_whitespace() || c == '(' || c == '[' || c == '{')
+            {
+                if start > 0 {
+                    spans.push(Span::styled(
+                        rest[..start].to_string(),
+                        Style::default().fg(Color::Rgb(220, 220, 225)),
+                    ));
+                }
+                let after = &rest[start..];
+                let end = after
+                    .find(|c: char| {
+                        c.is_whitespace()
+                            || c == ','
+                            || c == '.'
+                            || c == ')'
+                            || c == ']'
+                            || c == ';'
+                    })
+                    .unwrap_or(after.len());
+                let cite = &after[..end];
+                spans.push(Span::styled(
+                    cite.to_string(),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ));
+                rest = &after[end..];
+                continue;
+            }
+        }
+
+        spans.push(Span::styled(
+            rest.to_string(),
+            Style::default().fg(Color::Rgb(220, 220, 225)),
+        ));
+        break;
+    }
+
+    if spans.is_empty() {
+        spans.push(Span::styled(
+            line.to_string(),
+            Style::default().fg(Color::Rgb(220, 220, 225)),
+        ));
+    }
+
+    spans
+}
+
+/// Renderiza linhas de Markdown na TUI com auto-incremento de listas ordenadas e blocos ricos.
+#[must_use]
+pub fn render_markdown_lines(
+    raw_body: &str,
+    number_headings: bool,
+    numbering_pattern: Option<&str>,
+    card_width: usize,
+) -> Vec<Line<'static>> {
+    let mut lines = Vec::new();
+
+    let processed_body = if number_headings {
+        let pat = numbering_pattern.unwrap_or("1.1.1.1.1.1");
+        mandu_core::vault::apply_heading_numbering_with_pattern(raw_body, pat)
+    } else {
+        raw_body.to_string()
+    };
+
+    let mut body_lines = processed_body.lines().peekable();
+    let mut ordered_list_counter: usize = 0;
+
+    #[inline]
+    fn parse_ordered_item(line: &str) -> Option<&str> {
+        let trimmed = line.trim_start();
+        let digits_len = trimmed.chars().take_while(|c| c.is_ascii_digit()).count();
+        if digits_len > 0 {
+            let after_digits = &trimmed[digits_len..];
+            if let Some(rest) = after_digits.strip_prefix(". ") {
+                return Some(rest);
+            }
+        }
+        None
+    }
+
+    while let Some(line) = body_lines.next() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("```") {
+            ordered_list_counter = 0;
+            let engine = trimmed.trim_start_matches('`').trim();
+            let mut code_lines = Vec::new();
+            while let Some(next_line) = body_lines.peek() {
+                if next_line.trim_start().starts_with("```") {
+                    body_lines.next();
+                    break;
+                }
+                code_lines.push(body_lines.next().unwrap());
+            }
+            let code = code_lines.join("\n");
+            match engine {
+                "unfurl" | "link" => {
+                    let mut parts = code.split('|').map(str::trim);
+                    let url = parts.next().unwrap_or("https://mandu.2lp.in");
+                    let title = parts.next().unwrap_or(url);
+                    let desc = parts.next();
+                    lines.extend(render_link_card(title, url, desc, card_width));
+                }
+                "table" | "csv" => {
+                    lines.extend(render_table_block(&code, card_width));
+                }
+                "pedigree" | "heredograma" | "kinship2" | "pedtools" => {
+                    lines.extend(render_pedigree_summary(&code, card_width));
+                }
+                "typst" | "joaju" => {
+                    lines.extend(render_typst_preview(&code, card_width));
+                }
+                _ => {
+                    let label = if engine.is_empty() { "código" } else { engine };
+                    lines.extend(render_code_box(label, &code, card_width));
+                }
+            }
+            continue;
+        }
+
+        if (trimmed.starts_with("http://") || trimmed.starts_with("https://"))
+            && !trimmed.contains(' ')
+        {
+            ordered_list_counter = 0;
+            lines.extend(render_link_card(trimmed, trimmed, None, card_width));
+            continue;
+        }
+
+        if let Some(stripped) = trimmed.strip_prefix("# ") {
+            ordered_list_counter = 0;
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▌ ",
+                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+        } else if let Some(stripped) = trimmed.strip_prefix("## ") {
+            ordered_list_counter = 0;
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▍ ",
+                    Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default().fg(Color::Green).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+        } else if let Some(stripped) = trimmed.strip_prefix("### ") {
+            ordered_list_counter = 0;
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▎ ",
+                    Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+        } else if let Some(stripped) = trimmed.strip_prefix("#### ") {
+            ordered_list_counter = 0;
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▏ ",
+                    Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default().fg(Color::Blue).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+        } else if let Some(stripped) = trimmed.strip_prefix("##### ") {
+            ordered_list_counter = 0;
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▏ ",
+                    Style::default().fg(Color::LightBlue).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default().fg(Color::LightBlue).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+        } else if let Some(stripped) = trimmed.strip_prefix("###### ") {
+            ordered_list_counter = 0;
+            lines.push(Line::from(vec![
+                Span::styled(
+                    "▏ ",
+                    Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    stripped.to_string(),
+                    Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+        } else if let Some(stripped) = trimmed.strip_prefix('>') {
+            ordered_list_counter = 0;
+            let mut quote_spans = vec![Span::styled("▍ ", Style::default().fg(Color::LightYellow))];
+            quote_spans.push(Span::styled(
+                stripped.to_string(),
+                Style::default().fg(Color::Gray).add_modifier(Modifier::ITALIC),
+            ));
+            lines.push(Line::from(quote_spans));
+        } else if let Some(stripped) = trimmed
+            .strip_prefix("- ")
+            .or_else(|| trimmed.strip_prefix("* "))
+        {
+            ordered_list_counter = 0;
+            let mut list_spans = vec![Span::styled("  • ", Style::default().fg(Color::Cyan))];
+            list_spans.extend(parse_inline_spans(stripped));
+            lines.push(Line::from(list_spans));
+        } else if let Some(rest) = parse_ordered_item(trimmed) {
+            ordered_list_counter += 1;
+            let prefix = format!("  {ordered_list_counter}. ");
+            let mut list_spans = vec![Span::styled(
+                prefix,
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            )];
+            list_spans.extend(parse_inline_spans(rest));
+            lines.push(Line::from(list_spans));
+        } else if trimmed == "---" || trimmed == "***" || trimmed == "___" {
+            ordered_list_counter = 0;
+            lines.push(Line::from(vec![Span::styled(
+                "──────────────────────────────────────────",
+                Style::default().fg(Color::DarkGray),
+            )]));
+        } else if trimmed.is_empty() {
+            ordered_list_counter = 0;
+            lines.push(Line::from(""));
+        } else {
+            ordered_list_counter = 0;
+            lines.push(Line::from(parse_inline_spans(line)));
+        }
+    }
+
+    lines
+}

@@ -115,8 +115,12 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                 ui.add_space(6.0);
             }
 
+            let pattern = meta_opt
+                .as_ref()
+                .and_then(|m| m.number_type.as_deref())
+                .unwrap_or("1.1.1.1.1.1");
             let processed = if number_headings {
-                mandu_core::vault::apply_heading_numbering(raw_body)
+                mandu_core::vault::apply_heading_numbering_with_pattern(raw_body, pattern)
             } else {
                 raw_body.to_string()
             };
@@ -127,9 +131,11 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                 for segment in segments {
                     match segment {
                         mandu_core::preview::PreviewSegment::Text(text) => {
+                            let mut ordered_list_counter: usize = 0;
                             for line in text.lines() {
                                 let trimmed = line.trim_start();
                                 if let Some(stripped) = trimmed.strip_prefix("# ") {
+                                    ordered_list_counter = 0;
                                     ui.label(
                                         egui::RichText::new(stripped)
                                             .size(20.0)
@@ -137,6 +143,7 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                                             .color(egui::Color32::from_rgb(100, 200, 250)),
                                     );
                                 } else if let Some(stripped) = trimmed.strip_prefix("## ") {
+                                    ordered_list_counter = 0;
                                     ui.label(
                                         egui::RichText::new(stripped)
                                             .size(16.0)
@@ -144,6 +151,7 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                                             .color(egui::Color32::from_rgb(120, 220, 150)),
                                     );
                                 } else if let Some(stripped) = trimmed.strip_prefix("### ") {
+                                    ordered_list_counter = 0;
                                     ui.label(
                                         egui::RichText::new(stripped)
                                             .size(14.0)
@@ -151,6 +159,7 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                                             .color(egui::Color32::from_rgb(200, 150, 230)),
                                     );
                                 } else if let Some(stripped) = trimmed.strip_prefix('>') {
+                                    ordered_list_counter = 0;
                                     ui.label(
                                         egui::RichText::new(format!("▍ {stripped}"))
                                             .italics()
@@ -160,10 +169,36 @@ pub fn render_preview(ui: &mut egui::Ui, state: &ViewsState) {
                                     .strip_prefix("- ")
                                     .or_else(|| trimmed.strip_prefix("* "))
                                 {
+                                    ordered_list_counter = 0;
                                     ui.label(format!("  • {stripped}"));
+                                } else if let Some(stripped) = {
+                                    let digits = trimmed
+                                        .chars()
+                                        .take_while(|c| c.is_ascii_digit())
+                                        .count();
+                                    if digits > 0 && trimmed[digits..].starts_with(". ") {
+                                        Some(&trimmed[digits + 2..])
+                                    } else {
+                                        None
+                                    }
+                                } {
+                                    ordered_list_counter += 1;
+                                    ui.horizontal(|ui| {
+                                        ui.label(
+                                            egui::RichText::new(format!("  {ordered_list_counter}."))
+                                                .strong()
+                                                .color(egui::Color32::from_rgb(250, 220, 100)),
+                                        );
+                                        ui.label(stripped);
+                                    });
                                 } else if trimmed == "---" {
+                                    ordered_list_counter = 0;
                                     ui.separator();
+                                } else if trimmed.is_empty() {
+                                    ordered_list_counter = 0;
+                                    ui.label("");
                                 } else {
+                                    ordered_list_counter = 0;
                                     ui.label(line);
                                 }
                             }
