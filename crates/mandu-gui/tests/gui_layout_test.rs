@@ -188,3 +188,49 @@ fn test_gui_split_mode_sync_scroll_ratio() {
     app.state.set_scroll_ratio(1.5);
     assert_eq!(app.state.scroll_ratio, 1.0);
 }
+
+#[test]
+fn test_mutation_gui_scroll_ratio_clamp_and_rendering() {
+    let ctx = Context::default();
+    let mut app = ManduApp::default();
+    // Teste com valores extremos de scroll
+    app.state.set_scroll_ratio(-100.0);
+    assert_eq!(app.state.scroll_ratio, 0.0);
+    app.state.set_scroll_ratio(100.0);
+    assert_eq!(app.state.scroll_ratio, 1.0);
+
+    // Renderização com nota de 200 linhas em modo Split com scroll ratio no topo e no fundo
+    let lines: Vec<String> = (1..=200)
+        .map(|i| format!("Linha {i} de texto longo."))
+        .collect();
+    app.state.buffer = lines.join("\n");
+    app.state.mode = GuiViewMode::Split;
+
+    // Frame 1: renderizar sem panic
+    let _ = ctx.run(RawInput::default(), |ctx| {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            render_editor(ui, &mut app.state);
+            render_preview(ui, &app.state);
+        });
+    });
+
+    // Como o editor em modo headless está no topo (offset 0.0), render_editor sincroniza ratio para 0.0
+    assert_eq!(app.state.scroll_ratio, 0.0);
+
+    // Frame 2: simular scroll delta com roda do mouse sem panic
+    let mut input_scroll = RawInput::default();
+    input_scroll.events.push(Event::MouseWheel {
+        unit: egui::MouseWheelUnit::Line,
+        delta: egui::vec2(0.0, -10.0),
+        modifiers: Modifiers::default(),
+    });
+    let _ = ctx.run(input_scroll, |ctx| {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            render_editor(ui, &mut app.state);
+            render_preview(ui, &app.state);
+        });
+    });
+
+    // Garantir que a renderização completou e o buffer está íntegro
+    assert_eq!(app.state.buffer, lines.join("\n"));
+}

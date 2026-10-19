@@ -207,3 +207,46 @@ fn test_tui_preview_mode_navigation_keys_scroll() {
     app.handle_key(up_key);
     assert_eq!(app.preview_scroll, prev - 1);
 }
+
+#[test]
+fn test_mutation_tui_sync_scroll_edge_cases_and_bounds() {
+    let mut app = TuiApp::new(None);
+
+    // 1. Buffer vazio ou com 1 linha só: scroll é 0
+    app.editor = mandu_tui::editor::Editor::from_text("");
+    assert_eq!(app.calculate_preview_scroll(30, 50), 0);
+    app.editor = mandu_tui::editor::Editor::from_text("Linha única");
+    assert_eq!(app.calculate_preview_scroll(30, 50), 0);
+
+    // 2. Altura do painel insuficiente ou preview que cabe inteiro: scroll é 0
+    let lines: Vec<String> = (1..=10).map(|i| format!("Linha {i}")).collect();
+    app.editor = mandu_tui::editor::Editor::from_text(&lines.join("\n"));
+    assert_eq!(app.calculate_preview_scroll(20, 10), 0);
+    assert_eq!(app.calculate_preview_scroll(0, 100), 0);
+    assert_eq!(app.calculate_preview_scroll(1, 100), 0);
+    assert_eq!(app.calculate_preview_scroll(2, 100), 0);
+
+    // 3. Teste de underflow no modo Preview: Up no topo (0) mantém 0
+    app.mode = ViewMode::Preview;
+    app.preview_scroll = 0;
+    let up_key = KeyEvent::new(KeyCode::Up, KeyModifiers::empty());
+    app.handle_key(up_key);
+    assert_eq!(
+        app.preview_scroll, 0,
+        "Up no topo não deve causar underflow"
+    );
+
+    let pageup_key = KeyEvent::new(KeyCode::PageDown, KeyModifiers::empty());
+    app.handle_key(pageup_key);
+    assert!(app.preview_scroll > 0);
+
+    // Home zera o scroll
+    let home_key = KeyEvent::new(KeyCode::Home, KeyModifiers::empty());
+    app.handle_key(home_key);
+    assert_eq!(app.preview_scroll, 0);
+
+    // End vai para o máximo
+    let end_key = KeyEvent::new(KeyCode::End, KeyModifiers::empty());
+    app.handle_key(end_key);
+    assert_eq!(app.preview_scroll, u16::MAX);
+}
