@@ -79,5 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rolagem vertical sincronizada (*synchronized scroll*) contínua entre o painel de edição e o painel de prévia no modo Split do `mandu-tui`, orientada pela fração de linha do cursor do editor e aplicada dinamicamente ao offset do widget `Paragraph` da prévia (closes #20).
 - Sincronização proporcional de rolagem no `mandu-gui` entre o `ScrollArea` do editor e da prévia via `scroll_ratio` normalizado e persistência desacoplada da geometria vertical em `ctx.data()`, prevenindo loops de eco e trepidações (closes #20).
 - Suporte a navegação autônoma por teclado (<kbd>Up</kbd>, <kbd>Down</kbd>, <kbd>PageUp</kbd>, <kbd>PageDown</kbd>, <kbd>Home</kbd>, <kbd>End</kbd>) e mouse wheel no modo exclusivo de leitura (`ViewMode::Preview`) na TUI, com retenção do percentual relativo ao alternar modos (closes #20).
+- Despachante inteligente unificado `mandu` (`crates/mandu-cli`) com detecção automática de ambiente gráfico (`WAYLAND_DISPLAY` e `DISPLAY`) e direcionamento transparente para `mandu-gui` ou `mandu-tui`, suporte a flags de override (`--tui`, `--gui`), fallback automático gracioso caso o binário de destino esteja ausente e substituição atômica de processo no Unix (`exec`) (closes #3).
+
 
 

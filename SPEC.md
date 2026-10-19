@@ -48,12 +48,18 @@ mandu/
     │       ├── editor.rs       # Wrapper tui-textarea + Escape Hatch para $EDITOR (nvim/micro)
     │       └── ui.rs           # Layout 3 modos + renderização Sixel/Kitty/Unicode
     │
-    └── mandu-gui/              # Interface Gráfica GPU (Debian Desktop + Android APK)
+    ├── mandu-gui/              # Interface Gráfica GPU (Debian Desktop + Android APK)
+    │   ├── Cargo.toml
+    │   └── src/
+    │       ├── lib.rs          # Lógica compartilhada egui/eframe + android_main()
+    │       ├── main.rs         # Entrypoint binário para Debian Linux
+    │       └── views.rs        # Painéis Editor (TextEdit) + Preview Vetorial (Joaju SVG)
+    │
+    └── mandu-cli/              # Despachante inteligente CLI (Entrypoint unificado `mandu`)
         ├── Cargo.toml
         └── src/
-            ├── lib.rs          # Lógica compartilhada egui/eframe + android_main()
-            ├── main.rs         # Entrypoint binário para Debian Linux
-            └── views.rs        # Painéis Editor (TextEdit) + Preview Vetorial (Joaju SVG)
+            ├── lib.rs          # Resolução de contexto, detecção gráfica e fallback
+            └── main.rs         # Entrypoint binário com substituição atômica de processo (exec)
 ~~~
 
 ---
@@ -184,6 +190,14 @@ Para viabilizar o uso no tablet Android mesmo quando desconectado do teclado fí
 | **Escape Hatch (`Ctrl+E`)** | Suspende a TUI, abre o arquivo na linha exata dentro do `nvim` ou `micro` e retoma ao sair. | Opcional (pode invocar terminal externo no Desktop). |
 | **Renderização do Preview** | Texto estruturado em terminal + imagens/SVGs do Joaju via `ratatui-image` (Kitty/Sixel no Desktop, blocos Unicode ou `termux-open` no Android). | Renderização vetorial direta na GPU (`wgpu`/`glow`) das páginas e SVGs gerados pelo motor Joaju/Typst. |
 | **Peek (`Espiar Página`)** | Popup flutuante em texto (`Clear` widget) ao acionar atalho sobre um `[[link]]` ou `@citekey`. | Card flutuante tipográfico ao passar o mouse ou tocar sobre um link/citação. |
+
+## 4.4. Despachante Unificado (`mandu`)
+
+O executável canônico `mandu` (`crates/mandu-cli`) funciona como despachante inteligente de alta velocidade:
+* **Detecção de Ambiente:** Inspeciona as variáveis de display gráfico (`WAYLAND_DISPLAY` e `DISPLAY`). Em ambientes desktop ativos, seleciona preferencialmente `mandu-gui`; em ambientes sem servidor gráfico (TTY puro, SSH, Termux), direciona para `mandu-tui`.
+* **Overrides Explícitos:** Suporta as flags `--tui` e `--gui` para forçar compulsoriamente a interface desejada, removendo a flag de override e repassando todos os demais argumentos.
+* **Fallback Transparente:** Caso o alvo seja `mandu-gui` mas o binário gráfico não esteja presente no sistema, realiza fallback automático para `mandu-tui`.
+* **Substituição Atômica de Processo (`exec`):** No Unix/Linux, substitui a imagem do processo em execução via chamada de sistema `exec()`, garantindo herança direta de descritores padrão (`stdin`/`stdout`/TTY), repasse transparente de sinais e propagação do código de saída.
 
 ---
 
