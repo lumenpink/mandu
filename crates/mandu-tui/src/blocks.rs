@@ -469,8 +469,286 @@ pub fn render_code_box(engine: &str, code: &str, width: usize) -> Vec<Line<'stat
     lines
 }
 
+/// Embeleza fórmulas matemáticas para apresentação clara no terminal.
+#[must_use]
+pub fn format_math_symbols(formula: &str) -> String {
+    formula
+        .replace("log_2", "log₂")
+        .replace("log_10", "log₁₀")
+        .replace("sqrt", "√")
+        .replace("alpha", "α")
+        .replace("beta", "β")
+        .replace("gamma", "γ")
+        .replace("delta", "δ")
+        .replace("sigma", "σ")
+        .replace("omega", "ω")
+        .replace("pi", "π")
+        .replace("!=", "≠")
+        .replace("<=", "≤")
+        .replace(">=", "≥")
+        .replace("->", "→")
+        .replace("=>", "⇒")
+        .replace("times", "×")
+}
+
+/// Extrai células e dimensões de uma chamada `#table(...)` do Typst.
+fn parse_typst_table(code: &str, width: usize) -> Option<Vec<Line<'static>>> {
+    if !code.contains("#table(") {
+        return None;
+    }
+
+    // Identificar a quantidade de colunas na assinatura de columns:
+    let cols = if let Some(col_idx) = code.find("columns:") {
+        let rest = &code[col_idx + 8..];
+        if let Some(open_paren) = rest.find('(') {
+            if let Some(close_paren) = rest[open_paren..].find(')') {
+                let inside = &rest[open_paren + 1..open_paren + close_paren];
+                let count = inside.split(',').filter(|c| !c.trim().is_empty()).count();
+                count.max(1)
+            } else {
+                3
+            }
+        } else if let Some(first_num) = rest.chars().find(|c| c.is_ascii_digit()) {
+            first_num.to_digit(10).unwrap_or(3) as usize
+        } else {
+            3
+        }
+    } else {
+        3
+    };
+
+    let cols = cols.max(1);
+
+    // Extrair células delimitadas por [...]
+    let mut cells = Vec::new();
+    let mut chars = code.char_indices().peekable();
+
+    while let Some((idx, c)) = chars.next() {
+        if c == '[' {
+            let mut depth = 1;
+            let start = idx + 1;
+            let mut end = start;
+            for (sub_idx, sub_c) in chars.by_ref() {
+                if sub_c == '[' {
+                    depth += 1;
+                } else if sub_c == ']' {
+                    depth -= 1;
+                    if depth == 0 {
+                        end = sub_idx;
+                        break;
+                    }
+                }
+            }
+            if end >= start {
+                let cell_raw = &code[start..end];
+                let cell_clean = cell_raw
+                    .trim()
+                    .trim_matches('*')
+                    .trim_matches('_')
+                    .trim();
+                cells.push(cell_clean.to_string());
+            }
+        }
+    }
+
+    if cells.is_empty() {
+        return None;
+    }
+
+    let rows: Vec<String> = cells
+        .chunks(cols)
+        .map(|chunk| chunk.join("\t"))
+        .collect();
+
+    let tsv = rows.join("\n");
+    Some(render_table_block(&tsv, width))
+}
+
+/// Formata expressões inline do Typst (negrito `*...*`, itálico `_..._`, matemática `$x$`).
+fn parse_typst_inline(text: &str) -> Vec<Span<'static>> {
+    let mut spans = Vec::new();
+    let mut current = String::new();
+    let mut chars = text.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        if c == '$' {
+            if !current.is_empty() {
+                spans.push(Span::styled(current.clone(), Style::default().fg(Color::Gray)));
+                current.clear();
+            }
+            let mut math_content = String::new();
+            while let Some(&mc) = chars.peek() {
+                chars.next();
+                if mc == '$' {
+                    break;
+                }
+                math_content.push(mc);
+            }
+            let pretty_math = format_math_symbols(&math_content);
+            spans.push(Span::styled(
+                pretty_math,
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD | Modifier::ITALIC),
+            ));
+        } else if c == '*' {
+            if !current.is_empty() {
+                spans.push(Span::styled(current.clone(), Style::default().fg(Color::Gray)));
+                current.clear();
+            }
+            let mut bold_content = String::new();
+            while let Some(&bc) = chars.peek() {
+                chars.next();
+                if bc == '*' {
+                    break;
+                }
+                bold_content.push(bc);
+            }
+            spans.push(Span::styled(
+                bold_content,
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ));
+        } else {
+            current.push(c);
+        }
+    }
+
+    if !current.is_empty() {
+        spans.push(Span::styled(current, Style::default().fg(Color::Gray)));
+    }
+
+    spans
+}
+
 /// Renderiza prévia tipográfica de blocos Typst/Joaju na TUI.
 #[must_use]
-pub fn render_typst_preview(_code: &str, _width: usize) -> Vec<Line<'static>> {
-    Vec::new()
+pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
+    let width = width.max(20);
+    let trimmed = code.trim();
+
+    // Se o bloco consistir inteiramente de uma tabela #table(...)
+    if trimmed.starts_with("#table(") {
+        if let Some(table_lines) = parse_typst_table(trimmed, width) {
+            return table_lines;
+        }
+    }
+
+    let mut lines = Vec::new();
+    let mut in_multiline_math = false;
+    let mut multiline_math_buf = String::new();
+    let mut in_table = false;
+    let mut table_buf = String::new();
+
+    // Cabeçalho estilizado discreto do Joaju
+    lines.push(Line::from(vec![
+        Span::styled("  [ 🖋 Joaju / Typst ]", Style::default().fg(Color::Cyan)),
+    ]));
+    lines.push(Line::from(""));
+
+    for raw_line in code.lines() {
+        let line = raw_line.trim();
+
+        // Tratamento de tabela multi-linhas interna
+        if in_table {
+            table_buf.push('\n');
+            table_buf.push_str(raw_line);
+            if line.contains(')') {
+                in_table = false;
+                if let Some(tbl) = parse_typst_table(&table_buf, width) {
+                    lines.extend(tbl);
+                    lines.push(Line::from(""));
+                }
+                table_buf.clear();
+            }
+            continue;
+        } else if line.starts_with("#table(") {
+            if line.contains(')') && line.matches('(').count() <= line.matches(')').count() {
+                if let Some(tbl) = parse_typst_table(line, width) {
+                    lines.extend(tbl);
+                    lines.push(Line::from(""));
+                }
+            } else {
+                in_table = true;
+                table_buf.clear();
+                table_buf.push_str(raw_line);
+            }
+            continue;
+        }
+
+        // 1. Filtrar diretivas de compilação Typst (#set, #show, #import)
+        if line.starts_with("#set ") || line.starts_with("#show ") || line.starts_with("#import ") {
+            continue;
+        }
+
+        // 2. Fórmulas matemáticas em bloco delimitadas por $
+        if in_multiline_math {
+            if line.ends_with('$') {
+                multiline_math_buf.push(' ');
+                multiline_math_buf.push_str(line.trim_end_matches('$').trim());
+                in_multiline_math = false;
+                let math_display = format_math_symbols(&multiline_math_buf);
+                lines.push(Line::from(vec![
+                    Span::styled("   ∑  ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+                    Span::styled(math_display, Style::default().fg(Color::LightYellow).add_modifier(Modifier::BOLD)),
+                ]));
+                lines.push(Line::from(""));
+                multiline_math_buf.clear();
+            } else {
+                multiline_math_buf.push(' ');
+                multiline_math_buf.push_str(line);
+            }
+            continue;
+        } else if line.starts_with('$') && line.ends_with('$') && line.len() > 1 {
+            let formula = line.trim_start_matches('$').trim_end_matches('$').trim();
+            let math_display = format_math_symbols(formula);
+            lines.push(Line::from(vec![
+                Span::styled("   ∑  ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+                Span::styled(math_display, Style::default().fg(Color::LightYellow).add_modifier(Modifier::BOLD)),
+            ]));
+            lines.push(Line::from(""));
+            continue;
+        } else if line.starts_with('$') && !line.ends_with('$') {
+            in_multiline_math = true;
+            multiline_math_buf = line.trim_start_matches('$').trim().to_string();
+            continue;
+        }
+
+        // 3. Títulos Typst (=, ==, ===)
+        if let Some(stripped) = line.strip_prefix("=== ") {
+            lines.push(Line::from(vec![
+                Span::styled("▎ ", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
+                Span::styled(stripped.to_string(), Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD)),
+            ]));
+        } else if let Some(stripped) = line.strip_prefix("== ") {
+            lines.push(Line::from(vec![
+                Span::styled("▍ ", Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+                Span::styled(stripped.to_string(), Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)),
+            ]));
+        } else if let Some(stripped) = line.strip_prefix("= ") {
+            lines.push(Line::from(vec![
+                Span::styled("▌ ", Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+                Span::styled(stripped.to_string(), Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            ]));
+        } else if let Some(stripped) = line.strip_prefix("- ").or_else(|| line.strip_prefix("* ")) {
+            // 4. Listas com marcadores
+            let mut list_spans = vec![Span::styled("  • ", Style::default().fg(Color::Cyan))];
+            list_spans.extend(parse_typst_inline(stripped));
+            lines.push(Line::from(list_spans));
+        } else if line.is_empty() {
+            lines.push(Line::from(""));
+        } else {
+            // 5. Parágrafo / Texto comum com spans inline
+            lines.push(Line::from(parse_typst_inline(line)));
+        }
+    }
+
+    if in_table && !table_buf.is_empty() {
+        if let Some(tbl) = parse_typst_table(&table_buf, width) {
+            lines.extend(tbl);
+        }
+    }
+
+    lines
 }

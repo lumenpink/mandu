@@ -363,6 +363,9 @@ fn render_preview_pane<'a>(text: &'a str, title: &'a str, pane_width: u16) -> Pa
                 "pedigree" | "heredograma" | "kinship2" | "pedtools" => {
                     lines.extend(crate::blocks::render_pedigree_summary(&code, card_width));
                 }
+                "typst" | "joaju" => {
+                    lines.extend(crate::blocks::render_typst_preview(&code, card_width));
+                }
                 _ => {
                     let label = if engine.is_empty() { "código" } else { engine };
                     lines.extend(crate::blocks::render_code_box(label, &code, card_width));

@@ -86,7 +86,7 @@ impl TuiApp<'_> {
                 if let Ok(content) = std::fs::read_to_string(path) {
                     let note = Vault::parse_note_content(path, &content);
                     word_count = note.word_count;
-                    editor = Editor::from_text(&note.body);
+                    editor = Editor::from_text(&content);
 
                     if let Some(ref d) = db {
                         let path_str = path.to_string_lossy();
@@ -133,7 +133,7 @@ impl TuiApp<'_> {
             if let Ok(content) = std::fs::read_to_string(&path) {
                 let note = Vault::parse_note_content(&path, &content);
                 self.word_count = note.word_count;
-                self.editor = Editor::from_text(&note.body);
+                self.editor = Editor::from_text(&content);
                 self.current_file = Some(path.clone());
                 self.is_dirty = false;
                 self.last_edit_time = None;
@@ -173,14 +173,12 @@ impl TuiApp<'_> {
                 if let Some(ref db) = self.db {
                     let _ = db.index_note(&note);
                 }
-                self.editor = Editor::from_text(&note.body);
                 self.is_dirty = false;
                 self.status_message = Some("Nota salva com sucesso".to_string());
             } else {
                 self.status_message = Some("Erro ao gravar arquivo em disco".to_string());
             }
         } else {
-            self.editor = Editor::from_text(&formatted);
             self.is_dirty = false;
             self.status_message = Some("Nota salva com sucesso".to_string());
         }
