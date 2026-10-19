@@ -172,7 +172,7 @@ fn test_tui_split_mode_sync_scroll_calculation() {
         .move_cursor(ratatui_textarea::CursorMove::Jump(50, 0));
     let scroll_mid = app.calculate_preview_scroll(20, 100);
     assert!(
-        scroll_mid >= 40 && scroll_mid <= 42,
+        (40..=42).contains(&scroll_mid),
         "scroll_mid deve ser aprox 41, foi {scroll_mid}"
     );
 
