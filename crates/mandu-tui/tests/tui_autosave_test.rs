@@ -111,3 +111,31 @@ fn test_tui_save_on_quit() {
         "arquivo no disco deve ser salvo automaticamente ao sair via Ctrl+Q"
     );
 }
+
+#[test]
+fn test_tui_autosave_without_file_buffer() {
+    let mut app = TuiApp::new(None);
+    app.editor = mandu_tui::editor::Editor::from_text("Texto em buffer sem arquivo");
+    app.is_dirty = true;
+    app.last_edit_time = Some(Instant::now() - Duration::from_millis(1500));
+
+    // Deve executar sem panic
+    let saved = app.check_autosave();
+    assert!(saved);
+    assert!(!app.is_dirty);
+    assert!(app.status_text().contains("[✓ Salvo]"));
+}
+
+#[test]
+fn test_tui_autosave_feedback_expiration() {
+    let mut app = TuiApp::new(None);
+    app.current_file = None;
+    app.autosave_feedback_until = Some(Instant::now() - Duration::from_millis(100)); // Já expirou
+
+    let status = app.status_text();
+    assert!(
+        !status.contains("[✓ Salvo]"),
+        "feedback de salvo não deve aparecer após expiração da janela de 2s"
+    );
+}
+
