@@ -1,7 +1,6 @@
-use mandu_core::config::{ManduConfig, UpdateChannel, UpdateConfig};
+use mandu_core::config::{ManduConfig, UpdateChannel};
 use mandu_core::updater::{
     atomic_replace_binary, get_distribution_endpoints, resolve_channel, semver_is_newer,
-    UpdateEndpoints,
 };
 use std::fs::File;
 use std::io::Write;
@@ -61,14 +60,18 @@ fn test_updater_distribution_endpoints() {
         endpoints_stable.version_url,
         "https://banca.2lp.in/downloads/mandu/version"
     );
-    assert!(endpoints_stable.binary_base_url.contains("/downloads/mandu/stable-latest/"));
+    assert!(endpoints_stable
+        .binary_base_url
+        .contains("/downloads/mandu/stable-latest/"));
 
     let endpoints_nightly = get_distribution_endpoints(UpdateChannel::Nightly);
     assert_eq!(
         endpoints_nightly.version_url,
         "https://banca.2lp.in/downloads/mandu/nightly-version"
     );
-    assert!(endpoints_nightly.binary_base_url.contains("/downloads/mandu/nightly-latest/"));
+    assert!(endpoints_nightly
+        .binary_base_url
+        .contains("/downloads/mandu/nightly-latest/"));
 }
 
 #[test]

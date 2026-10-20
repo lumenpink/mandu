@@ -3566,6 +3566,7 @@ dependencies = [
 name = "mandu-cli"
 version = "0.1.0-dev.1"
 dependencies = [
+ "mandu-core",
  "tempfile",
 ]
 
@@ -3581,6 +3582,7 @@ dependencies = [
  "pulldown-cmark",
  "rayon",
  "rusqlite",
+ "semver",
  "serde",
  "serde_json",
  "serde_yaml",

@@ -3,11 +3,13 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
-/// Modo de destino da interface do Mandu.
+/// Modo de destino da interface ou ação do Mandu.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TargetMode {
     Tui,
     Gui,
+    Update,
+    CheckUpdate,
 }
 
 impl TargetMode {
@@ -16,6 +18,7 @@ impl TargetMode {
         match self {
             Self::Tui => "mandu-tui",
             Self::Gui => "mandu-gui",
+            Self::Update | Self::CheckUpdate => "mandu",
         }
     }
 }
@@ -27,7 +30,7 @@ pub struct DispatchDecision {
     pub filtered_args: Vec<String>,
 }
 
-/// Determina o modo de execução (Tui ou Gui) com base em argumentos CLI e variáveis de exibição.
+/// Determina o modo de execução (Tui, Gui, Update ou CheckUpdate) com base em argumentos CLI e variáveis de exibição.
 #[must_use]
 pub fn resolve_target(args: &[String], has_wayland: bool, has_x11: bool) -> DispatchDecision {
     let mut target = None;
@@ -40,6 +43,21 @@ pub fn resolve_target(args: &[String], has_wayland: bool, has_x11: bool) -> Disp
     };
 
     let slice = if skip_first { &args[1..] } else { args };
+
+    // Subcomandos prioritários do despachante
+    if let Some(first_cmd) = slice.first() {
+        if first_cmd == "update" {
+            return DispatchDecision {
+                target: TargetMode::Update,
+                filtered_args: slice[1..].to_vec(),
+            };
+        } else if first_cmd == "check-update" {
+            return DispatchDecision {
+                target: TargetMode::CheckUpdate,
+                filtered_args: slice[1..].to_vec(),
+            };
+        }
+    }
 
     for arg in slice {
         match arg.as_str() {
@@ -105,6 +123,13 @@ pub fn resolve_and_find_binary(
 
     let decision = resolve_target(args, has_wayland, has_x11);
     let target = decision.target;
+
+    if target == TargetMode::Update || target == TargetMode::CheckUpdate {
+        let self_bin = current_exe_dir
+            .map(|d| d.join("mandu"))
+            .unwrap_or_else(|| PathBuf::from("mandu"));
+        return Ok((self_bin, decision.filtered_args));
+    }
 
     if let Some(bin) = find_binary(target, current_exe_dir, path_env.as_deref()) {
         return Ok((bin, decision.filtered_args));

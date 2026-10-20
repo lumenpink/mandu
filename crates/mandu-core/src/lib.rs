@@ -7,6 +7,7 @@ pub mod linter;
 pub mod peek;
 pub mod preview;
 pub mod refs;
+pub mod updater;
 pub mod vault;
 
 /// Versão do núcleo Mandu Core

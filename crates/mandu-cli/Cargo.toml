@@ -9,6 +9,7 @@ homepage.workspace = true
 description = "Despachante inteligente CLI para o ecossistema Mandu"
 
 [dependencies]
+mandu-core = { path = "../mandu-core" }
 
 [lib]
 name = "mandu_cli"

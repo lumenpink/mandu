@@ -137,4 +137,3 @@ fn test_dispatcher_subcommands_update_and_check_update() {
     let dec_check = resolve_target(&args_check, false, false);
     assert_eq!(dec_check.target, TargetMode::CheckUpdate);
 }
-

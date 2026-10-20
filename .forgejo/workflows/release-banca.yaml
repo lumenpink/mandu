@@ -1,0 +1,92 @@
+name: "Release & Publish to Banca"
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish-banca:
+    name: "Build & Publish Mandu Binaries to Banca"
+    runs-on: native
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Determine Release Channel and Version"
+        id: meta
+        run: |
+          REF="${{ github.ref }}"
+          if [[ "$REF" == refs/tags/v* ]]; then
+            CHANNEL="stable"
+            VERSION="${REF#refs/tags/v}"
+          else
+            CHANNEL="nightly"
+            BASE_VER=$(head -n 1 VERSION 2>/dev/null | tr -d ' \r\n' || echo "0.1.0-dev")
+            GIT_SHA=$(git rev-parse --short HEAD)
+            DATE_STAMP=$(date +%Y%m%d)
+            VERSION="${BASE_VER}+${DATE_STAMP}.${GIT_SHA}"
+          fi
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "★ Canal: $CHANNEL | Versão: $VERSION"
+
+      - name: "Compile Mandu Binaries"
+        run: |
+          echo "★ Compilando executáveis do ecossistema Mandu..."
+          cargo build --release -p mandu-cli -p mandu-tui -p mandu-gui
+
+      - name: "Package Artifacts & Generate Checksums"
+        run: |
+          CHANNEL="${{ steps.meta.outputs.channel }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+          mkdir -p dist/packages
+
+          for BIN in mandu mandu-tui mandu-gui; do
+            if [ -f "target/release/$BIN" ]; then
+              cp "target/release/$BIN" "dist/packages/$BIN"
+              tar -czf "dist/packages/${BIN}-${VERSION}-linux-amd64.tar.gz" -C target/release "$BIN"
+            fi
+          done
+
+          cd dist/packages
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+          cd ../..
+
+      - name: "Publish Directly to Banca Storage"
+        run: |
+          CHANNEL="${{ steps.meta.outputs.channel }}"
+          VERSION="${{ steps.meta.outputs.version }}"
+          BANCA_DIR="/srv/banca/downloads/mandu"
+
+          if [ -d "$BANCA_DIR" ] || [ -d "/srv/banca/downloads" ]; then
+            mkdir -p "$BANCA_DIR/$CHANNEL" "$BANCA_DIR/${CHANNEL}-latest"
+
+            echo "★ Entregando artefatos na Banca ($BANCA_DIR)..."
+            cp dist/packages/*.tar.gz "$BANCA_DIR/$CHANNEL/" 2>/dev/null || true
+            cp dist/packages/mandu dist/packages/mandu-tui dist/packages/mandu-gui "$BANCA_DIR/${CHANNEL}-latest/" 2>/dev/null || true
+            cp dist/packages/SHA256SUMS "$BANCA_DIR/$CHANNEL/" 2>/dev/null || true
+
+            if [ "$CHANNEL" = "stable" ]; then
+              echo "$VERSION" > "$BANCA_DIR/version"
+              # Retenção de 5 versões estáveis
+              ls -dt "$BANCA_DIR/stable"/*.tar.gz 2>/dev/null | tail -n +16 | xargs rm -f 2>/dev/null || true
+            else
+              echo "$VERSION" > "$BANCA_DIR/nightly-version"
+              # Retenção de 10 nightlies
+              ls -dt "$BANCA_DIR/nightly"/*.tar.gz 2>/dev/null | tail -n +31 | xargs rm -f 2>/dev/null || true
+            fi
+            echo "✔ Publicação soberana na Banca realizada com sucesso."
+          else
+            echo "ℹ Diretório de armazenamento /srv/banca não disponível neste runner. Artefatos locais prontos."
+          fi
