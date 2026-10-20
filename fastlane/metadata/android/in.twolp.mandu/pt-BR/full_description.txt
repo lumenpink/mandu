@@ -1,0 +1,3 @@
+Mandu é um editor de notas hiperlocal, soberano e multimodal com suporte a blocos ricos do Joaju e compilação de fórmulas Typst.
+
+Projetado para escrita acadêmica honesta, zettelkasten, diários e notas conectadas via links wiki [[nota]], com pesquisa instantânea em SQLite FTS5 e zero telemetria. Seus dados residem exclusivamente no armazenamento local do seu dispositivo, integrando-se perfeitamente com ferramentas de sincronização autônomas como o Syncthing.

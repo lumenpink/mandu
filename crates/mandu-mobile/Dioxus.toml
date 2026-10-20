@@ -1,0 +1,11 @@
+[application]
+name = "mandu-mobile"
+default_platform = "mobile"
+out_dir = "dist"
+asset_dir = "assets"
+
+[android]
+app_title = "Mandu"
+package = "in.twolp.mandu"
+min_sdk = 26
+target_sdk = 34
