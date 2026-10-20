@@ -95,3 +95,43 @@ fn test_updater_atomic_replace_and_rollback() {
     let old_content = std::fs::read_to_string(&old_backup).expect("read old");
     assert_eq!(old_content.trim(), "versao_antiga");
 }
+
+#[test]
+fn test_mutation_updater_edge_cases_and_invalid_inputs() {
+    use std::str::FromStr;
+
+    // 1. Parsing de canal inválido
+    assert!(UpdateChannel::from_str("invalid_channel").is_err());
+    assert_eq!(
+        UpdateChannel::from_str("  STABLE  ").unwrap(),
+        UpdateChannel::Stable
+    );
+    assert_eq!(
+        UpdateChannel::from_str("nightly").unwrap(),
+        UpdateChannel::Nightly
+    );
+
+    // 2. Detecção de binários instalados em subconjuntos parciais
+    let dir = tempdir().expect("tempdir");
+    let detected_empty = mandu_core::updater::detect_installed_binaries(dir.path());
+    assert!(detected_empty.is_empty());
+
+    // Cria apenas mandu e mandu-tui (sem mandu-gui)
+    File::create(dir.path().join("mandu")).unwrap();
+    File::create(dir.path().join("mandu-tui")).unwrap();
+    let detected = mandu_core::updater::detect_installed_binaries(dir.path());
+    assert_eq!(detected.len(), 2);
+    assert!(detected.iter().any(|p| p.ends_with("mandu")));
+    assert!(detected.iter().any(|p| p.ends_with("mandu-tui")));
+
+    // 3. SemVer edge cases: versões idênticas, espaços e maiúsculas
+    assert!(!semver_is_newer("1.0.0", "1.0.0"));
+    assert!(!semver_is_newer("  v1.0.0  ", "1.0.0"));
+    assert!(semver_is_newer("V1.0.1", "v1.0.0"));
+
+    // 4. Carregamento hierárquico com caminho inexistente retorna defaults seguros
+    let cfg = ManduConfig::load_hierarchical(Some(dir.path()));
+    assert_eq!(cfg.update.channel, UpdateChannel::Stable);
+    assert_eq!(cfg.update.pin, None);
+    assert!(cfg.update.auto_check);
+}
