@@ -116,7 +116,7 @@ impl ManduConfig {
     /// Retorna erro se a gravação em disco falhar.
     pub fn save_global(&self) -> Result<PathBuf, Box<dyn std::error::Error>> {
         let path = Self::get_global_config_path()
-            .ok_or_else(|| "Não foi possível resolver o diretório de configuração do usuário")?;
+            .ok_or("Não foi possível resolver o diretório de configuração do usuário")?;
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
         }
