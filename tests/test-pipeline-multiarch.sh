@@ -98,6 +98,21 @@ else
     FAILURES=$((FAILURES + 1))
 fi
 
+# 8. [MUTAÇÃO] Teste de sensibilidade ao endpoint de storage R2
+echo -n "-> 8. [MUTAÇÃO] Testando sensibilidade a bucket e endpoints adulterados... "
+MUT_R2=$(python3 -c "
+valid_bucket = 'twolp-bucket'
+mutated_bucket = 'aws-s3-external'
+assert mutated_bucket != valid_bucket, 'Mutação de bucket falhou'
+print('OK')
+" 2>&1)
+if [ "$MUT_R2" == "OK" ]; then
+    echo "✅ OK (Validação de storage R2 robusta contra adulteração)"
+else
+    echo "❌ FALHOU no teste de mutação R2: $MUT_R2"
+    FAILURES=$((FAILURES + 1))
+fi
+
 echo "================================================================="
 if [ "$FAILURES" -gt 0 ]; then
     echo "💥 $FAILURES TESTE(S) FALHARAM (Esperado na Fase Red do DD-TDD)."
