@@ -17,7 +17,7 @@ jobs:
     name: "Build & Publish Mandu Multiarch to Banca"
     runs-on: ubuntu-latest
     container:
-      image: codeberg.org/lumenpink/gost-ci-cross:latest
+      image: docker.io/lumenpink/gost-ci-cross:latest
     steps:
       - name: "Checkout repository"
         uses: https://github.com/actions/checkout@v4

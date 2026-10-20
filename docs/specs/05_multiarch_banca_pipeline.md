@@ -14,7 +14,7 @@ A esteira compila hermeticamente no contêiner `gost-ci-cross`, envia os artefat
 ## 2. Contrato de Compilação & Empacotamento
 
 ### 2.1. Ambiente de Execução
-- **Contêiner:** `codeberg.org/lumenpink/gost-ci-cross:latest`
+- **Contêiner:** `docker.io/lumenpink/gost-ci-cross:latest`
 - **Alvos Rust:**
   - `x86_64-unknown-linux-musl`
   - `aarch64-unknown-linux-musl`
