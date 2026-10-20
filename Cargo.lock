@@ -4721,6 +4721,7 @@ dependencies = [
  "chematic-smiles",
  "clap",
  "joaju-csv",
+ "joaju-lirica",
  "joaju-pedigree",
  "joaju-table",
  "joaju-unfurl",
@@ -4741,10 +4742,22 @@ dependencies = [
 [[package]]
 name = "joaju-csv"
 version = "0.1.0"
+source = "sparse+https://git.2lp.in/api/packages/lumen/cargo/"
+checksum = "2bc2ff7c850e32e295f4e9040f7b4a0534cbf7983b0144a2d208ec64aec9919d"
 dependencies = [
  "clap",
  "csv",
  "regex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "joaju-lirica"
+version = "0.1.0"
+dependencies = [
+ "clap",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -4766,6 +4779,8 @@ dependencies = [
 [[package]]
 name = "joaju-table"
 version = "0.1.0"
+source = "sparse+https://git.2lp.in/api/packages/lumen/cargo/"
+checksum = "5100b2b9a5d0bfcf07f5ced7e5e8bc5e5dbd13b66ce87871862e81e36d83cf40"
 dependencies = [
  "clap",
  "joaju-csv",
@@ -4778,6 +4793,8 @@ dependencies = [
 [[package]]
 name = "joaju-unfurl"
 version = "0.1.0"
+source = "sparse+https://git.2lp.in/api/packages/lumen/cargo/"
+checksum = "b3f0b9c5ee3c5f5a49653052e91b319a4e2fc89d6dc883ca0caabf0169c5cbfc"
 dependencies = [
  "base64 0.22.1",
  "clap",
