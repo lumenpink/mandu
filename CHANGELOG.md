@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Migração da esteira de publicação para imagem soberana no Docker Hub docker.io/lumenpink/gost-ci-cross:latest (closes #6).
+
 ### Added
 - Esteira de publicação multi-arquitetura (.forgejo/workflows/release-banca.yaml) compilando no contêiner gost-ci-cross para linux-amd64, linux-arm64 e windows-amd64 com empacotamento, upload direto no Cloudflare R2 e rotação atômica com commit na Banca (closes #5).
 - Inicialização do repositório em conformidade com o padrão GOST (`profiles/lumen.md`).
