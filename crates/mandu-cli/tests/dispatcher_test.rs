@@ -120,3 +120,21 @@ fn test_mutation_dispatcher_path_and_fallback_resolution() {
     assert_eq!(found_bin, tui_path);
     assert_eq!(filtered, vec!["documento.md"]);
 }
+
+#[test]
+fn test_dispatcher_subcommands_update_and_check_update() {
+    let args_update = vec![
+        "mandu".to_string(),
+        "update".to_string(),
+        "--channel".to_string(),
+        "nightly".to_string(),
+    ];
+    let decision = resolve_target(&args_update, true, true);
+    assert_eq!(decision.target, TargetMode::Update);
+    assert_eq!(decision.filtered_args, vec!["--channel", "nightly"]);
+
+    let args_check = vec!["mandu".to_string(), "check-update".to_string()];
+    let dec_check = resolve_target(&args_check, false, false);
+    assert_eq!(dec_check.target, TargetMode::CheckUpdate);
+}
+
