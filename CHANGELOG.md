@@ -82,6 +82,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Despachante inteligente unificado `mandu` (`crates/mandu-cli`) com detecção automática de ambiente gráfico (`WAYLAND_DISPLAY` e `DISPLAY`) e direcionamento transparente para `mandu-gui` ou `mandu-tui`, suporte a flags de override (`--tui`, `--gui`), fallback automático gracioso caso o binário de destino esteja ausente e substituição atômica de processo no Unix (`exec`) (closes #3).
 - Infraestrutura de publicação de binários na Banca (`https://banca.2lp.in/downloads/mandu/`) via workflow `.forgejo/workflows/release-banca.yaml`, compilando os três binários (`mandu`, `mandu-tui`, `mandu-gui`) com retenção de 5 estáveis e 10 nightlies sem dependência de releases do Codeberg (closes #21).
 - Motor de atualização em `mandu-core::updater` e subcomandos `mandu update` e `mandu check-update` no despachante CLI, com seleção de canais (`stable`/`nightly`), travamento de versão (`--pin`/`--unpin`), substituição atômica com rollback e configuração hierárquica em `.mandu/config.toml` ou `~/.config/mandu/config.toml` (closes #21).
+- Aplicativo móvel nativo Android em Dioxus 0.7 (`crates/mandu-mobile`) operando diretamente sobre cofres de notas locais (compatível com pastas sincronizadas via Syncthing), com caixa de digitação nativa touch, barra de ferramentas ergonômica sobre o teclado virtual (`[[ ]]`, `#`, `- [ ]`, `$`, etc.), visualização rica de Markdown/Joaju, estrutura de metadados Fastlane e script soberano de empacotamento/assinatura APK para a loja Pratilera (closes #4).
+
 
 
 

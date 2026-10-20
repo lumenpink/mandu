@@ -30,8 +30,12 @@ fn test_mutation_filter_notes_case_insensitive() {
     let mut state = MobileState::new(dir.path());
 
     state.create_note("Álgebra Linear").expect("create note 1");
-    state.create_note("Cálculo Numérico").expect("create note 2");
-    state.create_note("Biologia Celular").expect("create note 3");
+    state
+        .create_note("Cálculo Numérico")
+        .expect("create note 2");
+    state
+        .create_note("Biologia Celular")
+        .expect("create note 3");
 
     state.search_query = "álgebra".to_string();
     let filtered = state.filtered_notes();
@@ -67,7 +71,10 @@ fn test_mutation_toolbar_actions_newline_discipline() {
     assert_eq!(state.buffer, "# Título\n- [ ] **negrito***itálico*");
 
     state.apply_toolbar_action("math");
-    assert_eq!(state.buffer, "# Título\n- [ ] **negrito***itálico*$formula$");
+    assert_eq!(
+        state.buffer,
+        "# Título\n- [ ] **negrito***itálico*$formula$"
+    );
 }
 
 #[test]

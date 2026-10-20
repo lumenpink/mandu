@@ -56,11 +56,21 @@ mandu/
     │       ├── main.rs         # Entrypoint binário para Debian Linux
     │       └── views.rs        # Painéis Editor (TextEdit) + Preview Vetorial (Joaju SVG)
     │
-    └── mandu-cli/              # Despachante inteligente CLI (Entrypoint unificado `mandu`)
+    ├── mandu-cli/              # Despachante inteligente CLI (Entrypoint unificado `mandu`)
+    │   ├── Cargo.toml
+    │   └── src/
+    │       ├── lib.rs          # Resolução de contexto, detecção gráfica e fallback
+    │       └── main.rs         # Entrypoint binário com substituição atômica de processo (exec)
+    │
+    └── mandu-mobile/           # Aplicativo Mobile Android (Dioxus 0.7 + Pratilera)
         ├── Cargo.toml
+        ├── Dioxus.toml         # Manifesto com pacote in.twolp.mandu
         └── src/
-            ├── lib.rs          # Resolução de contexto, detecção gráfica e fallback
-            └── main.rs         # Entrypoint binário com substituição atômica de processo (exec)
+            ├── app.rs          # Componente raiz, alternância de modos e status
+            ├── components/     # Editor touch nativo, QuickToolbar, NotePreview e VaultDrawer
+            ├── state.rs        # Estado reativo do cofre local e ações da toolbar
+            ├── lib.rs          # Módulo público da aplicação mobile
+            └── main.rs         # Entrypoint móvel Dioxus launch
 ~~~
 
 ---
@@ -208,6 +218,15 @@ O Mandu integra distribuição soberana na infraestrutura da **Banca** (`https:/
 * **Comandos de Manutenção:** Subcomandos `mandu check-update` e `mandu update` no despachante CLI com flags `--channel`, `--pin` e `--unpin`.
 * **Atualização Atômica com Rollback:** Todos os binários presentes no mesmo diretório de instalação (`mandu`, `mandu-tui`, `mandu-gui`) são atualizados atomicamente via download temporário, definição de permissões `0o755`, preservação de cópia de segurança (`.old`) e renomeação atômica (`fs::rename`).
 * **Esteira de CI/CD sem Codeberg:** Compilação e empacotamento em runner nativo publicando diretamente no diretório de armazenamento da Banca (`/srv/banca/downloads/mandu/`) com retenção de 5 versões estáveis e 10 nightlies.
+
+## 4.6. Aplicativo Mobile Android (`mandu-mobile` via Dioxus 0.7 e Pratilera)
+
+O Mandu disponibiliza aplicativo móvel nativo para Android desenvolvido em **Dioxus 0.7** (`crates/mandu-mobile`):
+* **Foco em Escrita Touch Nativa:** Utiliza a WebView nativa da plataforma com um elemento `<textarea>` dedicado, garantindo suporte irrestrito a teclados virtuais do Android (Gboard, SwiftKey), autocorreção, predição, acentuação em português e alças de seleção de texto nativas.
+* **Barra de Ações Rápidas (`QuickToolbar`):** Barra tátil posicionada diretamente sobre o teclado virtual contendo atalhos frequentes para links wiki (`[[ ]]`), cabeçalhos (`#`), tarefas (`- [ ]`), estilos (`**`, `*`), fórmulas matemáticas (`$`) e blocos de código/Joaju (````).
+* **Gestão de Cofre Desacoplada (Zero-Cloud):** Opera estritamente sobre caminhos de diretório local no dispositivo (ex.: `/storage/emulated/0/Documents/Mandu`), delegando a sincronização entre dispositivos a ferramentas autônomas de terceiros (como o Syncthing). O `mandu-core` permanece como o motor exclusivo de parsing, indexação SQLite FTS5 e salvamento atômico POSIX.
+* **Prévia Rica Reativa:** Alternância rápida entre os modos `Editor` e `Preview`, renderizando Markdown com estilização brutalista, diagramas Joaju e notação matemática Typst.
+* **Distribuição Soberana na Pratilera (`in.twolp.mandu`):** Estrutura canônica de metadados Fastlane (`pt-BR`, `en-US` e `icon.png` RGBA 8-bit de 512x512) e script de empacotamento `scripts/package-apk.sh` com suporte a compilação cruzada via Dioxus CLI (`dx build --platform android`) e assinatura oficial via `~/.android/in_twolp_release.keystore`.
 
 ---
 
