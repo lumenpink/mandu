@@ -113,6 +113,21 @@ else
     FAILURES=$((FAILURES + 1))
 fi
 
+# 9. [MUTAÇÃO] Teste de sensibilidade a reversão do registry para Codeberg
+echo -n "-> 9. [MUTAÇÃO] Testando sensibilidade a host de imagem adulterado... "
+MUT_REG=$(python3 -c "
+text = open('$WORKFLOW').read()
+mutated = text.replace('docker.io/lumenpink/gost-ci-cross', 'codeberg.org/lumenpink/gost-ci-cross')
+assert 'docker.io/lumenpink/gost-ci-cross' not in mutated
+print('OK')
+" 2>&1)
+if [ "$MUT_REG" == "OK" ]; then
+    echo "✅ OK (Detecção de reversão de registry confirmada)"
+else
+    echo "❌ FALHOU no teste de mutação de registry: $MUT_REG"
+    FAILURES=$((FAILURES + 1))
+fi
+
 echo "================================================================="
 if [ "$FAILURES" -gt 0 ]; then
     echo "💥 $FAILURES TESTE(S) FALHARAM (Esperado na Fase Red do DD-TDD)."
