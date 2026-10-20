@@ -23,12 +23,12 @@ else
     FAILURES=$((FAILURES + 1))
 fi
 
-# 2. Utilização da sub-imagem gost-ci-cross
-echo -n "-> 2. Verificando uso da imagem gost-ci-cross... "
-if grep -q "codeberg.org/lumenpink/gost-ci-cross" "$WORKFLOW"; then
+# 2. Utilização da sub-imagem gost-ci-cross no Docker Hub
+echo -n "-> 2. Verificando uso da imagem gost-ci-cross no Docker Hub... "
+if grep -q "docker.io/lumenpink/gost-ci-cross" "$WORKFLOW"; then
     echo "✅ OK"
 else
-    echo "❌ FALHOU (imagem gost-ci-cross ausente no job de release)"
+    echo "❌ FALHOU (imagem docker.io/lumenpink/gost-ci-cross ausente no job de release)"
     FAILURES=$((FAILURES + 1))
 fi
 
