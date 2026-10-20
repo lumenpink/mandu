@@ -39,7 +39,8 @@ mandu/
     │       ├── db.rs           # Indexador SQLite In-Memory (FTS5) + Cache BLAKE3
     │       ├── linter.rs       # Hooks de salvamento (YAML, datas, formatação)
     │       ├── refs.rs         # Extrator e resolvedor de referências em notas .md
-    │       └── preview.rs      # Ponte direta com a crate do Joaju (SVG / PDF)
+    │       ├── preview.rs      # Ponte direta com a crate do Joaju (SVG / PDF)
+    │       └── updater.rs      # Motor de atualização atômica e cliente de releases da Banca
     │
     ├── mandu-tui/              # Interface de Terminal (Debian st/Kitty + Android Termux)
     │   ├── Cargo.toml
@@ -198,6 +199,15 @@ O executável canônico `mandu` (`crates/mandu-cli`) funciona como despachante i
 * **Overrides Explícitos:** Suporta as flags `--tui` e `--gui` para forçar compulsoriamente a interface desejada, removendo a flag de override e repassando todos os demais argumentos.
 * **Fallback Transparente:** Caso o alvo seja `mandu-gui` mas o binário gráfico não esteja presente no sistema, realiza fallback automático para `mandu-tui`.
 * **Substituição Atômica de Processo (`exec`):** No Unix/Linux, substitui a imagem do processo em execução via chamada de sistema `exec()`, garantindo herança direta de descritores padrão (`stdin`/`stdout`/TTY), repasse transparente de sinais e propagação do código de saída.
+
+## 4.5. Distribuição na Banca e Auto-Atualização Atômica
+
+O Mandu integra distribuição soberana na infraestrutura da **Banca** (`https://banca.2lp.in/downloads/mandu/`):
+* **Canais de Distribuição:** Suporte aos canais `stable` (releases marcadas com tags SemVer `v*`) e `nightly` (compilações contínuas da branch `main`).
+* **Configuração Hierárquica:** Metadados persistidos em `.mandu/config.toml` (específico do cofre) ou `~/.config/mandu/config.toml` (global do usuário), configurando canal preferido (`channel = "stable"`), versão travada (`pin = "..."`) e verificação automática.
+* **Comandos de Manutenção:** Subcomandos `mandu check-update` e `mandu update` no despachante CLI com flags `--channel`, `--pin` e `--unpin`.
+* **Atualização Atômica com Rollback:** Todos os binários presentes no mesmo diretório de instalação (`mandu`, `mandu-tui`, `mandu-gui`) são atualizados atomicamente via download temporário, definição de permissões `0o755`, preservação de cópia de segurança (`.old`) e renomeação atômica (`fs::rename`).
+* **Esteira de CI/CD sem Codeberg:** Compilação e empacotamento em runner nativo publicando diretamente no diretório de armazenamento da Banca (`/srv/banca/downloads/mandu/`) com retenção de 5 versões estáveis e 10 nightlies.
 
 ---
 
