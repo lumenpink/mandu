@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-WORKFLOW="$REPO_ROOT/.forgejo/workflows/release-banca.yaml"
+WORKFLOW="$REPO_ROOT/.forgejo/workflows/ci.yml"
 
 echo "================================================================="
 echo "🧪 [TESTE] Validação da Esteira Multiarch e Publicação na Banca (#5)"
