@@ -33,6 +33,11 @@ if ! grep -q "needs: \[test\]" "$WORKFLOW"; then
   exit 1
 fi
 
+if ! grep -q "if: success()" "$WORKFLOW"; then
+  echo "FALHA: O job deploy-banca não exige if: success()!" >&2
+  exit 1
+fi
+
 # 4. Imagem de cross-compilação e alvos multiarch
 if ! grep -q "docker.io/lumenpink/gost-ci-cross:latest" "$WORKFLOW"; then
   echo "FALHA: Imagem gost-ci-cross:latest não declarada no ci.yml!" >&2
