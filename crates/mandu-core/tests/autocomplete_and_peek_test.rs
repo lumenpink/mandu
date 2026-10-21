@@ -77,6 +77,28 @@ fn test_autocomplete_wikilinks_from_database() {
 }
 
 #[test]
+fn test_autocomplete_wikilinks_ignores_parent_directory_path() {
+    let db = ManduDb::open_in_memory().expect("open db");
+    let dir = tempdir().expect("tempdir");
+    let nested_dir = dir.path().join("sub_metodo_dir");
+    fs::create_dir_all(&nested_dir).expect("create_dir_all");
+
+    let note_path = nested_dir.join("alfa.md");
+    fs::write(&note_path, "---\ntitulo: Carta Alfa\n---\nCorpo\n").expect("write");
+
+    let note = Vault::parse_note_content(&note_path, &fs::read_to_string(&note_path).unwrap());
+    db.index_note(&note).expect("index note");
+
+    // 'metodo' está no nome da pasta pai ('sub_metodo_dir'), mas não no título ('Carta Alfa') nem no stem ('alfa')
+    let results = complete_wikilinks(&db, "metodo");
+    assert_eq!(
+        results.len(),
+        0,
+        "o autocompletar não deve casar trechos de diretórios pai"
+    );
+}
+
+#[test]
 fn test_peek_note_and_reference() {
     let db = ManduDb::open_in_memory().expect("open db");
     let dir = tempdir().expect("tempdir");
