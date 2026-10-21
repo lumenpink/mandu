@@ -18,3 +18,8 @@ Adicionalmente, na esteira `.forgejo/workflows/ci.yml`, o job `deploy-banca` dev
 2. Teste de mutação confirmando sensibilidade caso `vendored` seja removido.
 3. Validação do predicado `success()` em `.forgejo/workflows/ci.yml`.
 4. Conformidade estrita GOST via `cccp check --strict`.
+
+## 4. Evidências de Validação
+- Compilação dos alvos `x86_64-unknown-linux-musl` (`mandu-cli`, `mandu-tui`, `mandu-gui`) executada com sucesso total dentro do contêiner hermético `gost-ci-cross:latest`.
+- Teste de mutação e verificação em `tests/test_openssl_vendored.sh` 100% aprovados.
+
