@@ -90,16 +90,31 @@ pub fn complete_wikilinks(db: &ManduDb, query: &str) -> Vec<AutocompleteItem> {
             .collect();
     }
 
-    let search_strings: Vec<String> = notes
-        .iter()
-        .map(|(path, title)| format!("{title} {path}"))
+    let candidates: Vec<(String, String, String)> = notes
+        .into_iter()
+        .map(|(path, title)| {
+            let stem = Path::new(&path)
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or(&title)
+                .to_string();
+            let search_str = format!("{title} {stem}");
+            (path, title, search_str)
+        })
         .collect();
 
+    let search_strings: Vec<String> = candidates.iter().map(|(_, _, s)| s.clone()).collect();
     let matches = FuzzySearcher::match_candidates(clean_query, &search_strings);
 
     let mut items = Vec::new();
+    let mut used_indices = std::collections::HashSet::new();
     for m in matches {
-        if let Some((path, title)) = notes.iter().find(|(p, t)| format!("{t} {p}") == m) {
+        if let Some((idx, (path, title, _))) = candidates
+            .iter()
+            .enumerate()
+            .find(|(i, (_, _, s))| !used_indices.contains(i) && s == &m)
+        {
+            used_indices.insert(idx);
             let stem = Path::new(path)
                 .file_stem()
                 .and_then(|s| s.to_str())
