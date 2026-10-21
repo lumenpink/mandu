@@ -58,9 +58,15 @@ if ! grep -q 'GOST_VERSION="1.5.0"' "$ROOT_DIR/GOSTVER"; then
   exit 1
 fi
 
-# 7. Garantia de rustfmt e clippy no setup do Rust
-if ! grep -q "rustup component add.*rustfmt" "$WORKFLOW" || ! grep -q "rustup component add.*clippy" "$WORKFLOW"; then
-  echo "FALHA: rustup component add rustfmt e clippy ausentes no ci.yml!" >&2
+# 7. Garantia de ambiente hermético no job test
+if ! grep -A 5 "test:" "$WORKFLOW" | grep -q "lumenpink/gost-ci-cross:latest"; then
+  echo "FALHA: O job test não utiliza o container hermético gost-ci-cross:latest!" >&2
+  exit 1
+fi
+
+# 8. Veto a downloads ad-hoc de toolchain na esteira
+if grep -q "sh.rustup.rs" "$WORKFLOW"; then
+  echo "FALHA: Download dinâmico de rustup detectado no ci.yml!" >&2
   exit 1
 fi
 
