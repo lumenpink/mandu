@@ -96,6 +96,11 @@ fn test_autocomplete_wikilinks_ignores_parent_directory_path() {
         0,
         "o autocompletar não deve casar trechos de diretórios pai"
     );
+
+    // Casamento aproximado pelo stem diretamente
+    let stem_results = complete_wikilinks(&db, "alfa");
+    assert_eq!(stem_results.len(), 1);
+    assert_eq!(stem_results[0].insert_text, "[[alfa]]");
 }
 
 #[test]
