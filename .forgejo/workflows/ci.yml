@@ -28,12 +28,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: "Setup Rust Toolchain"
+      - name: "Setup Rust Toolchain & Linters"
         run: |
           if ! command -v cargo >/dev/null 2>&1; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
             echo "$HOME/.cargo/bin" >> $GITHUB_PATH
           fi
+          rustup component add rustfmt clippy 2>/dev/null || true
 
       - name: "Configure Sovereign Lumen Cargo Registry"
         run: |
