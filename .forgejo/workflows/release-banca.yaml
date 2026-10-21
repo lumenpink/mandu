@@ -42,6 +42,11 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "★ Canal: $CHANNEL | Versão: $VERSION"
 
+      - name: "Configure Sovereign Lumen Cargo Registry"
+        run: |
+          mkdir -p "$HOME/.cargo"
+          printf '[registries.lumen]\nindex = "sparse+https://git.2lp.in/api/packages/lumen/cargo/"\n' > "$HOME/.cargo/config.toml"
+
       - name: "Compile Mandu Multiarch Binaries"
         run: |
           echo "★ [1/3] Compilando x86_64-unknown-linux-musl (Linux AMD64)..."

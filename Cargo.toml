@@ -19,6 +19,3 @@ homepage = "https://mandu.2lp.in"
 [workspace.lints.rust]
 unsafe_code = "forbid"
 
-[patch."sparse+https://git.2lp.in/api/packages/lumen/cargo/"]
-joaju-lirica = { path = "../joaju-lirica" }
-joaju-pedigree = { path = "../joaju-pedigree" }

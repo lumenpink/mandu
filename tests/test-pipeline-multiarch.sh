@@ -82,6 +82,18 @@ else
     FAILURES=$((FAILURES + 1))
 fi
 
+# 7. Verificação de soberania do registry lumen (sem clones ou patches locais) (#7)
+echo -n "-> 7. Verificando consumo de joaju via registry soberano lumen... "
+if grep -q 'joaju = {.*registry = "lumen"' "$REPO_ROOT/crates/mandu-core/Cargo.toml" && \
+   ! grep -q 'joaju = { path =' "$REPO_ROOT/crates/mandu-core/Cargo.toml" && \
+   ! grep -q '\[patch\."sparse+https://git.2lp.in' "$REPO_ROOT/Cargo.toml" && \
+   grep -q 'sparse+https://git.2lp.in/api/packages/lumen/cargo/' "$WORKFLOW"; then
+    echo "✅ OK"
+else
+    echo "❌ FALHOU (dependencia de caminho ou patch local ainda presente, ou registry lumen nao configurado no workflow)"
+    FAILURES=$((FAILURES + 1))
+fi
+
 # 7. [MUTAÇÃO] Teste de mutação: validação de arquiteturas obrigatórias
 echo -n "-> 7. [MUTAÇÃO] Testando sensibilidade a arquiteturas adulteradas... "
 MUT_RES=$(python3 -c "

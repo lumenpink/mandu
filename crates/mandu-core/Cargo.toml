@@ -23,7 +23,7 @@ nucleo = "0.5"
 thiserror = "2.0"
 chrono = { version = "0.4", features = ["serde"] }
 semver = "1.0"
-joaju = { path = "../../../joaju" }
+joaju = { version = ">=0.1.0-dev", registry = "lumen" }
 
 [dev-dependencies]
 tempfile = "3.17"
