@@ -58,4 +58,10 @@ if ! grep -q 'GOST_VERSION="1.5.0"' "$ROOT_DIR/GOSTVER"; then
   exit 1
 fi
 
+# 7. Garantia de rustfmt e clippy no setup do Rust
+if ! grep -q "rustup component add rustfmt clippy" "$WORKFLOW"; then
+  echo "FALHA: rustup component add rustfmt clippy ausente no ci.yml!" >&2
+  exit 1
+fi
+
 echo "✔ Todas as verificações de conformidade estrita da esteira passaram com sucesso!"
