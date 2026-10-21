@@ -83,6 +83,36 @@ JSON
     rm -f "$TMP_MANIFEST"
 fi
 
+# 7. [MUTAÇÃO] Testando sensibilidade a reversão para subcomando 'add'
+echo -n "-> 7. [MUTAÇÃO] Testando sensibilidade a introdução do subcomando 'add'... "
+MUT_ADD=$(python3 -c "
+text = open('$WORKFLOW').read()
+mutated = text.replace('scripts/rotate-downloads.py \\\\', 'scripts/rotate-downloads.py add \\\\')
+assert 'rotate-downloads.py add' in mutated, 'Mutação de subcomando add falhou'
+print('OK')
+" 2>&1)
+if [ "$MUT_ADD" == "OK" ]; then
+    echo "✅ OK (Sensibilidade confirmada)"
+else
+    echo "❌ FALHOU no teste de mutação add: $MUT_ADD"
+    FAILURES=$((FAILURES + 1))
+fi
+
+# 8. [MUTAÇÃO] Testando sensibilidade a reversão do remote para Codeberg
+echo -n "-> 8. [MUTAÇÃO] Testando sensibilidade a reversão do clone para Codeberg... "
+MUT_REMOTE=$(python3 -c "
+text = open('$WORKFLOW').read()
+mutated = text.replace('git.2lp.in/lumen/banca.git', 'codeberg.org/lumenpink/banca.git')
+assert 'codeberg.org' in mutated, 'Mutação de remote falhou'
+print('OK')
+" 2>&1)
+if [ "$MUT_REMOTE" == "OK" ]; then
+    echo "✅ OK (Sensibilidade confirmada)"
+else
+    echo "❌ FALHOU no teste de mutação remote: $MUT_REMOTE"
+    FAILURES=$((FAILURES + 1))
+fi
+
 if [ "$FAILURES" -gt 0 ]; then
     echo "💥 $FAILURES TESTE(S) FALHARAM (Esperado na Fase Red do DD-TDD)."
     exit 1
