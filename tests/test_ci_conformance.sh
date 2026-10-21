@@ -65,9 +65,24 @@ if ! grep -A 5 "test:" "$WORKFLOW" | grep -q "lumenpink/gost-ci-cross:latest"; t
 fi
 
 # 8. Veto a downloads ad-hoc de toolchain na esteira
-if grep -q "sh.rustup.rs" "$WORKFLOW"; then
-  echo "FALHA: Download dinâmico de rustup detectado no ci.yml!" >&2
+if grep -q "sh.rustup.rs" "$WORKFLOW" || grep -q "apt-get" "$WORKFLOW"; then
+  echo "FALHA: Instalações ad-hoc (rustup/apt-get) detectadas no ci.yml!" >&2
   exit 1
 fi
+
+# 9. Teste de mutação: sensibilidade a regressão no container do job test
+python3 -c "
+import yaml
+with open('$WORKFLOW') as f:
+    data = yaml.safe_load(f)
+assert 'test' in data.get('jobs', {}), 'Job test ausente'
+test_job = data['jobs']['test']
+assert test_job.get('container', {}).get('image') == 'docker.io/lumenpink/gost-ci-cross:latest', 'Container image inválida'
+deploy_job = data['jobs']['deploy-banca']
+assert 'test' in deploy_job.get('needs', []), 'Deploy-banca precisa depender de test'
+" || {
+  echo "FALHA: Teste estrutural de mutação falhou!" >&2
+  exit 1
+}
 
 echo "✔ Todas as verificações de conformidade estrita da esteira passaram com sucesso!"
