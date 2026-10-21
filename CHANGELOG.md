@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Unificação das esteiras de testes e deploy da banca em um único arquivo canônico `.forgejo/workflows/ci.yml` com dependência estrita `needs: [test]` (closes #8).
+- Atualização do padrão GOST para v1.5.0 incorporando diretrizes GOST-23 e GOST-24 (#8).
 - Migração da esteira de publicação para imagem soberana no Docker Hub docker.io/lumenpink/gost-ci-cross:latest (closes #6).
 
 ### Added
