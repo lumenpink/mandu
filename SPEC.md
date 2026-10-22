@@ -272,3 +272,17 @@ Os quatro módulos abaixo ficam fora do escopo inicial (`v0.1.0`) para garantir 
 ## Fase 5 (`v0.5.0`) — Assistente Contextual (Substituto do *Gemini Scribe*)
 * **Escopo:** Módulo opcional e enxuto de comunicação via API REST com LLMs.
 * **Funcionamento:** Acionado exclusivamente sob demanda via Paleta de Comandos (`Ctrl+P`), enviando a nota atual e as notas diretamente conectadas a ela no SQLite como contexto para síntese, revisão ou estruturação, inserindo a resposta no buffer sem criar janelas de chat permanentes na interface.
+
+---
+
+# 7. Diretrizes de Compilação e Distribuição Soberana
+
+1. **Linking Estático Integral (`crt-static`):**
+   - Os binários para distribuição Linux em alvos `musl` (`x86_64-unknown-linux-musl` e `aarch64-unknown-linux-musl`) são compilados compulsòriamente com `-C target-feature=+crt-static`.
+   - Isso garante o formato `static-pie linked`, eliminando a dependência de interpretadores dinâmicos externos (`/lib/ld-musl*`) e garantindo portabilidade universal e imune a falhas de carregador em qualquer distribuição Linux.
+
+2. **Otimização Extrema de Tamanho (`[profile.release]`):**
+   - Habilitação obrigatória de `lto = "fat"` para eliminação de código morto (dead-code elimination) através de todo o grafo de crates.
+   - Restrição a `codegen-units = 1` para permitir inlining e otimização global pelo LLVM.
+   - `panic = "abort"` para supressão das tabelas DWARF de unwinding de exceção.
+   - `strip = true` para descarte de símbolos e seções de depuração nos artefatos finais.
