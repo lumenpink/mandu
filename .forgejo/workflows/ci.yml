@@ -91,6 +91,7 @@ jobs:
 
       - name: "Compile Mandu Multiarch Binaries"
         run: |
+          export RUSTFLAGS="-C target-feature=+crt-static"
           echo "★ [1/3] Compilando x86_64-unknown-linux-musl (Linux AMD64)..."
           cargo zigbuild --release --target x86_64-unknown-linux-musl -p mandu-cli -p mandu-tui -p mandu-gui || \
             cargo build --release --target x86_64-unknown-linux-musl -p mandu-cli -p mandu-tui -p mandu-gui
