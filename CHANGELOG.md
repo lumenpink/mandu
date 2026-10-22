@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- (build) otimizar tamanho de binarios com profile.release e habilitar linking estatico musl crt-static (closes #14).
 - Inclusão da feature vendored no crate openssl para compilação estática de alvos musl multiarch e adição do guard success() no deploy do CI (closes #9).
 - Execução hermética do job `test` dentro do contêiner `gost-ci-cross` e remoção de downloads dinâmicos (closes #8).
 - Unificação das esteiras de testes e deploy da banca em um único arquivo canônico `.forgejo/workflows/ci.yml` com dependência estrita `needs: [test]` (closes #8).
