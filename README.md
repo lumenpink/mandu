@@ -1,6 +1,6 @@
 # 🧠 mandu
 
-> **Mandu** (do Guarani *mandu'a*: memória, lembrança, recordação) é um ambiente de escrita acadêmica, gestão de conhecimento e publicação científica em **100% Rust**, projetado sob a filosofia de fluxo honesto (*HedgeDoc-style*), zero dependências web e pipeline único de renderização via **Joaju**.
+> **Mandu** (do Guarani *mandu'a*: memória, lembrança, recordação) é um caderno pessoal seguro e bloco de notas para organizar pensamentos, estudos e anotações com privacidade total e publicação elegante integrada ao motor **Joaju**.
 
 ---
 
@@ -22,7 +22,7 @@ mandu/
 ├── Cargo.toml                  # Manifesto do Workspace
 ├── SPEC.md                     # Especificação Arquitetural
 └── crates/
-    ├── mandu-core/             # Cérebro do cofre (Zero dependências de UI)
+    ├── mandu-core/             # Cérebro do cofre (Armazenamento e busca local)
     ├── mandu-tui/              # Interface de Terminal (Debian st/Kitty + Android Termux)
     └── mandu-gui/              # Interface Gráfica GPU (Debian Desktop + Android APK)
 ```
