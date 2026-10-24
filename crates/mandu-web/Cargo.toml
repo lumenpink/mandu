@@ -1,0 +1,23 @@
+[package]
+name = "mandu-web"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Cliente Web WASM em Dioxus 0.7 para o Mandu"
+
+[dependencies]
+mandu-mobile = { path = "../mandu-mobile" }
+dioxus = { version = "0.7", default-features = false, features = ["macro", "html", "signals", "hooks", "launch", "document", "web"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+gloo-storage = "0.2"
+gloo-net = "0.6"
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["Window", "Location", "Storage"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"

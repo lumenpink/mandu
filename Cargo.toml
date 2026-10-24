@@ -5,6 +5,8 @@ members = [
     "crates/mandu-gui",
     "crates/mandu-cli",
     "crates/mandu-mobile",
+    "crates/mandu-server",
+    "crates/mandu-web",
 ]
 resolver = "2"
 
