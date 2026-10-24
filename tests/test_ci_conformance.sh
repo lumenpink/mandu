@@ -57,6 +57,12 @@ if ! grep -q "wrangler r2 object put" "$WORKFLOW" || ! grep -q "rotate-downloads
   exit 1
 fi
 
+# 5.1 Verificação de deploy contínuo do site estático via Cloudflare Workers
+if ! grep -q "wrangler deploy" "$WORKFLOW"; then
+  echo "FALHA: Etapa de deploy do site (wrangler deploy) ausente no ci.yml!" >&2
+  exit 1
+fi
+
 # 6. GOSTVER 1.5.0
 if ! grep -q 'GOST_VERSION="1.5.0"' "$ROOT_DIR/GOSTVER"; then
   echo "FALHA: GOSTVER não está na versão 1.5.0!" >&2
