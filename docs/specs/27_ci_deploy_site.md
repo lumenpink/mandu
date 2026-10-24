@@ -1,7 +1,7 @@
 # Especificação 27: Esteira de Build e Deploy Contínuo do Site (Ticket #20)
 
 - **ID do Ticket:** #20
-- **Branch:** `ci/20-deploy-continuo-site`
+- **Branch:** `chore/20-deploy-continuo-site`
 - **Status:** Em Especificação (Fase 3 DD-TDD)
 - **Autora:** Lumen
 - **Alinhamento:** GOST 1.5.0 (CI/CD)

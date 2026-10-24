@@ -91,6 +91,8 @@ test_job = data['jobs']['test']
 assert test_job.get('container', {}).get('image') == 'docker.io/lumenpink/gost-ci-cross:latest', 'Container image inválida'
 deploy_job = data['jobs']['deploy-banca']
 assert 'test' in deploy_job.get('needs', []), 'Deploy-banca precisa depender de test'
+deploy_steps = [s.get('name', '') for s in deploy_job.get('steps', [])]
+assert any('Cloudflare Workers' in name or 'Site' in name for name in deploy_steps), 'Step de deploy do site ausente nos steps'
 " || {
   echo "FALHA: Teste estrutural de mutação falhou!" >&2
   exit 1
