@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migração da esteira de publicação para imagem soberana no Docker Hub docker.io/lumenpink/gost-ci-cross:latest (closes #6).
 
 ### Added
+- Criação das crates `mandu-server` (Axum REST API com SQLite FTS5, Joaju preview e IA) e `mandu-web` (Dioxus 0.7 Web WASM), além do desacoplamento da trait `VaultProvider` (Local vs Remoto) no `mandu-mobile` (closes #12).
 - Esteira de publicação multi-arquitetura (.forgejo/workflows/release-banca.yaml) compilando no contêiner gost-ci-cross para linux-amd64, linux-arm64 e windows-amd64 com empacotamento, upload direto no Cloudflare R2 e rotação atômica com commit na Banca (closes #5).
 - Inicialização do repositório em conformidade com o padrão GOST (`profiles/lumen.md`).
 - Especificação arquitetural canônica em `SPEC.md` detalhando os princípios de escrita honesta, o padrão *HedgeDoc*, a integração com o *Joaju* e a migração de plugins do Obsidian.
