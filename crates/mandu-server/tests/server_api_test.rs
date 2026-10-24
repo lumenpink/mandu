@@ -77,7 +77,7 @@ async fn test_tree_and_notes_crud() {
     assert_eq!(response.status(), StatusCode::OK);
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let json: Value = serde_json::from_slice(&body).unwrap();
-    assert!(json.as_array().unwrap().len() >= 1);
+    assert!(!json.as_array().unwrap().is_empty());
 
     // 2. GET /api/notes?path=nota1.md
     let req = Request::builder()
@@ -115,6 +115,48 @@ async fn test_tree_and_notes_crud() {
         .uri("/api/notes?path=../../etc/passwd")
         .body(Body::empty())
         .unwrap();
-    let response = app.oneshot(req).await.unwrap();
+    let response = app.clone().oneshot(req).await.unwrap();
     assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+    // 5. GET /api/search
+    let req = Request::builder()
+        .uri("/api/search?q=Primeira")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.clone().oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    // 6. POST /api/render/joaju
+    let req = Request::builder()
+        .method("POST")
+        .uri("/api/render/joaju")
+        .header("content-type", "application/json")
+        .body(Body::from(
+            serde_json::to_vec(&serde_json::json!({
+                "content": "A -> B"
+            }))
+            .unwrap(),
+        ))
+        .unwrap();
+    let response = app.clone().oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
+    // 7. POST /api/ai/extract
+    let req = Request::builder()
+        .method("POST")
+        .uri("/api/ai/extract")
+        .header("content-type", "application/json")
+        .body(Body::from(
+            serde_json::to_vec(&serde_json::json!({
+                "content": "Este é um artigo científico acadêmico avançado sobre inteligência artificial e linguística computacional."
+            }))
+            .unwrap(),
+        ))
+        .unwrap();
+    let response = app.oneshot(req).await.unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    let json: Value = serde_json::from_slice(&body).unwrap();
+    assert!(!json["summary"].as_str().unwrap().is_empty());
+    assert!(!json["keywords"].as_array().unwrap().is_empty());
 }

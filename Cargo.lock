@@ -5323,6 +5323,7 @@ name = "mandu-mobile"
 version = "0.1.0-dev.1"
 dependencies = [
  "anyhow",
+ "async-trait",
  "chrono",
  "dioxus",
  "mandu-core",
@@ -5330,6 +5331,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -5338,6 +5340,7 @@ version = "0.1.0-dev.1"
 dependencies = [
  "async-trait",
  "axum",
+ "chrono",
  "clap",
  "http-body-util",
  "mandu-core",
@@ -5349,6 +5352,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "walkdir",
 ]
 
 [[package]]
