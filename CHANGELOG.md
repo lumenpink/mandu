@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Added
+- Criação do site estático minimalista em `site/` (com `assets/style.css`, `assets/favicon.svg` e `_headers` com políticas de segurança) e suíte de testes de conformidade em `crates/mandu-cli` (closes #19).
 - (build) otimizar tamanho de binarios com profile.release e habilitar linking estatico musl crt-static (closes #14).
 - Inclusão da feature vendored no crate openssl para compilação estática de alvos musl multiarch e adição do guard success() no deploy do CI (closes #9).
 - Execução hermética do job `test` dentro do contêiner `gost-ci-cross` e remoção de downloads dinâmicos (closes #8).

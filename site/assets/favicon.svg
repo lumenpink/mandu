@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#0f0f12"/>
+  <rect x="1" y="1" width="62" height="62" rx="13" fill="none" stroke="#23232a" stroke-width="2"/>
+  <!-- Caderno Minimalista / Livro Aberto -->
+  <path d="M18 20 C18 17, 26 17, 32 19 C38 17, 46 17, 46 20 L46 44 C46 41, 38 41, 32 43 C26 41, 18 41, 18 44 Z" fill="#18181f" stroke="#c678dd" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Lombada central -->
+  <line x1="32" y1="19" x2="32" y2="43" stroke="#ff79c6" stroke-width="2" stroke-linecap="round"/>
+  <!-- Linhas de escrita sutis -->
+  <line x1="22" y1="26" x2="28" y2="26" stroke="#5a5a66" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="22" y1="31" x2="28" y2="31" stroke="#5a5a66" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="22" y1="36" x2="27" y2="36" stroke="#5a5a66" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="36" y1="26" x2="42" y2="26" stroke="#5a5a66" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="36" y1="31" x2="42" y2="31" stroke="#5a5a66" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="36" y1="36" x2="41" y2="36" stroke="#5a5a66" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

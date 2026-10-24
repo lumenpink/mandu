@@ -4,112 +4,129 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mandu — Bloco de Notas & Caderno Pessoal Seguro</title>
-  <style>
-    :root {
-      --bg: #121214;
-      --card-bg: #1a1a1e;
-      --text: #e1e1e6;
-      --text-muted: #a8a8b3;
-      --accent: #ff79c6;
-      --border: #29292e;
-      --code-bg: #0d0d0f;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      max-width: 860px;
-      margin: 40px auto;
-      padding: 0 24px;
-      line-height: 1.6;
-    }
-    h1, h2, h3 { color: #ffffff; }
-    h1 { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 8px; }
-    .lead { font-size: 1.15rem; color: var(--text-muted); margin-bottom: 24px; }
-    .badges { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 0.85rem;
-      font-family: monospace;
-      color: var(--accent);
-    }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin: 24px 0; }
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 16px;
-    }
-    .card h3 { margin-top: 0; font-size: 1.1rem; color: var(--accent); }
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px;
-      overflow-x: auto;
-      font-family: monospace;
-      font-size: 0.9rem;
-    }
-    footer {
-      margin-top: 48px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      text-align: center;
-    }
-  </style>
+  <meta name="description" content="Mandu é um caderno pessoal seguro e bloco de notas para organizar pensamentos, estudos e anotações com privacidade total.">
+  <meta name="theme-color" content="#0e0e11">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mandu.2lp.in/">
+  <meta property="og:title" content="Mandu — Bloco de Notas & Caderno Pessoal Seguro">
+  <meta property="og:description" content="Seu refúgio de escrita e organização pessoal para pensamentos, estudos e rascunhos com privacidade total.">
+  <meta property="og:site_name" content="Mandu">
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <h1>🧠 Mandu (`mandu`)</h1>
-  <p class="lead">Seu bloco de notas e caderno pessoal seguro para organizar pensamentos, estudos e ideias do dia a dia, com visual limpo e privacidade total.</p>
-  
-  <div class="badges">
-    <span class="badge">Caderno Pessoal</span>
-    <span class="badge">Bloco de Notas</span>
-    <span class="badge">Privacidade Total</span>
-    <span class="badge">Foco na Escrita</span>
-    <span class="badge">Sem Nuvem Obrigatória</span>
-    <span class="badge">Software Livre</span>
-  </div>
+  <header>
+    <div class="brand">
+      <img src="assets/favicon.svg" alt="Ícone do Mandu">
+      <div>
+        <h1>Mandu</h1>
+        <span class="tagline">mandu'a &bull; memória e lembrança</span>
+      </div>
+    </div>
+    <p class="lead">Seu bloco de notas e caderno pessoal seguro para organizar pensamentos, estudos e ideias do dia a dia, com visual limpo e privacidade total.</p>
+    
+    <div class="badges">
+      <span class="badge badge-accent">Caderno Pessoal</span>
+      <span class="badge">Bloco de Notas</span>
+      <span class="badge">Privacidade Total</span>
+      <span class="badge">Foco na Escrita</span>
+      <span class="badge">Sem Nuvem Obrigatória</span>
+      <span class="badge">Software Livre</span>
+    </div>
 
-  <h2>Feito para Pensar e Estudar</h2>
-  <div class="grid">
-    <div class="card">
-      <h3>1. Foco na Escrita</h3>
-      <p>Separação clara entre o espaço para redigir suas anotações e a visualização limpa do texto formatado.</p>
+    <div class="cta-group">
+      <a href="https://banca.2lp.in/" class="btn btn-primary" target="_blank" rel="noopener">Baixar na Banca 2LP</a>
+      <a href="https://gambi.2lp.in/lumen/mandu" class="btn btn-secondary" target="_blank" rel="noopener">Repositório Fonte</a>
     </div>
-    <div class="card">
-      <h3>2. Seus Textos Sempre com Você</h3>
-      <p>Tudo fica salvo direto no seu computador ou celular em arquivos locais fáceis de abrir, sem te prender a serviços fechados.</p>
-    </div>
-    <div class="card">
-      <h3>3. Organização e Busca Rápida</h3>
-      <p>Localize qualquer anotação, ideia ou rascunho em milissegundos sem complicação.</p>
-    </div>
-    <div class="card">
-      <h3>4. No Terminal, no Computador ou no Celular</h3>
-      <p>Versões leves para aplicativo gráfico no desktop, terminal ou aplicativo para Android.</p>
-    </div>
-  </div>
+  </header>
 
-  <h2>Como Iniciar</h2>
-  <pre><code># Clonar o repositório
-git clone https://git.2lp.in/lumen/mandu.git
+  <main>
+    <section>
+      <h2>Feito para Pensar e Estudar</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Foco na Escrita</h3>
+          <p>Separação clara entre a área de redação e o painel de leitura, proporcionando um ambiente tranquilo e livre de distrações.</p>
+        </div>
+        <div class="card">
+          <h3>Seus Textos Sempre com Você</h3>
+          <p>Suas notas são salvas diretamente no seu dispositivo em arquivos locais, sem prender seus dados a serviços proprietários.</p>
+        </div>
+        <div class="card">
+          <h3>Organização e Busca Rápida</h3>
+          <p>Encontre anotações, rascunhos e referências cruzadas instantaneamente com indexação local veloz.</p>
+        </div>
+        <div class="card">
+          <h3>Multiplataforma Confortável</h3>
+          <p>Disponível como aplicativo visual para desktop, interface no terminal e aplicativo para dispositivos móveis.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Como Iniciar</h2>
+      <p>Você pode compilar o Mandu diretamente do código-fonte ou baixar as versões pré-compiladas na <a href="https://banca.2lp.in/" style="color: var(--accent-light); text-decoration: none;">Banca 2LP</a>:</p>
+      <pre><code># Clonar o repositório oficial
+git clone https://gambi.2lp.in/lumen/mandu.git
 cd mandu
 
 # Executar a interface no terminal
 cargo run -p mandu-tui
 
-# Executar a interface gráfica no desktop
+# Executar a interface visual no desktop
 cargo run -p mandu-gui</code></pre>
+    </section>
+
+    <section>
+      <h2>Atalhos Essenciais</h2>
+      <p>O Mandu foi desenhado para manter o fluxo contínuo de pensamento com comandos rápidos:</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Atalho</th>
+              <th>Ação</th>
+              <th>Descrição</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><kbd>Ctrl + N</kbd></td>
+              <td>Nova Nota</td>
+              <td>Cria uma nova nota rapidamente no caderno ativo.</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl + S</kbd></td>
+              <td>Salvar</td>
+              <td>Grava as alterações imediatamente em disco.</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl + P</kbd></td>
+              <td>Alternar Visualização</td>
+              <td>Alterna entre o modo de edição e a prévia do documento.</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl + F</kbd></td>
+              <td>Buscar</td>
+              <td>Pesquisa notas em todo o caderno instantaneamente.</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl + Q</kbd></td>
+              <td>Sair</td>
+              <td>Fecha a sessão de edição com segurança.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
   <footer>
-    <p>Mandu — Caderno Pessoal & Bloco de Notas Livre &bull; Licença Apache-2.0</p>
+    <p>Mandu &bull; Caderno Pessoal & Bloco de Notas Livre &bull; Licença Apache-2.0</p>
+    <p style="margin-top: 6px;"><a href="https://gambi.2lp.in/lumen/mandu">gambi.2lp.in/lumen/mandu</a> &bull; <a href="https://banca.2lp.in/">banca.2lp.in</a></p>
   </footer>
 </body>
 </html>
