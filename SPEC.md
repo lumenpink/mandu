@@ -62,15 +62,27 @@ mandu/
     │       ├── lib.rs          # Resolução de contexto, detecção gráfica e fallback
     │       └── main.rs         # Entrypoint binário com substituição atômica de processo (exec)
     │
-    └── mandu-mobile/           # Aplicativo Mobile Android (Dioxus 0.7 + Pratilera)
+    ├── mandu-mobile/           # Aplicativo Mobile Android (Dioxus 0.7 + Pratilera)
+    │   ├── Cargo.toml
+    │   ├── Dioxus.toml         # Manifesto com pacote in.twolp.mandu
+    │   └── src/
+    │       ├── app.rs          # Componente raiz, alternância de modos e status
+    │       ├── components/     # Editor touch nativo, QuickToolbar, NotePreview e VaultDrawer
+    │       ├── state.rs        # Estado reativo do cofre local e ações da toolbar
+    │       ├── lib.rs          # Módulo público da aplicação mobile
+    │       └── main.rs         # Entrypoint móvel Dioxus launch
+    │
+    ├── mandu-server/           # Daemon HTTP Axum para acesso remoto, busca e IA
+    │   ├── Cargo.toml
+    │   └── src/
+    │       ├── main.rs         # Entrypoint do servidor e binding de portas
+    │       ├── routes.rs       # Endpoints REST (/api/tree, /api/notes, /api/search)
+    │       └── config.rs       # Configuração dinâmica e variáveis de ambiente
+    │
+    └── mandu-web/              # Cliente Web Dioxus 0.7 compilado em WASM
         ├── Cargo.toml
-        ├── Dioxus.toml         # Manifesto com pacote in.twolp.mandu
         └── src/
-            ├── app.rs          # Componente raiz, alternância de modos e status
-            ├── components/     # Editor touch nativo, QuickToolbar, NotePreview e VaultDrawer
-            ├── state.rs        # Estado reativo do cofre local e ações da toolbar
-            ├── lib.rs          # Módulo público da aplicação mobile
-            └── main.rs         # Entrypoint móvel Dioxus launch
+            └── main.rs         # Entrypoint Web e integração com VaultProvider remoto
 ~~~
 
 ---
