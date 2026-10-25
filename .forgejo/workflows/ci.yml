@@ -27,12 +27,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: "Configure Sovereign Lumen Cargo Registry"
+      - name: "Configure Sovereign Gambi Cargo Registry"
         run: |
           mkdir -p "$HOME/.cargo"
-          printf '[registries.lumen]\nindex = "sparse+https://gambi.2lp.in/api/packages/lumen/cargo/"\n' > "$HOME/.cargo/config.toml"
+          printf '[registries.gambi]\nindex = "sparse+https://gambi.2lp.in/api/packages/lumen/cargo/"\n' > "$HOME/.cargo/config.toml"
           if [ -n "${{ secrets.LUMEN_REGISTRY_TOKEN }}" ]; then
-            printf '[registries.lumen]\ntoken = "${{ secrets.LUMEN_REGISTRY_TOKEN }}"\n' > "$HOME/.cargo/credentials.toml"
+            printf '[registries.gambi]\ntoken = "${{ secrets.LUMEN_REGISTRY_TOKEN }}"\n' > "$HOME/.cargo/credentials.toml"
           fi
 
       - name: "Format Check"
@@ -81,25 +81,34 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "★ Canal: $CHANNEL | Versão: $VERSION"
 
-      - name: "Configure Sovereign Lumen Cargo Registry"
+      - name: "Configure Sovereign Gambi Cargo Registry"
         run: |
           mkdir -p "$HOME/.cargo"
-          printf '[registries.lumen]\nindex = "sparse+https://gambi.2lp.in/api/packages/lumen/cargo/"\n' > "$HOME/.cargo/config.toml"
+          printf '[registries.gambi]\nindex = "sparse+https://gambi.2lp.in/api/packages/lumen/cargo/"\n' > "$HOME/.cargo/config.toml"
 
       - name: "Compile Mandu Multiarch Binaries"
         run: |
           export RUSTFLAGS="-C target-feature=+crt-static"
-          echo "★ [1/3] Compilando x86_64-unknown-linux-musl (Linux AMD64)..."
-          cargo zigbuild --release --target x86_64-unknown-linux-musl -p mandu-cli -p mandu-tui -p mandu-gui || \
-            cargo build --release --target x86_64-unknown-linux-musl -p mandu-cli -p mandu-tui -p mandu-gui
+          echo "★ [1/3] Compilando x86_64-unknown-linux-musl (Linux AMD64) em sequência..."
+          for pkg in mandu-cli mandu-tui mandu-gui; do
+            echo "  -> Compilando $pkg..."
+            cargo zigbuild --release --target x86_64-unknown-linux-musl -p "$pkg" || \
+              cargo build --release --target x86_64-unknown-linux-musl -p "$pkg"
+          done
 
-          echo "★ [2/3] Compilando aarch64-unknown-linux-musl (Linux ARM64)..."
-          cargo zigbuild --release --target aarch64-unknown-linux-musl -p mandu-cli -p mandu-tui -p mandu-gui || \
-            cargo build --release --target aarch64-unknown-linux-musl -p mandu-cli -p mandu-tui -p mandu-gui
+          echo "★ [2/3] Compilando aarch64-unknown-linux-musl (Linux ARM64) em sequência..."
+          for pkg in mandu-cli mandu-tui mandu-gui; do
+            echo "  -> Compilando $pkg..."
+            cargo zigbuild --release --target aarch64-unknown-linux-musl -p "$pkg" || \
+              cargo build --release --target aarch64-unknown-linux-musl -p "$pkg"
+          done
 
-          echo "★ [3/3] Compilando x86_64-pc-windows-gnu (Windows AMD64)..."
-          cargo zigbuild --release --target x86_64-pc-windows-gnu -p mandu-cli -p mandu-tui -p mandu-gui || \
-            cargo build --release --target x86_64-pc-windows-gnu -p mandu-cli -p mandu-tui -p mandu-gui
+          echo "★ [3/3] Compilando x86_64-pc-windows-gnu (Windows AMD64) em sequência..."
+          for pkg in mandu-cli mandu-tui mandu-gui; do
+            echo "  -> Compilando $pkg..."
+            cargo zigbuild --release --target x86_64-pc-windows-gnu -p "$pkg" || \
+              cargo build --release --target x86_64-pc-windows-gnu -p "$pkg"
+          done
 
       - name: "Package Artifacts & Generate Checksums"
         run: |

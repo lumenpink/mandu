@@ -23,12 +23,12 @@ else
     FAILURES=$((FAILURES + 1))
 fi
 
-# 2. Utilização da sub-imagem gost-ci-cross no Docker Hub
-echo -n "-> 2. Verificando uso da imagem gost-ci-cross no Docker Hub... "
-if grep -q "docker.io/lumenpink/gost-ci-cross" "$WORKFLOW"; then
+# 2. Utilização da sub-imagem gost-ci-cross soberana na Gambi
+echo -n "-> 2. Verificando uso da imagem gost-ci-cross soberana... "
+if grep -q "gambi.2lp.in/lumen/gost-ci-cross" "$WORKFLOW"; then
     echo "✅ OK"
 else
-    echo "❌ FALHOU (imagem docker.io/lumenpink/gost-ci-cross ausente no job de release)"
+    echo "❌ FALHOU (imagem gambi.2lp.in/lumen/gost-ci-cross ausente no job de release)"
     FAILURES=$((FAILURES + 1))
 fi
 
@@ -82,15 +82,15 @@ else
     FAILURES=$((FAILURES + 1))
 fi
 
-# 7. Verificação de soberania do registry lumen (sem clones ou patches locais) (#7)
-echo -n "-> 7. Verificando consumo de joaju via registry soberano lumen... "
-if grep -q 'joaju = {.*registry = "lumen"' "$REPO_ROOT/crates/mandu-core/Cargo.toml" && \
+# 7. Verificação de soberania do registry gambi (sem clones ou patches locais) (#7)
+echo -n "-> 7. Verificando consumo de joaju via registry soberano gambi... "
+if grep -q 'joaju = {.*registry = "gambi"' "$REPO_ROOT/crates/mandu-core/Cargo.toml" && \
    ! grep -q 'joaju = { path =' "$REPO_ROOT/crates/mandu-core/Cargo.toml" && \
-   ! grep -q '\[patch\."sparse+https://git.2lp.in' "$REPO_ROOT/Cargo.toml" && \
-   grep -q 'sparse+https://git.2lp.in/api/packages/lumen/cargo/' "$WORKFLOW"; then
+   ! grep -q '\[patch\."sparse+https://gambi.2lp.in' "$REPO_ROOT/Cargo.toml" && \
+   grep -q 'sparse+https://gambi.2lp.in/api/packages/lumen/cargo/' "$WORKFLOW"; then
     echo "✅ OK"
 else
-    echo "❌ FALHOU (dependencia de caminho ou patch local ainda presente, ou registry lumen nao configurado no workflow)"
+    echo "❌ FALHOU (dependencia de caminho ou patch local ainda presente, ou registry gambi nao configurado no workflow)"
     FAILURES=$((FAILURES + 1))
 fi
 
@@ -129,8 +129,8 @@ fi
 echo -n "-> 9. [MUTAÇÃO] Testando sensibilidade a host de imagem adulterado... "
 MUT_REG=$(python3 -c "
 text = open('$WORKFLOW').read()
-mutated = text.replace('docker.io/lumenpink/gost-ci-cross', 'codeberg.org/lumenpink/gost-ci-cross')
-assert 'docker.io/lumenpink/gost-ci-cross' not in mutated
+mutated = text.replace('gambi.2lp.in/lumen/gost-ci-cross', 'codeberg.org/lumenpink/gost-ci-cross')
+assert 'gambi.2lp.in/lumen/gost-ci-cross' not in mutated
 print('OK')
 " 2>&1)
 if [ "$MUT_REG" == "OK" ]; then
