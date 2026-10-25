@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Remoção de campo `permissions:` incompatível com Forgejo Actions (closes #22).
+
 ### Added
 - Configuração de deploy contínuo do site estático `mandu.2lp.in` via Cloudflare Workers no pipeline unificado do Forgejo Actions (closes #20).
 - Criação do site estático minimalista em `site/` (com `assets/style.css`, `assets/favicon.svg` e `_headers` com políticas de segurança) e suíte de testes de conformidade em `crates/mandu-cli` (closes #19).
