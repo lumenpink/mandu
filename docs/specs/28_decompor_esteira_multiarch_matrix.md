@@ -47,5 +47,5 @@ Para respeitar rigorosamente o limite de 45 minutos e destravar a fila de forma 
 - [x] Fase 5: Green Implement adicionando o job `deploy-site` e o `strategy.matrix` no `.forgejo/workflows/ci.yml`.
 - [x] Fase 6: Refactor de scripts e retentativas de push na Banca.
 - [x] Fase 7: Testes de mutação validando sensibilidade a regressões nos alvos e jobs.
-- [ ] Fase 8: Quality Gate com execução das suítes de validação nativas.
+- [x] Fase 8: Quality Gate com execução das suítes de validação nativas.
 - [ ] Fase 9: Changelog atualizado e fechamento da issue #24.
