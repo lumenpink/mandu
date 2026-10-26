@@ -18,12 +18,12 @@ else
     echo "✅ OK"
 fi
 
-# 2. Uso do git.2lp.in com GIT_2LP_TOKEN
-echo -n "-> 2. Verificando clone soberano via git.2lp.in e GIT_2LP_TOKEN... "
-if grep -q "git.2lp.in/lumen/banca.git" "$WORKFLOW" && grep -q "GIT_2LP_TOKEN" "$WORKFLOW"; then
+# 2. Uso do gambi.2lp.in ou git.2lp.in com GIT_2LP_TOKEN
+echo -n "-> 2. Verificando clone soberano via gambi/git.2lp.in e GIT_2LP_TOKEN... "
+if grep -qE "(gambi|git)\.2lp\.in/lumen/banca\.git" "$WORKFLOW" && grep -q "GIT_2LP_TOKEN" "$WORKFLOW"; then
     echo "✅ OK"
 else
-    echo "❌ FALHOU: Remote soberano git.2lp.in ou GIT_2LP_TOKEN ausente"
+    echo "❌ FALHOU: Remote soberano gambi/git.2lp.in ou GIT_2LP_TOKEN ausente"
     FAILURES=$((FAILURES + 1))
 fi
 
@@ -101,8 +101,9 @@ fi
 # 8. [MUTAÇÃO] Testando sensibilidade a reversão do remote para Codeberg
 echo -n "-> 8. [MUTAÇÃO] Testando sensibilidade a reversão do clone para Codeberg... "
 MUT_REMOTE=$(python3 -c "
+import re
 text = open('$WORKFLOW').read()
-mutated = text.replace('git.2lp.in/lumen/banca.git', 'codeberg.org/lumenpink/banca.git')
+mutated = re.sub(r'(gambi|git)\.2lp\.in/lumen/banca\.git', 'codeberg.org/lumenpink/banca.git', text)
 assert 'codeberg.org' in mutated, 'Mutação de remote falhou'
 print('OK')
 " 2>&1)

@@ -50,11 +50,49 @@ jobs:
             cccp check --strict || true
           fi
 
-  deploy-banca:
-    name: "Build & Publish Mandu Multiarch to Banca"
+  deploy-site:
+    name: "Deploy Mandu Static Site to Cloudflare Workers"
     runs-on: ubuntu-latest
     needs: [test]
     if: success() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    container:
+      image: gambi.2lp.in/lumen/gost-ci-cross:latest
+    steps:
+      - name: "Checkout repository"
+        uses: https://github.com/actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "Deploy Mandu Static Site to Cloudflare Workers"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "★ Publicando Site em mandu.2lp.in via Cloudflare Workers..."
+            npx wrangler deploy || echo "Aviso: Falha no deploy Cloudflare Workers."
+          else
+            echo "Aviso: CLOUDFLARE_API_TOKEN ausente. Pulando deploy Cloudflare Workers."
+          fi
+
+  deploy-banca:
+    name: "Build & Publish Mandu (${{ matrix.arch }}) to Banca"
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: success() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            arch: linux-amd64
+            pkg_ext: tar.gz
+          - target: aarch64-unknown-linux-musl
+            arch: linux-arm64
+            pkg_ext: tar.gz
+          - target: x86_64-pc-windows-gnu
+            arch: windows-amd64
+            pkg_ext: zip
     container:
       image: gambi.2lp.in/lumen/gost-ci-cross:latest
     steps:
@@ -79,68 +117,44 @@ jobs:
           fi
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "★ Canal: $CHANNEL | Versão: $VERSION"
+          echo "★ Canal: $CHANNEL | Versão: $VERSION | Arch: ${{ matrix.arch }}"
 
       - name: "Configure Sovereign Gambi Cargo Registry"
         run: |
           mkdir -p "$HOME/.cargo"
           printf '[registries.gambi]\nindex = "sparse+https://gambi.2lp.in/api/packages/lumen/cargo/"\n' > "$HOME/.cargo/config.toml"
 
-      - name: "Compile Mandu Multiarch Binaries"
+      - name: "Compile Mandu Binary Target"
         run: |
           export RUSTFLAGS="-C target-feature=+crt-static"
-          echo "★ [1/3] Compilando x86_64-unknown-linux-musl (Linux AMD64) em sequência..."
+          echo "★ Compilando ${{ matrix.target }} (${{ matrix.arch }}) em sequência..."
           for pkg in mandu-cli mandu-tui mandu-gui; do
             echo "  -> Compilando $pkg..."
-            cargo zigbuild --release --target x86_64-unknown-linux-musl -p "$pkg" || \
-              cargo build --release --target x86_64-unknown-linux-musl -p "$pkg"
-          done
-
-          echo "★ [2/3] Compilando aarch64-unknown-linux-musl (Linux ARM64) em sequência..."
-          for pkg in mandu-cli mandu-tui mandu-gui; do
-            echo "  -> Compilando $pkg..."
-            cargo zigbuild --release --target aarch64-unknown-linux-musl -p "$pkg" || \
-              cargo build --release --target aarch64-unknown-linux-musl -p "$pkg"
-          done
-
-          echo "★ [3/3] Compilando x86_64-pc-windows-gnu (Windows AMD64) em sequência..."
-          for pkg in mandu-cli mandu-tui mandu-gui; do
-            echo "  -> Compilando $pkg..."
-            cargo zigbuild --release --target x86_64-pc-windows-gnu -p "$pkg" || \
-              cargo build --release --target x86_64-pc-windows-gnu -p "$pkg"
+            cargo zigbuild --release --target ${{ matrix.target }} -p "$pkg" || \
+              cargo build --release --target ${{ matrix.target }} -p "$pkg"
           done
 
       - name: "Package Artifacts & Generate Checksums"
         run: |
           VERSION="${{ steps.meta.outputs.version }}"
+          ARCH="${{ matrix.arch }}"
+          TARGET="${{ matrix.target }}"
+          EXT="${{ matrix.pkg_ext }}"
           mkdir -p dist/packages
 
-          # 1. Empacotar Linux AMD64
-          if [ -d target/x86_64-unknown-linux-musl/release ]; then
-            tar -czf "dist/packages/mandu-${VERSION}-linux-amd64.tar.gz" \
-              -C target/x86_64-unknown-linux-musl/release mandu mandu-tui mandu-gui \
-              -C "$PWD" README.md LICENSE 2>/dev/null || \
-            tar -czf "dist/packages/mandu-${VERSION}-linux-amd64.tar.gz" \
-              -C target/x86_64-unknown-linux-musl/release mandu mandu-tui mandu-gui
-          fi
-
-          # 2. Empacotar Linux ARM64
-          if [ -d target/aarch64-unknown-linux-musl/release ]; then
-            tar -czf "dist/packages/mandu-${VERSION}-linux-arm64.tar.gz" \
-              -C target/aarch64-unknown-linux-musl/release mandu mandu-tui mandu-gui \
-              -C "$PWD" README.md LICENSE 2>/dev/null || \
-            tar -czf "dist/packages/mandu-${VERSION}-linux-arm64.tar.gz" \
-              -C target/aarch64-unknown-linux-musl/release mandu mandu-tui mandu-gui
-          fi
-
-          # 3. Empacotar Windows AMD64
-          if [ -d target/x86_64-pc-windows-gnu/release ]; then
-            cd target/x86_64-pc-windows-gnu/release
-            zip -j "$GITHUB_WORKSPACE/dist/packages/mandu-${VERSION}-windows-amd64.zip" \
+          if [ "$ARCH" = "windows-amd64" ]; then
+            cd "target/${TARGET}/release"
+            zip -j "$GITHUB_WORKSPACE/dist/packages/mandu-${VERSION}-${ARCH}.zip" \
               mandu.exe mandu-tui.exe mandu-gui.exe "$GITHUB_WORKSPACE/README.md" "$GITHUB_WORKSPACE/LICENSE" 2>/dev/null || \
-            zip -j "$GITHUB_WORKSPACE/dist/packages/mandu-${VERSION}-windows-amd64.zip" \
+            zip -j "$GITHUB_WORKSPACE/dist/packages/mandu-${VERSION}-${ARCH}.zip" \
               mandu.exe mandu-tui.exe mandu-gui.exe
             cd "$GITHUB_WORKSPACE"
+          else
+            tar -czf "dist/packages/mandu-${VERSION}-${ARCH}.tar.gz" \
+              -C "target/${TARGET}/release" mandu mandu-tui mandu-gui \
+              -C "$PWD" README.md LICENSE 2>/dev/null || \
+            tar -czf "dist/packages/mandu-${VERSION}-${ARCH}.tar.gz" \
+              -C "target/${TARGET}/release" mandu mandu-tui mandu-gui
           fi
 
           cd dist/packages
@@ -155,30 +169,19 @@ jobs:
         run: |
           CHANNEL="${{ steps.meta.outputs.channel }}"
           VERSION="${{ steps.meta.outputs.version }}"
+          ARCH="${{ matrix.arch }}"
+          EXT="${{ matrix.pkg_ext }}"
+          PKG_NAME="mandu-${VERSION}-${ARCH}.${EXT}"
 
           if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
             echo "Aviso: CLOUDFLARE_API_TOKEN ausente. Pulando upload R2."
             exit 0
           fi
 
-          echo "★ Enviando pacotes para o Cloudflare R2 (twolp-bucket / bucket.2lp.in)..."
-          for PKG in dist/packages/*; do
-            [ -f "$PKG" ] || continue
-            PKG_NAME=$(basename "$PKG")
+          echo "★ Enviando $PKG_NAME para o Cloudflare R2 (twolp-bucket / bucket.2lp.in)..."
+          if [ -f "dist/packages/${PKG_NAME}" ]; then
             npx wrangler r2 object put "twolp-bucket/downloads/mandu/${CHANNEL}/${PKG_NAME}" \
-              --file="$PKG" --remote || true
-          done
-
-      - name: "Deploy Mandu Static Site to Cloudflare Workers"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
-            echo "★ Publicando Site em mandu.2lp.in via Cloudflare Workers..."
-            npx wrangler deploy || echo "Aviso: Falha no deploy Cloudflare Workers."
-          else
-            echo "Aviso: CLOUDFLARE_API_TOKEN ausente. Pulando deploy Cloudflare Workers."
+              --file="dist/packages/${PKG_NAME}" --remote || true
           fi
 
       - name: "Rotate Manifest & Commit to Banca"
@@ -189,6 +192,9 @@ jobs:
         run: |
           CHANNEL="${{ steps.meta.outputs.channel }}"
           VERSION="${{ steps.meta.outputs.version }}"
+          ARCH="${{ matrix.arch }}"
+          EXT="${{ matrix.pkg_ext }}"
+          PKG_FILE="mandu-${VERSION}-${ARCH}.${EXT}"
 
           echo "★ Clonando repositório soberano da Banca para rotação e retenção..."
           git clone --depth 1 "https://lumen:${GIT_2LP_TOKEN}@gambi.2lp.in/lumen/banca.git" /tmp/banca
@@ -196,33 +202,38 @@ jobs:
           if [ -d "/tmp/banca/site/downloads/mandu" ] && [ -f "/tmp/banca/scripts/rotate-downloads.py" ]; then
             cd /tmp/banca
 
-            # Registrar cada uma das arquiteturas
-            for ARCH in "linux-amd64" "linux-arm64" "windows-amd64"; do
-              EXT="tar.gz"
-              [ "$ARCH" = "windows-amd64" ] && EXT="zip"
-              PKG_FILE="mandu-${VERSION}-${ARCH}.${EXT}"
+            HASH=$(grep "$PKG_FILE" "$GITHUB_WORKSPACE/dist/packages/SHA256SUMS" | awk '{print $1}' || echo "")
+            DOWNLOAD_URL="https://bucket.2lp.in/downloads/mandu/${CHANNEL}/${PKG_FILE}"
 
-              HASH=$(grep "$PKG_FILE" "$GITHUB_WORKSPACE/dist/packages/SHA256SUMS" | awk '{print $1}' || echo "")
-              DOWNLOAD_URL="https://bucket.2lp.in/downloads/mandu/${CHANNEL}/${PKG_FILE}"
+            python3 scripts/rotate-downloads.py \
+              --manifest site/downloads/mandu/index.json \
+              --channel "${CHANNEL}" \
+              --arch "${ARCH}" \
+              --version-str "${VERSION}" \
+              --url "${DOWNLOAD_URL}" \
+              --sha256 "${HASH}" \
+              --tarball "${PKG_FILE}" \
+              --app "mandu"
 
-              python3 scripts/rotate-downloads.py \
-                --manifest site/downloads/mandu/index.json \
-                --channel "${CHANNEL}" \
-                --arch "${ARCH}" \
-                --version-str "${VERSION}" \
-                --url "${DOWNLOAD_URL}" \
-                --sha256 "${HASH}" \
-                --tarball "${PKG_FILE}" \
-                --app "mandu"
-            done
-
-            # Commitar manifesto atualizado na Banca
+            # Commitar manifesto atualizado na Banca com retentativas e rebase
             git config user.name "Mandu Release Bot"
             git config user.email "bot@2lp.in"
             git add site/downloads/mandu/index.json
             if ! git diff --staged --quiet; then
-              git commit -m "chore(downloads): rotate mandu release to ${VERSION} (#11)"
-              git push origin main || echo "Aviso: Push do manifesto na Banca falhou."
+              git commit -m "chore(downloads): rotate mandu ${ARCH} release to ${VERSION} (#11)"
+              for attempt in 1 2 3 4 5; do
+                if git push origin main; then
+                  echo "✓ Manifesto da Banca atualizado com sucesso."
+                  break
+                fi
+                echo "⚠️ Falha ao empurrar manifesto para Banca (tentativa $attempt/5). Reexecutando pull --rebase..."
+                git pull --rebase origin main || true
+                sleep 3
+                if [ "$attempt" -eq 5 ]; then
+                  echo "❌ ERRO CRÍTICO: Não foi possível empurrar manifesto para Banca após 5 tentativas."
+                  exit 1
+                fi
+              done
             else
               echo "Manifesto já estava atualizado."
             fi
