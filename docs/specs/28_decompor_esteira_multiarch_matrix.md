@@ -43,9 +43,9 @@ Para respeitar rigorosamente o limite de 45 minutos e destravar a fila de forma 
 - [x] Fase 1: Ticket #24 formalizado.
 - [x] Fase 2: Branch `feat/24-decompor-esteira-multiarch-matrix-deploy-site` criada.
 - [x] Fase 3: Especificação `docs/specs/28_decompor_esteira_multiarch_matrix.md` concluída.
-- [ ] Fase 4: Red Test atualizando `tests/test_ci_conformance.sh` e `tests/test-pipeline-multiarch.sh` exigindo `deploy-site` e a matriz de `deploy-banca`.
-- [ ] Fase 5: Green Implement adicionando o job `deploy-site` e o `strategy.matrix` no `.forgejo/workflows/ci.yml`.
-- [ ] Fase 6: Refactor de scripts e retentativas de push na Banca.
-- [ ] Fase 7: Testes de mutação validando sensibilidade a regressões nos alvos e jobs.
+- [x] Fase 4: Red Test atualizando `tests/test_ci_conformance.sh` e `tests/test-pipeline-multiarch.sh` exigindo `deploy-site` e a matriz de `deploy-banca`.
+- [x] Fase 5: Green Implement adicionando o job `deploy-site` e o `strategy.matrix` no `.forgejo/workflows/ci.yml`.
+- [x] Fase 6: Refactor de scripts e retentativas de push na Banca.
+- [x] Fase 7: Testes de mutação validando sensibilidade a regressões nos alvos e jobs.
 - [ ] Fase 8: Quality Gate com execução das suítes de validação nativas.
 - [ ] Fase 9: Changelog atualizado e fechamento da issue #24.
