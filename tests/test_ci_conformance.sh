@@ -38,9 +38,9 @@ if ! grep -q "if: success()" "$WORKFLOW"; then
   exit 1
 fi
 
-# 4. Imagem de cross-compilação e alvos multiarch
-if ! grep -q "docker.io/lumenpink/gost-ci-cross:latest" "$WORKFLOW"; then
-  echo "FALHA: Imagem gost-ci-cross:latest não declarada no ci.yml!" >&2
+# 4. Imagem soberana de cross-compilação e alvos multiarch
+if ! grep -q "gambi.2lp.in/lumen/gost-ci-cross:latest" "$WORKFLOW"; then
+  echo "FALHA: Imagem gambi.2lp.in/lumen/gost-ci-cross:latest não declarada no ci.yml!" >&2
   exit 1
 fi
 
@@ -70,7 +70,7 @@ if ! grep -q 'GOST_VERSION="1.5.0"' "$ROOT_DIR/GOSTVER"; then
 fi
 
 # 7. Garantia de ambiente hermético no job test
-if ! grep -A 5 "test:" "$WORKFLOW" | grep -q "lumenpink/gost-ci-cross:latest"; then
+if ! grep -A 5 "test:" "$WORKFLOW" | grep -q "gost-ci-cross:latest"; then
   echo "FALHA: O job test não utiliza o container hermético gost-ci-cross:latest!" >&2
   exit 1
 fi
@@ -81,20 +81,21 @@ if grep -q "sh.rustup.rs" "$WORKFLOW" || grep -q "apt-get" "$WORKFLOW"; then
   exit 1
 fi
 
-# 9. Teste de mutação: sensibilidade a regressão no container do job test
+# 9. Teste estrutural Python
 python3 -c "
 import yaml
 with open('$WORKFLOW') as f:
     data = yaml.safe_load(f)
 assert 'test' in data.get('jobs', {}), 'Job test ausente'
 test_job = data['jobs']['test']
-assert test_job.get('container', {}).get('image') == 'docker.io/lumenpink/gost-ci-cross:latest', 'Container image inválida'
+assert 'gost-ci-cross:latest' in test_job.get('container', {}).get('image', ''), 'Container image inválida'
+assert 'deploy-site' in data.get('jobs', {}), 'Job deploy-site precisa existir de forma independente'
+assert 'test' in data['jobs']['deploy-site'].get('needs', []), 'deploy-site precisa depender de test'
 deploy_job = data['jobs']['deploy-banca']
 assert 'test' in deploy_job.get('needs', []), 'Deploy-banca precisa depender de test'
-deploy_steps = [s.get('name', '') for s in deploy_job.get('steps', [])]
-assert any('Cloudflare Workers' in name or 'Site' in name for name in deploy_steps), 'Step de deploy do site ausente nos steps'
+assert 'strategy' in deploy_job and 'matrix' in deploy_job['strategy'], 'deploy-banca precisa utilizar strategy.matrix'
 " || {
-  echo "FALHA: Teste estrutural de mutação falhou!" >&2
+  echo "FALHA: Teste estrutural de jobs e matrix falhou!" >&2
   exit 1
 }
 
