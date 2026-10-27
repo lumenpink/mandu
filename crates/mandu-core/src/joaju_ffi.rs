@@ -1,4 +1,7 @@
 //! Safe Rust wrappers around the pre-compiled static `libjoaju` C-ABI.
+//!
+//! Provides zero-overhead in-memory calls to Typst PDF compilation and
+//! scientific diagrams (pedigree, chemical SMILES) without compiling Typst in-tree.
 
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
