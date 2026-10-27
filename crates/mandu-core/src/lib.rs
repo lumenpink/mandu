@@ -3,6 +3,7 @@
 pub mod autocomplete;
 pub mod config;
 pub mod db;
+pub mod joaju_ffi;
 pub mod linter;
 pub mod peek;
 pub mod preview;

@@ -45,10 +45,10 @@ impl PreviewEngine {
         }
 
         let svg = match engine {
-            "pedtools" | "kinship2" => joaju::engine::pedigree::render_pedigree(code, Some(engine))
+            "pedtools" | "kinship2" => crate::joaju_ffi::render_pedigree(code, Some(engine))
                 .map(|(_, s)| s)
                 .unwrap_or_else(|_| render_fallback_svg(engine, code)),
-            "openchemlib" | "openbabel" => joaju::engine::chem::render_chem(code, Some(engine))
+            "openchemlib" | "openbabel" => crate::joaju_ffi::render_chem(code, Some(engine))
                 .map(|(_, s)| s)
                 .unwrap_or_else(|_| render_fallback_svg(engine, code)),
             _ => render_fallback_svg(engine, code),
@@ -125,7 +125,7 @@ impl PreviewEngine {
             markdown.to_string()
         };
 
-        joaju::compiler::compile_markdown_to_pdf_with_options(&final_markdown, template)
+        crate::joaju_ffi::compile_markdown_to_pdf(&final_markdown, template)
             .map_err(PreviewError::RenderError)
     }
 
