@@ -13,8 +13,7 @@ fn test_cargo_config_has_allow_multiple_definitions_for_static_joaju() {
         config_path.display()
     );
 
-    let content = fs::read_to_string(&config_path)
-        .expect("Falha ao ler .cargo/config.toml");
+    let content = fs::read_to_string(&config_path).expect("Falha ao ler .cargo/config.toml");
 
     assert!(
         content.contains("-Wl,--allow-multiple-definition"),
@@ -22,7 +21,8 @@ fn test_cargo_config_has_allow_multiple_definitions_for_static_joaju() {
     );
 
     assert!(
-        content.contains("target.x86_64-unknown-linux-gnu") || content.contains("cfg(all(target_os = \"linux\""),
+        content.contains("target.x86_64-unknown-linux-gnu")
+            || content.contains("cfg(all(target_os = \"linux\""),
         ".cargo/config.toml deve conter configuração de linker para ambiente Linux GNU de CI"
     );
 }
