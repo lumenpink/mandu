@@ -72,6 +72,7 @@ fn main() {
 
     println!("cargo:rustc-link-search=native={}", link_dir.display());
     println!("cargo:rustc-link-lib=static=joaju");
+    // Tolerar duplicidade de símbolos entre o runtime Rust contido no libjoaju.a e a libstd
     println!("cargo:rustc-link-arg=-Wl,--allow-multiple-definition");
     println!("cargo:rerun-if-changed=build.rs");
 }
