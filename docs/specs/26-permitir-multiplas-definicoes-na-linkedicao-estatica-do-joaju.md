@@ -1,7 +1,7 @@
 # Especificação 26: Permitir Múltiplas Definições na Linkedição Estática do Joaju
 
 - **ID do Ticket:** #26
-- **Status:** Em Progresso (DD-TDD)
+- **Status:** Concluído (DD-TDD) (closes #26)
 - **Autora:** Lumen
 - **Alinhamento:** GOST 1.5.0 (Rust)
 
@@ -45,4 +45,4 @@ Por ser uma biblioteca estática compilada pelo ecossistema Rust (`crate-type = 
 - [x] Fase 6 (Refactor): Limpeza e documentação da configuração
 - [x] Fase 7 (Mutation Test): Teste de consistência das flags e invariantes
 - [x] Fase 8 (Quality Gate): Validação com cargo fmt, cargo clippy e testes
-- [ ] Fase 9 (Finish & Close): Registro e conclusão do ciclo
+- [x] Fase 9 (Finish & Close): Registro e conclusão do ciclo (closes #26)
