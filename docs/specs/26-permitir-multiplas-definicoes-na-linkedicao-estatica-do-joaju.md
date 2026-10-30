@@ -40,9 +40,9 @@ Por ser uma biblioteca estática compilada pelo ecossistema Rust (`crate-type = 
 - [x] Fase 1 (Ticket): #26 criado na forja
 - [x] Fase 2 (Branch): `fix/26-permitir-multiplas-definicoes-na-linkedicao-estatica-do-joaju`
 - [x] Fase 3 (Spec): Especificação técnica elaborada
-- [ ] Fase 4 (Red Test): Validar falha de linkedição sem as flags adequadas
-- [ ] Fase 5 (Green Implement): Aplicar configuração de linker em `.cargo/config.toml`
-- [ ] Fase 6 (Refactor): Limpeza e documentação da configuração
-- [ ] Fase 7 (Mutation Test): Teste de consistência das flags
+- [x] Fase 4 (Red Test): Validar falha de linkedição sem as flags adequadas
+- [x] Fase 5 (Green Implement): Aplicar configuração de linker em `.cargo/config.toml`
+- [x] Fase 6 (Refactor): Limpeza e documentação da configuração
+- [x] Fase 7 (Mutation Test): Teste de consistência das flags e invariantes
 - [ ] Fase 8 (Quality Gate): Validação com cargo fmt, cargo clippy e testes
 - [ ] Fase 9 (Finish & Close): Registro e conclusão do ciclo
