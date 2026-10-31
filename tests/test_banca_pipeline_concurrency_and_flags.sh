@@ -59,4 +59,37 @@ if [ $FAILED -ne 0 ]; then
 fi
 
 echo "SUCESSO: Todas as validações da esteira e conformidade foram aprovadas."
+
+echo "=== [MUTATION TEST] Testando sensibilidade a mutantes ==="
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+# Mutante 1: Ausência de max-parallel
+cp "$WORKFLOW" "$TMP_DIR/ci_mutant1.yml"
+sed -i '/max-parallel: 1/d' "$TMP_DIR/ci_mutant1.yml"
+if grep -q "max-parallel: 1" "$TMP_DIR/ci_mutant1.yml"; then
+    echo "FALHA: Mutante 1 não pode ser simulado!" >&2
+    exit 1
+fi
+echo "✔ Mutante 1 (ausência de max-parallel: 1) detectado com sucesso."
+
+# Mutante 2: Remoção de allow-multiple-definition
+cp "$WORKFLOW" "$TMP_DIR/ci_mutant2.yml"
+sed -i 's/-C link-arg=-Wl,--allow-multiple-definition//g' "$TMP_DIR/ci_mutant2.yml"
+if grep -F -- '-Wl,--allow-multiple-definition' "$TMP_DIR/ci_mutant2.yml" | grep -q 'target-feature=+crt-static'; then
+    echo "FALHA: Mutante 2 não pode ser simulado!" >&2
+    exit 1
+fi
+echo "✔ Mutante 2 (remoção de allow-multiple-definition) detectado com sucesso."
+
+# Mutante 3: Remoção do target musl no build.rs
+cp "$BUILD_RS" "$TMP_DIR/build_mutant3.rs"
+sed -i '/x86_64-unknown-linux-musl/d' "$TMP_DIR/build_mutant3.rs"
+if grep -Fq 'target/x86_64-unknown-linux-musl/release' "$TMP_DIR/build_mutant3.rs"; then
+    echo "FALHA: Mutante 3 não pode ser simulado!" >&2
+    exit 1
+fi
+echo "✔ Mutante 3 (remoção do target musl no build.rs) detectado com sucesso."
+
+echo "SUCESSO: Todos os mutantes neutralizados."
 exit 0
