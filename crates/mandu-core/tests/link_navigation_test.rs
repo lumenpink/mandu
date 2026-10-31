@@ -16,7 +16,7 @@ fn test_resolve_target_path_for_wikilink_and_alias() {
     let db = ManduDb::open_in_memory().expect("db open");
     let note = Note {
         path: note_file.clone(),
-        title: "Arquitetura Soberana".to_string(),
+        title: "Arquitetura Canônica".to_string(),
         blake3_hash: "hash123".to_string(),
         frontmatter_json: None,
         body: "Corpo da nota".to_string(),
@@ -33,7 +33,7 @@ fn test_resolve_target_path_for_wikilink_and_alias() {
     assert_eq!(resolved, Some(note_file.clone()));
 
     // 2. Pelo título da nota
-    let resolved = resolve_target_path(&db, "[[Arquitetura Soberana]]", Some(&vault_path));
+    let resolved = resolve_target_path(&db, "[[Arquitetura Canônica]]", Some(&vault_path));
     assert_eq!(resolved, Some(note_file.clone()));
 
     // 3. Com apelido

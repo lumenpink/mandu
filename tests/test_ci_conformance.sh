@@ -38,7 +38,7 @@ if ! grep -q "if: success()" "$WORKFLOW"; then
   exit 1
 fi
 
-# 4. Imagem soberana de cross-compilação e alvos multiarch
+# 4. Imagem canônica de cross-compilação e alvos multiarch
 if ! grep -q "gambi.2lp.in/lumen/gost-ci-cross:latest" "$WORKFLOW"; then
   echo "FALHA: Imagem gambi.2lp.in/lumen/gost-ci-cross:latest não declarada no ci.yml!" >&2
   exit 1
