@@ -37,9 +37,16 @@ Identificaram-se dois problemas críticos no pipeline de release:
 - [x] Fase 1 (Ticket): #27 criado na forja
 - [x] Fase 2 (Branch): `fix/27-assegurar-binarios-musl-estaticos-e-concorrencia-na-banca`
 - [x] Fase 3 (Spec): Especificação técnica elaborada
-- [ ] Fase 4 (Red Test): Teste automatizado validando a presença de flags no workflow e ausência de concorrência
-- [ ] Fase 5 (Green Implement): Ajustes no ci.yml, build.rs e mandu-tui
-- [ ] Fase 6 (Refactor): Limpeza e garantia de zero advertências
-- [ ] Fase 7 (Mutation Test): Testes de mutação com injeção de flags incompletas
-- [ ] Fase 8 (Quality Gate): Validação com fmt, clippy e testes direcionados
-- [ ] Fase 9 (Finish & Close): Registro e conclusão do ciclo (closes #27)
+- [x] Fase 4 (Red Test): Teste automatizado validando a presença de flags no workflow e ausência de concorrência
+- [x] Fase 5 (Green Implement): Ajustes no ci.yml, build.rs e mandu-tui
+- [x] Fase 6 (Refactor): Limpeza e garantia de zero advertências
+- [x] Fase 7 (Mutation Test): Testes de mutação com injeção de flags incompletas
+- [x] Fase 8 (Quality Gate): Validação com fmt, clippy e testes direcionados
+- [x] Fase 9 (Finish & Close): Registro e conclusão do ciclo (closes #27)
+
+---
+
+## 4. Laudo de Fechamento (Fase 9)
+- **[Resumo]:** Resolução de flags para compilação musl estática do Mandu e mitigação de concorrência na esteira da Banca.
+- **[Solução]:** Configurado `RUSTFLAGS="-C target-feature=+crt-static -C link-arg=-Wl,--allow-multiple-definition"` no job de release da esteira, adicionado `max-parallel: 1` na matriz do `deploy-banca`, priorizada busca da biblioteca pura musl no `build.rs` e sanitizados todos os termos imperialistas no repositório.
+- **[Validação]:** Testes automatizados direcionados e mutantes aprovados, linter clippy em zero warnings em todo o workspace e conformidade Gosplan em 100% via `cccp check --strict`.
