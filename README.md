@@ -2,57 +2,30 @@
 
 > **Mandu** (do Guarani *mandu'a*: memória, lembrança, recordação) é um caderno pessoal seguro e bloco de notas para organizar pensamentos, estudos e anotações com privacidade total e publicação elegante integrada ao motor **Joaju**.
 
----
-
 ## 📋 Conformidade GOST
-
-Este projeto adota a norma **[GOST](https://codeberg.org/lumenpink/gost)** (Gosplan Standard for Technical Software).
-- **Versão GOST:** `1.1.0`
-- **Perfil:** `profiles/lumen.md`
-- **Linguagens declaradas:** `rust`
-- **Licença:** `Apache-2.0`
-- **Documentação e Especificação Técnica:** Consulte [SPEC.md](./SPEC.md)
-
----
+Este projeto adota a norma **[GOST](https://codeberg.org/lumenpink/gost)** (versão `1.5.0`, perfil `profiles/lumen.md`).
+Documentação e especificação técnica: consulte [SPEC.md](./SPEC.md).
 
 ## 🏗 Arquitetura do Workspace
-
-```text
-mandu/
-├── Cargo.toml                  # Manifesto do Workspace
-├── SPEC.md                     # Especificação Arquitetural
-└── crates/
-    ├── mandu-core/             # Cérebro do cofre (Armazenamento e busca local)
-    ├── mandu-tui/              # Interface de Terminal (Debian st/Kitty + Android Termux)
-    └── mandu-gui/              # Interface Gráfica GPU (Debian Desktop + Android APK)
-```
-
----
+- `crates/mandu-core`: Núcleo de domínio, cofre, indexador SQLite (FTS5) e resolvedor de notas.
+- `crates/mandu-tui`: Interface TUI nativa de terminal.
+- `crates/mandu-gui`: Interface gráfica nativa acelerada por GPU.
+- `crates/mandu-cli`: Utilitários CLI e processamento.
+- `crates/mandu-server`: Servidor HTTP e API de sincronização.
 
 ## 🚀 Como Iniciar
-
 ```bash
-# Verificar conformidade com as normas GOST
-cccp check
+# Executar conformidade e testes
+cccp check --strict
+cargo test --all-targets
 
-# Executar testes unitários e de integração
-cargo test
-
-# Executar a interface TUI
+# Executar a interface TUI ou GUI
 cargo run -p mandu-tui
-
-# Executar a interface GUI nativa GPU
 cargo run -p mandu-gui
 ```
 
----
-
 ## 📄 Licença
-
-Este projeto é software livre licenciado sob a [GNU General Public License v3.0](LICENSE) (GPL-3.0-or-later).
-
-| Componente | Licença | Arquivo |
-| :--- | :--- | :--- |
-| **Código-fonte e binários** | GPL-3.0-or-later | [LICENSE](LICENSE) |
-| **Logotipos e marcas** | CC-BY-ND-4.0 | [LICENSE-LOGO](LICENSE-LOGO) |
-| **Mídias e documentação** | CC-BY-SA-4.0 | [LICENSE-MEDIA](LICENSE-MEDIA) |
+Software livre sob a [GNU General Public License v3.0](LICENSE) (GPL-3.0-or-later).
+- **Código-fonte:** GPL-3.0-or-later ([LICENSE](LICENSE))
+- **Logotipos:** CC-BY-ND-4.0 ([LICENSE-LOGO](LICENSE-LOGO))
+- **Mídias e documentação:** CC-BY-SA-4.0 ([LICENSE-MEDIA](LICENSE-MEDIA))
