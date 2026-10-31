@@ -7,7 +7,7 @@ use std::path::PathBuf;
 #[command(
     name = "mandu-tui",
     version,
-    about = "Interface TUI soberana para o Mandu"
+    about = "Interface TUI nativa e canônica para o Mandu"
 )]
 struct Args {
     #[arg(short, long, help = "Caminho da raiz do cofre de notas")]

@@ -23,8 +23,8 @@ else
     FAILURES=$((FAILURES + 1))
 fi
 
-# 2. Utilização da sub-imagem gost-ci-cross soberana na Gambi
-echo -n "-> 2. Verificando uso da imagem gost-ci-cross soberana... "
+# 2. Utilização da sub-imagem gost-ci-cross canônica na Gambi
+echo -n "-> 2. Verificando uso da imagem gost-ci-cross canônica... "
 if grep -q "gambi.2lp.in/lumen/gost-ci-cross" "$WORKFLOW"; then
     echo "✅ OK"
 else
@@ -82,15 +82,16 @@ else
     FAILURES=$((FAILURES + 1))
 fi
 
-# 7. Verificação de soberania do registry gambi (sem clones ou patches locais) (#7)
-echo -n "-> 7. Verificando consumo de joaju via registry soberano gambi... "
-if grep -q 'joaju = {.*registry = "gambi"' "$REPO_ROOT/crates/mandu-core/Cargo.toml" && \
+# 7. Verificação de consumo de joaju canônico (sem clones ou patches locais) (#7, #25, #27)
+echo -n "-> 7. Verificando consumo de joaju via biblioteca estática canônica... "
+if (grep -q 'joaju = {.*registry = "gambi"' "$REPO_ROOT/crates/mandu-core/Cargo.toml" || \
+    grep -q 'cargo:rustc-link-lib=static=joaju' "$REPO_ROOT/crates/mandu-core/build.rs") && \
    ! grep -q 'joaju = { path =' "$REPO_ROOT/crates/mandu-core/Cargo.toml" && \
    ! grep -q '\[patch\."sparse+https://gambi.2lp.in' "$REPO_ROOT/Cargo.toml" && \
    grep -q 'sparse+https://gambi.2lp.in/api/packages/lumen/cargo/' "$WORKFLOW"; then
     echo "✅ OK"
 else
-    echo "❌ FALHOU (dependencia de caminho ou patch local ainda presente, ou registry gambi nao configurado no workflow)"
+    echo "❌ FALHOU (dependencia de caminho ou patch local ainda presente, ou link estatico/registry gambi nao configurado)"
     FAILURES=$((FAILURES + 1))
 fi
 

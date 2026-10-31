@@ -8,6 +8,7 @@ fn main() {
 
     // 1. Verificar se existe biblioteca estática local construída no repositório joaju
     let local_paths = [
+        PathBuf::from("/home/lumen/src/joaju/target/x86_64-unknown-linux-musl/release"),
         PathBuf::from("/home/lumen/src/joaju/target/release"),
         PathBuf::from(format!("/home/lumen/src/joaju/target/{target}/release")),
     ];

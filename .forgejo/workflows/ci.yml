@@ -1,4 +1,4 @@
-name: "CI/CD & Sovereign Release to Banca"
+name: "CI/CD & Canonical Release to Banca"
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: "Configure Sovereign Gambi Cargo Registry"
+      - name: "Configure Canonical Gambi Cargo Registry"
         run: |
           mkdir -p "$HOME/.cargo"
           printf '[registries.gambi]\nindex = "sparse+https://gambi.2lp.in/api/packages/lumen/cargo/"\n' > "$HOME/.cargo/config.toml"
@@ -82,6 +82,7 @@ jobs:
     if: success() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
           - target: x86_64-unknown-linux-musl
@@ -119,14 +120,14 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "★ Canal: $CHANNEL | Versão: $VERSION | Arch: ${{ matrix.arch }}"
 
-      - name: "Configure Sovereign Gambi Cargo Registry"
+      - name: "Configure Canonical Gambi Cargo Registry"
         run: |
           mkdir -p "$HOME/.cargo"
           printf '[registries.gambi]\nindex = "sparse+https://gambi.2lp.in/api/packages/lumen/cargo/"\n' > "$HOME/.cargo/config.toml"
 
       - name: "Compile Mandu Binary Target"
         run: |
-          export RUSTFLAGS="-C target-feature=+crt-static"
+          export RUSTFLAGS="-C target-feature=+crt-static -C link-arg=-Wl,--allow-multiple-definition"
           echo "★ Compilando ${{ matrix.target }} (${{ matrix.arch }}) em sequência..."
           for pkg in mandu-cli mandu-tui mandu-gui; do
             echo "  -> Compilando $pkg..."
@@ -196,7 +197,7 @@ jobs:
           EXT="${{ matrix.pkg_ext }}"
           PKG_FILE="mandu-${VERSION}-${ARCH}.${EXT}"
 
-          echo "★ Clonando repositório soberano da Banca para rotação e retenção..."
+          echo "★ Clonando repositório da Banca para rotação e retenção..."
           git clone --depth 1 "https://lumen:${GIT_2LP_TOKEN}@gambi.2lp.in/lumen/banca.git" /tmp/banca
 
           if [ -d "/tmp/banca/site/downloads/mandu" ] && [ -f "/tmp/banca/scripts/rotate-downloads.py" ]; then

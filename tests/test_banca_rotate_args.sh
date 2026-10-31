@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORKFLOW="$ROOT_DIR/.forgejo/workflows/ci.yml"
 BANCA_ROTATE_SCRIPT="/home/lumen/src/banca/scripts/rotate-downloads.py"
 
-echo "=== [TEST] Validação dos Argumentos de rotate-downloads e Remote Soberano da Banca (#11) ==="
+echo "=== [TEST] Validação dos Argumentos de rotate-downloads e Remote Canônico da Banca (#11) ==="
 
 FAILURES=0
 
@@ -19,11 +19,11 @@ else
 fi
 
 # 2. Uso do gambi.2lp.in ou git.2lp.in com GIT_2LP_TOKEN
-echo -n "-> 2. Verificando clone soberano via gambi/git.2lp.in e GIT_2LP_TOKEN... "
+echo -n "-> 2. Verificando clone canônico via gambi/git.2lp.in e GIT_2LP_TOKEN... "
 if grep -qE "(gambi|git)\.2lp\.in/lumen/banca\.git" "$WORKFLOW" && grep -q "GIT_2LP_TOKEN" "$WORKFLOW"; then
     echo "✅ OK"
 else
-    echo "❌ FALHOU: Remote soberano gambi/git.2lp.in ou GIT_2LP_TOKEN ausente"
+    echo "❌ FALHOU: Remote canônico gambi/git.2lp.in ou GIT_2LP_TOKEN ausente"
     FAILURES=$((FAILURES + 1))
 fi
 
