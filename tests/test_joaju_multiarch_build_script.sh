@@ -74,8 +74,17 @@ else
     echo "✅ OK"
 fi
 
-# 7. [MUTAÇÃO] Teste de mutação: remoção de GAMBI_2LP_IN_TOKEN
-echo -n "-> 7. [MUTAÇÃO] Testando sensibilidade à ausência de GAMBI_2LP_IN_TOKEN... "
+# 7. Resolução padrão para 'latest'
+echo -n "-> 7. Verificando se JOAJU_STATIC_VERSION tem padrão 'latest'... "
+if grep -q 'JOAJU_STATIC_VERSION.*"latest"' "$BUILD_RS"; then
+    echo "✅ OK"
+else
+    echo "❌ FALHOU (JOAJU_STATIC_VERSION deve usar latest como fallback padrao)"
+    FAILURES=$((FAILURES + 1))
+fi
+
+# 8. [MUTAÇÃO] Teste de mutação: remoção de GAMBI_2LP_IN_TOKEN
+echo -n "-> 8. [MUTAÇÃO] Testando sensibilidade à ausência de GAMBI_2LP_IN_TOKEN... "
 MUT_TOKEN=$(python3 -c "
 text = open('$BUILD_RS').read()
 mutated = text.replace('GAMBI_2LP_IN_TOKEN', 'OUTRO_TOKEN')
