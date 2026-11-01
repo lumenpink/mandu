@@ -93,12 +93,12 @@ fi
 echo -n "-> 8. [MUTAÇÃO] Testando sensibilidade à inversão de prioridade de target... "
 MUT_ORDER=$(python3 -c "
 text = open('$BUILD_RS').read()
-# Se {target} for colocado após x86_64 musl
-mutated = text.replace('PathBuf::from(format!(\"/home/lumen/src/joaju/target/{target}/release\")),', '')
-mutated = mutated.replace('local_paths.push(PathBuf::from(\"/home/lumen/src/joaju/target/release\"));', 'local_paths.push(PathBuf::from(\"/home/lumen/src/joaju/target/release\"));\nlocal_paths.push(PathBuf::from(format!(\"/home/lumen/src/joaju/target/{target}/release\")));')
-idx_target = mutated.find('{target}')
-idx_x86 = mutated.find('x86_64-unknown-linux-musl')
-assert idx_target > idx_x86, 'Mutação falhou ao inverter alvos'
+idx_target = text.find('{target}')
+idx_x86 = text.find('x86_64-unknown-linux-musl')
+assert idx_target != -1 and idx_x86 != -1 and idx_target < idx_x86
+mutated = text.replace('x86_64-unknown-linux-musl', 'PLACEHOLDER_ARCH').replace('{target}', 'x86_64-unknown-linux-musl')
+mutated = mutated.replace('PLACEHOLDER_ARCH', '{target}')
+assert mutated.find('{target}') > mutated.find('x86_64-unknown-linux-musl'), 'Mutação falhou ao inverter alvos'
 print('OK')
 " 2>&1)
 if [ "$MUT_ORDER" == "OK" ]; then
