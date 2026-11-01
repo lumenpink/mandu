@@ -39,7 +39,8 @@ fn main() {
 
         let dest_lib = out_dir.join("libjoaju.a");
         if !dest_lib.exists() {
-            let version = env::var("JOAJU_STATIC_VERSION").unwrap_or_else(|_| "0.2.0".to_string());
+            let version =
+                env::var("JOAJU_STATIC_VERSION").unwrap_or_else(|_| "latest".to_string());
             let url = format!(
                 "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/{}/{}",
                 version, target_artifact
@@ -67,10 +68,33 @@ fn main() {
                 .status();
 
             if status.is_err() || !status.unwrap().success() || !dest_lib.exists() {
-                panic!(
-                    "Falha ao baixar artefato estático joaju ({}) de {}. Verifique conectividade e credenciais.",
-                    target_artifact, url
+                // Fallback resiliente para versao 0.2.0 se latest falhar
+                let fallback_url = format!(
+                    "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/0.2.0/{}",
+                    target_artifact
                 );
+                let fallback_status = Command::new("curl")
+                    .arg("-s")
+                    .arg("-f")
+                    .arg("--http1.1")
+                    .arg("--retry")
+                    .arg("3")
+                    .arg("-H")
+                    .arg(format!("Authorization: token {}", token))
+                    .arg("-o")
+                    .arg(&dest_lib)
+                    .arg(&fallback_url)
+                    .status();
+
+                if fallback_status.is_err()
+                    || !fallback_status.unwrap().success()
+                    || !dest_lib.exists()
+                {
+                    panic!(
+                        "Falha ao baixar artefato estático joaju ({}) de {} (e fallback 0.2.0). Verifique conectividade e credenciais.",
+                        target_artifact, url
+                    );
+                }
             }
         }
         out_dir
