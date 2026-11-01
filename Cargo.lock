@@ -4412,7 +4412,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-cli"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.289+20261101.bd7aa3e"
 dependencies = [
  "mandu-core",
  "tempfile",
@@ -4420,7 +4420,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-core"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.289+20261101.bd7aa3e"
 dependencies = [
  "blake3",
  "chrono",
@@ -4442,7 +4442,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-gui"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.289+20261101.bd7aa3e"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4455,7 +4455,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-mobile"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.289+20261101.bd7aa3e"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4471,7 +4471,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-server"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.289+20261101.bd7aa3e"
 dependencies = [
  "async-trait",
  "axum",
@@ -4492,7 +4492,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-tui"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.289+20261101.bd7aa3e"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4507,7 +4507,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-web"
-version = "0.1.0-dev.1"
+version = "0.1.0-dev.289+20261101.bd7aa3e"
 dependencies = [
  "dioxus",
  "gloo-net",

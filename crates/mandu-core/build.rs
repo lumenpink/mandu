@@ -7,11 +7,13 @@ fn main() {
     let target = env::var("TARGET").unwrap_or_else(|_| "x86_64-unknown-linux-gnu".to_string());
 
     // 1. Verificar se existe biblioteca estática local construída no repositório joaju
-    let mut local_paths = vec![
-        PathBuf::from(format!("/home/lumen/src/joaju/target/{target}/release")),
-    ];
+    let mut local_paths = vec![PathBuf::from(format!(
+        "/home/lumen/src/joaju/target/{target}/release"
+    ))];
     if target.contains("x86_64-unknown-linux") {
-        local_paths.push(PathBuf::from("/home/lumen/src/joaju/target/x86_64-unknown-linux-musl/release"));
+        local_paths.push(PathBuf::from(
+            "/home/lumen/src/joaju/target/x86_64-unknown-linux-musl/release",
+        ));
         local_paths.push(PathBuf::from("/home/lumen/src/joaju/target/release"));
     }
 
