@@ -17,7 +17,7 @@ Alinhamento do repositório Mandu (`mandu`) ao perfil canônico Lilya (`https://
 - [x] Fase 6 (Refactor): Limpeza e clippy zero warnings
 - [x] Fase 7 (Mutation/Adversarial): Testes adversariais e mutantes
 - [x] Fase 8 (Quality Gate): Testes e auditoria estrita
-- [ ] Fase 9 (Finish): Encerramento com `cccp close` e integração
+- [x] Fase 9 (Finish): Encerramento com `cccp close` e integração
 
 ## 4. Conclusão
 Perfil alinhado ao padrão Lilya com sucesso e conformidade plena de todas as suítes e gates de qualidade.
