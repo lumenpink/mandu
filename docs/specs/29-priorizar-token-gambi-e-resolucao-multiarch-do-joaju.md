@@ -22,9 +22,9 @@ Durante a compilação multiarch do Mandu (`crates/mandu-core/build.rs`), o scri
 - [x] Fase 1 (Ticket): #29 criado
 - [x] Fase 2 (Branch): `fix/29-priorizar-token-gambi-e-resolucao-multiarch-do-joaju` ativada
 - [x] Fase 3 (Spec): Especificação técnica elaborada
-- [ ] Fase 4 (Red Test): Criação do teste de resolução do script de build
-- [ ] Fase 5 (Green Implement): Atualização de `build.rs` e `ci.yml`
-- [ ] Fase 6 (Refactor): Limpeza de código e clippy zero warnings
-- [ ] Fase 7 (Mutation/Adversarial): Execução dos testes da suíte e checagem de alvos
-- [ ] Fase 8 (Quality Gate): Testes canônicos, `cargo fmt`, `cargo clippy` e `cccp check --strict`
-- [ ] Fase 9 (Finish): Encerramento com `cccp close` e merge via `cccp merge`
+- [x] Fase 4 (Red Test): Criação do teste de resolução do script de build
+- [x] Fase 5 (Green Implement): Atualização de `build.rs` e `ci.yml`
+- [x] Fase 6 (Refactor): Limpeza de código e clippy zero warnings
+- [x] Fase 7 (Mutation/Adversarial): Execução dos testes da suíte e checagem de alvos
+- [x] Fase 8 (Quality Gate): Testes canônicos, `cargo fmt`, `cargo clippy` e `cccp check --strict`
+- [x] Fase 9 (Finish): Encerramento com `cccp close` e merge via `cccp merge`
