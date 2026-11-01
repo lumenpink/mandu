@@ -74,6 +74,40 @@ else
     echo "✅ OK"
 fi
 
+# 7. [MUTAÇÃO] Teste de mutação: remoção de GAMBI_2LP_IN_TOKEN
+echo -n "-> 7. [MUTAÇÃO] Testando sensibilidade à ausência de GAMBI_2LP_IN_TOKEN... "
+MUT_TOKEN=$(python3 -c "
+text = open('$BUILD_RS').read()
+mutated = text.replace('GAMBI_2LP_IN_TOKEN', 'OUTRO_TOKEN')
+assert 'GAMBI_2LP_IN_TOKEN' not in mutated
+print('OK')
+" 2>&1)
+if [ "$MUT_TOKEN" == "OK" ]; then
+    echo "✅ OK (Detecção confirmada)"
+else
+    echo "❌ FALHOU no teste de mutação: $MUT_TOKEN"
+    FAILURES=$((FAILURES + 1))
+fi
+
+# 8. [MUTAÇÃO] Teste de mutação: inversão da ordem de target
+echo -n "-> 8. [MUTAÇÃO] Testando sensibilidade à inversão de prioridade de target... "
+MUT_ORDER=$(python3 -c "
+text = open('$BUILD_RS').read()
+# Se {target} for colocado após x86_64 musl
+mutated = text.replace('PathBuf::from(format!(\"/home/lumen/src/joaju/target/{target}/release\")),', '')
+mutated = mutated.replace('local_paths.push(PathBuf::from(\"/home/lumen/src/joaju/target/release\"));', 'local_paths.push(PathBuf::from(\"/home/lumen/src/joaju/target/release\"));\nlocal_paths.push(PathBuf::from(format!(\"/home/lumen/src/joaju/target/{target}/release\")));')
+idx_target = mutated.find('{target}')
+idx_x86 = mutated.find('x86_64-unknown-linux-musl')
+assert idx_target > idx_x86, 'Mutação falhou ao inverter alvos'
+print('OK')
+" 2>&1)
+if [ "$MUT_ORDER" == "OK" ]; then
+    echo "✅ OK (Sensibilidade confirmada)"
+else
+    echo "❌ FALHOU na validação de inversão de ordem: $MUT_ORDER"
+    FAILURES=$((FAILURES + 1))
+fi
+
 echo "================================================================="
 if [ "$FAILURES" -gt 0 ]; then
     echo "💥 $FAILURES TESTE(S) FALHARAM (Esperado na Fase Red do DD-TDD)."
