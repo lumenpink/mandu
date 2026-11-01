@@ -39,8 +39,7 @@ fn main() {
 
         let dest_lib = out_dir.join("libjoaju.a");
         if !dest_lib.exists() {
-            let version =
-                env::var("JOAJU_STATIC_VERSION").unwrap_or_else(|_| "latest".to_string());
+            let version = env::var("JOAJU_STATIC_VERSION").unwrap_or_else(|_| "latest".to_string());
             let url = format!(
                 "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/{}/{}",
                 version, target_artifact
