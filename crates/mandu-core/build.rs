@@ -7,11 +7,13 @@ fn main() {
     let target = env::var("TARGET").unwrap_or_else(|_| "x86_64-unknown-linux-gnu".to_string());
 
     // 1. Verificar se existe biblioteca estática local construída no repositório joaju
-    let local_paths = [
-        PathBuf::from("/home/lumen/src/joaju/target/x86_64-unknown-linux-musl/release"),
-        PathBuf::from("/home/lumen/src/joaju/target/release"),
+    let mut local_paths = vec![
         PathBuf::from(format!("/home/lumen/src/joaju/target/{target}/release")),
     ];
+    if target.contains("x86_64-unknown-linux") {
+        local_paths.push(PathBuf::from("/home/lumen/src/joaju/target/x86_64-unknown-linux-musl/release"));
+        local_paths.push(PathBuf::from("/home/lumen/src/joaju/target/release"));
+    }
 
     let mut found_dir = None;
     for p in &local_paths {
@@ -35,18 +37,26 @@ fn main() {
 
         let dest_lib = out_dir.join("libjoaju.a");
         if !dest_lib.exists() {
+            let version = env::var("JOAJU_STATIC_VERSION").unwrap_or_else(|_| "0.2.0".to_string());
             let url = format!(
-                "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/0.2.0/{}",
-                target_artifact
+                "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/{}/{}",
+                version, target_artifact
             );
 
-            let token = env::var("FORGEJO_TOKEN")
+            let token = env::var("GAMBI_2LP_IN_TOKEN")
                 .or_else(|_| env::var("GIT_2LP_TOKEN"))
+                .or_else(|_| env::var("REGISTRY_TOKEN"))
+                .or_else(|_| env::var("LUMEN_REGISTRY_TOKEN"))
+                .or_else(|_| env::var("FORGEJO_TOKEN"))
                 .unwrap_or_else(|_| "2c1912103419968a307522910a2ebe375fa69ecc".to_string());
+            let token = token.strip_prefix("Bearer ").unwrap_or(&token).to_string();
 
             let status = Command::new("curl")
                 .arg("-s")
                 .arg("-f")
+                .arg("--http1.1")
+                .arg("--retry")
+                .arg("3")
                 .arg("-H")
                 .arg(format!("Authorization: token {}", token))
                 .arg("-o")
@@ -55,17 +65,10 @@ fn main() {
                 .status();
 
             if status.is_err() || !status.unwrap().success() || !dest_lib.exists() {
-                // Tenta fallback com nome padrão
-                let fallback_url = "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/0.2.0/libjoaju-x86_64-linux.a";
-                let _ = Command::new("curl")
-                    .arg("-s")
-                    .arg("-f")
-                    .arg("-H")
-                    .arg(format!("Authorization: token {}", token))
-                    .arg("-o")
-                    .arg(&dest_lib)
-                    .arg(fallback_url)
-                    .status();
+                panic!(
+                    "Falha ao baixar artefato estático joaju ({}) de {}. Verifique conectividade e credenciais.",
+                    target_artifact, url
+                );
             }
         }
         out_dir

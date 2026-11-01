@@ -63,9 +63,9 @@ if ! grep -q "wrangler deploy" "$WORKFLOW"; then
   exit 1
 fi
 
-# 6. GOSTVER 1.5.0
-if ! grep -q 'GOST_VERSION="1.5.0"' "$ROOT_DIR/GOSTVER"; then
-  echo "FALHA: GOSTVER não está na versão 1.5.0!" >&2
+# 6. GOSTVER (Suporte a GOST 1.5.0 e GOST 2.0.0 / Perfil Lilya)
+if ! grep -qE 'GOST_VERSION="(1\.5\.0|2\.0\.0)"' "$ROOT_DIR/GOSTVER"; then
+  echo "FALHA: GOSTVER não está em versão compatível (1.5.0 ou 2.0.0)!" >&2
   exit 1
 fi
 
