@@ -319,7 +319,13 @@ pub fn resolve_vault_and_file(
         .or_else(|| {
             let indice = vault.join("indice.md");
             if indice.is_file() {
-                return Some(indice);
+                let nova_nota = vault.join("nova_nota.md");
+                if !nova_nota.exists() {
+                    let default_content =
+                        "---\ntitle: \"Nova Nota\"\ntype: note\n---\n\n# Nova Nota\n";
+                    let _ = std::fs::write(&nova_nota, default_content);
+                }
+                return Some(nova_nota);
             }
             let readme = vault.join("README.md");
             if readme.is_file() {

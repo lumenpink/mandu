@@ -182,8 +182,23 @@ impl TuiApp<'_> {
                 self.status_message = Some("Erro ao gravar arquivo em disco".to_string());
             }
         } else {
-            self.is_dirty = false;
-            self.status_message = Some("Nota salva com sucesso".to_string());
+            let path = self
+                .vault_path
+                .as_ref()
+                .map(|v| v.join("nova_nota.md"))
+                .unwrap_or_else(|| PathBuf::from("nova_nota.md"));
+            if std::fs::write(&path, &formatted).is_ok() {
+                let note = Vault::parse_note_content(&path, &formatted);
+                self.word_count = note.word_count;
+                if let Some(ref db) = self.db {
+                    let _ = db.index_note(&note);
+                }
+                self.current_file = Some(path);
+                self.is_dirty = false;
+                self.status_message = Some("Nota salva com sucesso".to_string());
+            } else {
+                self.status_message = Some("Erro ao gravar arquivo em disco".to_string());
+            }
         }
     }
 
@@ -501,7 +516,7 @@ impl TuiApp<'_> {
             .as_ref()
             .and_then(|p| p.file_name())
             .and_then(|s| s.to_str())
-            .unwrap_or("nota_atual.md");
+            .unwrap_or("nova_nota.md");
 
         let words_formatted = if self.word_count >= 1000 {
             let thousands = self.word_count / 1000;
