@@ -45,6 +45,7 @@ pub struct TuiApp<'a> {
     pub is_help_open: bool,
     pub is_save_as_open: bool,
     pub save_as_input: String,
+    pub is_about_open: bool,
 }
 
 impl Default for TuiApp<'_> {
@@ -129,6 +130,7 @@ impl TuiApp<'_> {
             is_help_open: false,
             is_save_as_open: false,
             save_as_input: String::new(),
+            is_about_open: false,
         }
     }
 
@@ -453,6 +455,10 @@ impl TuiApp<'_> {
                     self.is_help_open = !self.is_help_open;
                     return true;
                 }
+                KeyCode::Char('i') => {
+                    self.is_about_open = !self.is_about_open;
+                    return true;
+                }
                 _ => {}
             }
         }
@@ -461,6 +467,16 @@ impl TuiApp<'_> {
             match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => {
                     self.is_help_open = false;
+                    return true;
+                }
+                _ => return true,
+            }
+        }
+
+        if self.is_about_open {
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') | KeyCode::Char('i') => {
+                    self.is_about_open = false;
                     return true;
                 }
                 _ => return true,

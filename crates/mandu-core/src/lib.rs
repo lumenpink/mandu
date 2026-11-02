@@ -1,5 +1,6 @@
 //! Mandu Core — Cérebro desacoplado do cofre, SQLite in-memory (FTS5) e resolvedor de notas.
 
+pub mod about;
 pub mod autocomplete;
 pub mod config;
 pub mod db;

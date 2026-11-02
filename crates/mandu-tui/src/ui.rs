@@ -103,6 +103,11 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
     if app.is_save_as_open {
         render_save_as_modal(app, frame);
     }
+
+    // Modal de Sobre overlay (Ctrl+I)
+    if app.is_about_open {
+        render_about_modal(app, frame);
+    }
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -259,6 +264,7 @@ fn render_help_modal(_app: &TuiApp, frame: &mut Frame) {
             "Ctrl + E",
             "Abrir nota no editor externo configurado ($EDITOR)",
         ),
+        ("Ctrl + I", "Sobre o Mandu (diagnóstico de versões)"),
         ("Ctrl + H", "Exibir ou ocultar este modal de ajuda"),
         ("Ctrl + Q", "Salvar e sair do Mandu"),
         ("Esc / q", "Fechar modais suspensos"),
@@ -318,6 +324,64 @@ fn render_save_as_modal(app: &TuiApp, frame: &mut Frame) {
         Style::default().fg(Color::DarkGray),
     )]);
     frame.render_widget(Paragraph::new(help_line), modal_chunks[2]);
+}
+
+fn render_about_modal(_app: &TuiApp, frame: &mut Frame) {
+    let area = centered_rect(70, 60, frame.area());
+    frame.render_widget(Clear, area);
+
+    let modal_block = Block::default()
+        .borders(Borders::ALL)
+        .title(" [ ℹ️ Sobre o Mandu — Diagnóstico de Motores e Bibliotecas ] ")
+        .style(Style::default().bg(Color::Rgb(20, 20, 24)));
+    frame.render_widget(modal_block.clone(), area);
+
+    let inner = modal_block.inner(area);
+    let mut lines = Vec::new();
+    lines.push(Line::from(vec![
+        Span::styled(
+            format!("  Mandu v{}", mandu_core::VERSION),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            " (HedgeDoc PKM & Academic Typst Engine)",
+            Style::default().fg(Color::DarkGray),
+        ),
+    ]));
+    lines.push(Line::from(""));
+    lines.push(Line::from(Span::styled(
+        "  Componentes e motores embutidos:",
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD),
+    )));
+    lines.push(Line::from(""));
+
+    for comp in mandu_core::about::get_components_tree() {
+        lines.push(Line::from(vec![
+            Span::styled(
+                format!("  • {:<20} : ", comp.name),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(comp.version, Style::default().fg(Color::Green)),
+        ]));
+        lines.push(Line::from(Span::styled(
+            format!("    ↳ {}", comp.description),
+            Style::default().fg(Color::DarkGray),
+        )));
+        lines.push(Line::from(""));
+    }
+
+    lines.push(Line::from(Span::styled(
+        "  Pressione Esc, q ou Ctrl+I para fechar",
+        Style::default().fg(Color::DarkGray),
+    )));
+
+    frame.render_widget(Paragraph::new(lines), inner);
 }
 
 fn render_preview_pane<'a>(

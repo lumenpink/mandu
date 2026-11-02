@@ -10,6 +10,7 @@ pub enum TargetMode {
     Gui,
     Update,
     CheckUpdate,
+    VersionAll,
 }
 
 impl TargetMode {
@@ -18,7 +19,7 @@ impl TargetMode {
         match self {
             Self::Tui => "mandu-tui",
             Self::Gui => "mandu-gui",
-            Self::Update | Self::CheckUpdate => "mandu",
+            Self::Update | Self::CheckUpdate | Self::VersionAll => "mandu",
         }
     }
 }
@@ -43,6 +44,13 @@ pub fn resolve_target(args: &[String], has_wayland: bool, has_x11: bool) -> Disp
     };
 
     let slice = if skip_first { &args[1..] } else { args };
+
+    if slice.contains(&"--version".to_string()) && slice.contains(&"--all".to_string()) {
+        return DispatchDecision {
+            target: TargetMode::VersionAll,
+            filtered_args: Vec::new(),
+        };
+    }
 
     // Subcomandos prioritários do despachante
     if let Some(first_cmd) = slice.first() {

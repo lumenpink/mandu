@@ -32,6 +32,10 @@ fn main() {
             run_update(&decision.filtered_args);
             return;
         }
+        mandu_cli::TargetMode::VersionAll => {
+            print!("{}", mandu_core::about::format_about_text());
+            return;
+        }
         _ => {}
     }
 
@@ -71,10 +75,12 @@ fn print_help() {
     println!("Uso: mandu [--tui | --gui] [ARQUIVO] [--vault CAMINHO]");
     println!("     mandu update [--channel stable|nightly] [--pin VERSÃO] [--unpin]");
     println!("     mandu check-update [--channel stable|nightly]");
+    println!("     mandu --version --all");
     println!();
     println!("Opções do despachante:");
     println!("  --tui         Força a interface de terminal (mandu-tui)");
     println!("  --gui         Força a interface gráfica (mandu-gui)");
+    println!("  --version --all Exibe árvore de versões dos motores e bibliotecas embutidas");
     println!("  -h, --help    Exibe esta ajuda");
     println!();
     println!("Comandos de distribuição na Banca:");
