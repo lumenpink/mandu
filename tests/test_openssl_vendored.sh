@@ -15,11 +15,11 @@ echo "================================================================="
 
 FAILURES=0
 
-echo -n "-> 1. Verificando feature vendored do openssl em mandu-core... "
-if grep -q 'openssl.*features.*vendored' "$CARGO_TOML"; then
-    echo "✅ OK"
+echo -n "-> 1. Verificando ausencia de openssl em mandu-core... "
+if ! grep -q 'openssl' "$CARGO_TOML"; then
+    echo "✅ OK (mandu-core limpo de openssl)"
 else
-    echo "❌ FALHOU (openssl com feature vendored ausente em mandu-core)"
+    echo "❌ FALHOU (openssl ainda presente em mandu-core)"
     FAILURES=$((FAILURES + 1))
 fi
 
