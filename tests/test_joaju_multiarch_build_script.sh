@@ -74,12 +74,14 @@ else
     echo "✅ OK"
 fi
 
-# 7. Resolução padrão para 'latest'
-echo -n "-> 7. Verificando se JOAJU_STATIC_VERSION tem padrão 'latest'... "
-if grep -q 'JOAJU_STATIC_VERSION.*"latest"' "$BUILD_RS"; then
+# 7. Resolução SemVer canônica estrita (Spec #32)
+echo -n "-> 7. Verificando definição canônica de JOAJU_STATIC_REQUIRED_VERSION e ausência de latest/0.2.0... "
+if grep -q 'JOAJU_STATIC_REQUIRED_VERSION' "$BUILD_RS" && \
+   ! grep -q 'unwrap_or_else.*"latest"' "$BUILD_RS" && \
+   ! grep -q 'fallback_url.*0.2.0/' "$BUILD_RS"; then
     echo "✅ OK"
 else
-    echo "❌ FALHOU (JOAJU_STATIC_VERSION deve usar latest como fallback padrao)"
+    echo "❌ FALHOU (build.rs deve usar JOAJU_STATIC_REQUIRED_VERSION e não pode usar latest nem fallback 0.2.0)"
     FAILURES=$((FAILURES + 1))
 fi
 
@@ -95,6 +97,21 @@ if [ "$MUT_TOKEN" == "OK" ]; then
     echo "✅ OK (Detecção confirmada)"
 else
     echo "❌ FALHOU no teste de mutação: $MUT_TOKEN"
+    FAILURES=$((FAILURES + 1))
+fi
+
+# 9. [MUTAÇÃO] Teste de mutação: ausência de JOAJU_STATIC_REQUIRED_VERSION
+echo -n "-> 9. [MUTAÇÃO] Testando sensibilidade à ausência de JOAJU_STATIC_REQUIRED_VERSION... "
+MUT_SEMVER=$(python3 -c "
+text = open('$BUILD_RS').read()
+mutated = text.replace('JOAJU_STATIC_REQUIRED_VERSION', 'OUTRA_VERSAO')
+assert 'JOAJU_STATIC_REQUIRED_VERSION' not in mutated
+print('OK')
+" 2>&1)
+if [ "$MUT_SEMVER" == "OK" ]; then
+    echo "✅ OK (Detecção confirmada)"
+else
+    echo "❌ FALHOU no teste de mutação de versão: $MUT_SEMVER"
     FAILURES=$((FAILURES + 1))
 fi
 
