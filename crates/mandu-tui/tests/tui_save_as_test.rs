@@ -18,12 +18,21 @@ fn test_save_as_renames_nova_nota() {
     }
 
     let mut app = TuiApp::new_with_vault(Some(vault_path.clone()), Some(nova_nota_path.clone()));
-    assert!(!app.is_save_as_open, "Modal Salvar Como deve iniciar fechado");
+    assert!(
+        !app.is_save_as_open,
+        "Modal Salvar Como deve iniciar fechado"
+    );
 
     // Acionar atalho Ctrl+Shift+S
-    let ctrl_shift_s = KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL | KeyModifiers::SHIFT);
+    let ctrl_shift_s = KeyEvent::new(
+        KeyCode::Char('s'),
+        KeyModifiers::CONTROL | KeyModifiers::SHIFT,
+    );
     app.handle_key(ctrl_shift_s);
-    assert!(app.is_save_as_open, "Ctrl+Shift+S deve abrir modal Salvar Como");
+    assert!(
+        app.is_save_as_open,
+        "Ctrl+Shift+S deve abrir modal Salvar Como"
+    );
 
     // Digitar novo nome: 'minha_nova_ideia'
     for c in "minha_nova_ideia".chars() {
@@ -37,7 +46,10 @@ fn test_save_as_renames_nova_nota() {
 
     let expected_new_path = vault_path.join("minha_nova_ideia.md");
     assert_eq!(app.current_file, Some(expected_new_path.clone()));
-    assert!(expected_new_path.exists(), "Novo arquivo deve existir em disco");
+    assert!(
+        expected_new_path.exists(),
+        "Novo arquivo deve existir em disco"
+    );
     assert!(
         !nova_nota_path.exists(),
         "nova_nota.md deve ter sido renomeado e não deve mais existir"
@@ -59,8 +71,10 @@ fn test_save_as_copies_regular_note() {
 
     let mut app = TuiApp::new_with_vault(Some(vault_path.clone()), Some(regular_nota_path.clone()));
 
-    let ctrl_shift_s =
-        KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL | KeyModifiers::SHIFT);
+    let ctrl_shift_s = KeyEvent::new(
+        KeyCode::Char('s'),
+        KeyModifiers::CONTROL | KeyModifiers::SHIFT,
+    );
     app.handle_key(ctrl_shift_s);
     assert!(app.is_save_as_open);
 

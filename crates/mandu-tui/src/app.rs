@@ -353,9 +353,10 @@ impl TuiApp<'_> {
             PathBuf::from(&file_name)
         };
 
-        let is_nova_nota = self.current_file.as_ref().is_some_and(|p| {
-            p.file_name().and_then(|s| s.to_str()) == Some("nova_nota.md")
-        });
+        let is_nova_nota = self
+            .current_file
+            .as_ref()
+            .is_some_and(|p| p.file_name().and_then(|s| s.to_str()) == Some("nova_nota.md"));
 
         if is_nova_nota {
             if let Some(ref old_path) = self.current_file {
