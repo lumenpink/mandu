@@ -30,5 +30,5 @@ Esse build redundante:
 - [x] Fase 5 (Green Implement): Remoção da dependência em `Cargo.toml`
 - [x] Fase 6 (Refactor): Limpeza e alinhamento com rustfmt
 - [x] Fase 7 (Mutation Test): Validação cruzada dos testes de conformidade
-- [ ] Fase 8 (Quality Gate): Validação com `cargo fmt --check`, `cargo clippy` e `cargo test`
-- [ ] Fase 9 (Finish & Close): Fechamento com `cccp close` e merge via `cccp merge`
+- [x] Fase 8 (Quality Gate): Validação com `cargo fmt --check`, `cargo clippy` e `cargo test`
+- [x] Fase 9 (Finish & Close): Fechamento com `cccp close` e merge via `cccp merge`
