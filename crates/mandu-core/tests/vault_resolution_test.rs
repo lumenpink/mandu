@@ -24,8 +24,13 @@ fn test_resolve_default_entrypoint_finds_indice_md() {
 
     let (vault, file) = resolve_vault_and_file(Some(vault_path.clone()), None);
 
+    let expected_nova_nota = vault_path.join("nova_nota.md");
     assert_eq!(vault, vault_path);
-    assert_eq!(file, Some(indice_path));
+    assert_eq!(file, Some(expected_nova_nota.clone()));
+    assert!(
+        expected_nova_nota.exists(),
+        "nova_nota.md deve ser persistida automaticamente em disco"
+    );
 }
 
 #[test]
