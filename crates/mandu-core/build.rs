@@ -2,6 +2,9 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 
+pub const JOAJU_STATIC_REQUIRED_VERSION: &str = "0.2.0-dev.137+20261102.e5c6878";
+pub const JOAJU_STATIC_FALLBACK_VERSION: &str = "0.2.0-dev.137";
+
 fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let target = env::var("TARGET").unwrap_or_else(|_| "x86_64-unknown-linux-gnu".to_string());
@@ -39,7 +42,8 @@ fn main() {
 
         let dest_lib = out_dir.join("libjoaju.a");
         if !dest_lib.exists() {
-            let version = env::var("JOAJU_STATIC_VERSION").unwrap_or_else(|_| "latest".to_string());
+            let version = env::var("JOAJU_STATIC_VERSION")
+                .unwrap_or_else(|_| JOAJU_STATIC_REQUIRED_VERSION.to_string());
             let url = format!(
                 "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/{}/{}",
                 version, target_artifact
@@ -67,10 +71,10 @@ fn main() {
                 .status();
 
             if status.is_err() || !status.unwrap().success() || !dest_lib.exists() {
-                // Fallback resiliente para versao 0.2.0 se latest falhar
+                // Fallback estrito para versao canonica sem metadata se o primario falhar
                 let fallback_url = format!(
-                    "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/0.2.0/{}",
-                    target_artifact
+                    "https://gambi.2lp.in/api/packages/lumen/generic/joaju-static/{}/{}",
+                    JOAJU_STATIC_FALLBACK_VERSION, target_artifact
                 );
                 let fallback_status = Command::new("curl")
                     .arg("-s")
@@ -90,8 +94,8 @@ fn main() {
                     || !dest_lib.exists()
                 {
                     panic!(
-                        "Falha ao baixar artefato estático joaju ({}) de {} (e fallback 0.2.0). Verifique conectividade e credenciais.",
-                        target_artifact, url
+                        "Falha ao baixar artefato estático joaju ({}) de {} (e fallback {}). Verifique conectividade e credenciais.",
+                        target_artifact, url, JOAJU_STATIC_FALLBACK_VERSION
                     );
                 }
             }
