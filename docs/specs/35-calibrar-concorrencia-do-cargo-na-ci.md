@@ -28,5 +28,5 @@ Essa discrepância gera contenção de CPU e estouro de memória sob picos de co
 - [x] Fase 5 (Green Implement): Adição de `CARGO_BUILD_JOBS` no job `test` de `.forgejo/workflows/ci.yml`
 - [x] Fase 6 (Refactor): Limpeza e auditoria de formatação
 - [x] Fase 7 (Mutation Test): Teste cruzado de integridade do workflow
-- [ ] Fase 8 (Quality Gate): Validação com `cargo fmt --check`, `cargo clippy`, testes e `cccp check --strict`
-- [ ] Fase 9 (Finish & Close): Fechamento com `cccp close` e merge via `cccp merge`
+- [x] Fase 8 (Quality Gate): Validação com `cargo fmt --check`, `cargo clippy`, testes e `cccp check --strict`
+- [x] Fase 9 (Finish & Close): Fechamento com `cccp close` e merge via `cccp merge`
