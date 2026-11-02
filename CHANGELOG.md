@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Adicionar job deploy-apk na esteira com container gost-ci-android, validacao de tamanho >= 1MB e publicacao no Cloudflare R2 (closes #15).
+
 ### Changed
 - Remoção de campo `permissions:` incompatível com Forgejo Actions (closes #22).
 
