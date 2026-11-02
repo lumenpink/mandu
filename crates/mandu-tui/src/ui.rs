@@ -234,12 +234,18 @@ fn render_help_modal(_app: &TuiApp, frame: &mut Frame) {
         ("Ctrl + O", "Buscar ou abrir nota no cofre"),
         ("Ctrl + S", "Salvar nota atual"),
         ("Ctrl + D", "Exportar documento para PDF via Joaju"),
-        ("Ctrl + T", "Alternar modo de visão (Escrita / Split / Leitura)"),
+        (
+            "Ctrl + T",
+            "Alternar modo de visão (Escrita / Split / Leitura)",
+        ),
         (
             "Ctrl + P",
             "Espiar (Peek) conteúdo de link ou citação sob o cursor",
         ),
-        ("Ctrl + G", "Navegar diretamente para o destino sob o cursor"),
+        (
+            "Ctrl + G",
+            "Navegar diretamente para o destino sob o cursor",
+        ),
         (
             "Ctrl + E",
             "Abrir nota no editor externo configurado ($EDITOR)",

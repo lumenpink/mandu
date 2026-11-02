@@ -32,7 +32,13 @@ fn test_help_modal_toggle_and_status_bar() {
 
     // Reabrir com Ctrl+H e fechar com Ctrl+H
     app.handle_key(ctrl_h);
-    assert!(app.is_help_open, "Ctrl+H deve abrir modal de ajuda novamente");
+    assert!(
+        app.is_help_open,
+        "Ctrl+H deve abrir modal de ajuda novamente"
+    );
     app.handle_key(ctrl_h);
-    assert!(!app.is_help_open, "Repetir Ctrl+H deve fechar modal de ajuda");
+    assert!(
+        !app.is_help_open,
+        "Repetir Ctrl+H deve fechar modal de ajuda"
+    );
 }
