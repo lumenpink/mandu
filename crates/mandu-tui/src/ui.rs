@@ -243,10 +243,7 @@ fn render_help_modal(_app: &TuiApp, frame: &mut Frame) {
     let shortcuts = [
         ("Ctrl + O", "Buscar ou abrir nota no cofre"),
         ("Ctrl + S", "Salvar nota atual"),
-        (
-            "Ctrl+Shift+S",
-            "Salvar Como (renomeia nova_nota.md)",
-        ),
+        ("Ctrl+Shift+S", "Salvar Como (renomeia nova_nota.md)"),
         ("Ctrl + D", "Exportar documento para PDF via Joaju"),
         (
             "Ctrl + T",
