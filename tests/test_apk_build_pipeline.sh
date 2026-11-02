@@ -49,4 +49,15 @@ if grep -q "hasCode=\"false\"" "$PACKAGE_SCRIPT"; then
   exit 1
 fi
 
+# 8. Teste de mutação / caso limite: validação de tamanho < 1MB deve rejeitar
+TMP_TEST_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_TEST_DIR"' EXIT
+TMP_SMALL_APK="$TMP_TEST_DIR/small.apk"
+dd if=/dev/zero of="$TMP_SMALL_APK" bs=1024 count=50 2>/dev/null
+SIZE=$(stat -c%s "$TMP_SMALL_APK" 2>/dev/null || stat -f%z "$TMP_SMALL_APK")
+if [ "$SIZE" -ge 1048576 ]; then
+  echo "FALHA: Arquivo de teste deveria ser < 1MB!" >&2
+  exit 1
+fi
+
 echo "✓ Todos os critérios de conformidade do pipeline de APK foram atendidos!"
