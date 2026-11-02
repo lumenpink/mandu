@@ -98,6 +98,11 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
     if app.is_help_open {
         render_help_modal(app, frame);
     }
+
+    // Modal de Salvar Como overlay (Ctrl+Shift+S)
+    if app.is_save_as_open {
+        render_save_as_modal(app, frame);
+    }
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -233,6 +238,10 @@ fn render_help_modal(_app: &TuiApp, frame: &mut Frame) {
     let shortcuts = [
         ("Ctrl + O", "Buscar ou abrir nota no cofre"),
         ("Ctrl + S", "Salvar nota atual"),
+        (
+            "Ctrl+Shift+S",
+            "Salvar Como (renomeia nova_nota.md)",
+        ),
         ("Ctrl + D", "Exportar documento para PDF via Joaju"),
         (
             "Ctrl + T",
@@ -260,7 +269,7 @@ fn render_help_modal(_app: &TuiApp, frame: &mut Frame) {
     for (key, desc) in shortcuts {
         lines.push(Line::from(vec![
             Span::styled(
-                format!("  {key:<10}  "),
+                format!("  {key:<12}  "),
                 Style::default()
                     .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
@@ -270,6 +279,45 @@ fn render_help_modal(_app: &TuiApp, frame: &mut Frame) {
     }
 
     frame.render_widget(Paragraph::new(lines), inner);
+}
+
+fn render_save_as_modal(app: &TuiApp, frame: &mut Frame) {
+    let area = centered_rect(60, 20, frame.area());
+    frame.render_widget(Clear, area);
+
+    let modal_block = Block::default()
+        .borders(Borders::ALL)
+        .title(" [ 💾 Salvar Como (Ctrl+Shift+S) ] ")
+        .style(Style::default().bg(Color::Rgb(20, 20, 24)));
+    frame.render_widget(modal_block.clone(), area);
+
+    let inner = modal_block.inner(area);
+    let modal_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(1),
+            Constraint::Length(1),
+            Constraint::Length(1),
+        ])
+        .split(inner);
+
+    let prompt_line = Line::from(vec![
+        Span::styled(
+            " Novo nome da nota: ",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(&app.save_as_input),
+        Span::styled("_", Style::default().add_modifier(Modifier::RAPID_BLINK)),
+    ]);
+    frame.render_widget(Paragraph::new(prompt_line), modal_chunks[0]);
+
+    let help_line = Line::from(vec![Span::styled(
+        " Enter Confirmar  |  Esc Cancelar (extensão .md automática)",
+        Style::default().fg(Color::DarkGray),
+    )]);
+    frame.render_widget(Paragraph::new(help_line), modal_chunks[2]);
 }
 
 fn render_preview_pane<'a>(

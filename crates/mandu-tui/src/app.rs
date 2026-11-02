@@ -43,6 +43,8 @@ pub struct TuiApp<'a> {
     pub autosave_feedback_until: Option<std::time::Instant>,
     pub preview_scroll: u16,
     pub is_help_open: bool,
+    pub is_save_as_open: bool,
+    pub save_as_input: String,
 }
 
 impl Default for TuiApp<'_> {
@@ -125,6 +127,8 @@ impl TuiApp<'_> {
             autosave_feedback_until: None,
             preview_scroll: 0,
             is_help_open: false,
+            is_save_as_open: false,
+            save_as_input: String::new(),
         }
     }
 
@@ -331,10 +335,79 @@ impl TuiApp<'_> {
         self.search.selected_index = 0;
     }
 
+    pub fn confirm_save_as(&mut self) {
+        let raw_name = self.save_as_input.trim();
+        if raw_name.is_empty() {
+            self.is_save_as_open = false;
+            return;
+        }
+        let file_name = if raw_name.ends_with(".md") {
+            raw_name.to_string()
+        } else {
+            format!("{raw_name}.md")
+        };
+
+        let target_path = if let Some(ref v) = self.vault_path {
+            v.join(&file_name)
+        } else {
+            PathBuf::from(&file_name)
+        };
+
+        let is_nova_nota = self.current_file.as_ref().is_some_and(|p| {
+            p.file_name().and_then(|s| s.to_str()) == Some("nova_nota.md")
+        });
+
+        if is_nova_nota {
+            if let Some(ref old_path) = self.current_file {
+                if old_path.exists() && old_path != &target_path {
+                    let _ = std::fs::rename(old_path, &target_path);
+                }
+            }
+        }
+
+        self.current_file = Some(target_path.clone());
+        self.save_current_note();
+        self.is_save_as_open = false;
+        self.save_as_input.clear();
+        self.status_message = Some(format!("Salvo como: {file_name}"));
+    }
+
     /// Processa eventos de teclado sem utilizar teclas de função (F1-F12)
     pub fn handle_key(&mut self, key: KeyEvent) -> bool {
+        if self.is_save_as_open {
+            match key.code {
+                KeyCode::Esc => {
+                    self.is_save_as_open = false;
+                    self.save_as_input.clear();
+                    return true;
+                }
+                KeyCode::Backspace => {
+                    self.save_as_input.pop();
+                    return true;
+                }
+                KeyCode::Enter => {
+                    self.confirm_save_as();
+                    return true;
+                }
+                KeyCode::Char(c) => {
+                    self.save_as_input.push(c);
+                    return true;
+                }
+                _ => return true,
+            }
+        }
+
         // Atalhos globais com Control (Zero Teclas de Função)
         if key.modifiers.contains(KeyModifiers::CONTROL) {
+            if (key.modifiers.contains(KeyModifiers::SHIFT)
+                && (key.code == KeyCode::Char('s') || key.code == KeyCode::Char('S')))
+                || key.code == KeyCode::Char('S')
+            {
+                self.is_save_as_open = true;
+                self.save_as_input.clear();
+                return true;
+            }
+
             match key.code {
                 KeyCode::Char('q') => {
                     if self.is_dirty {
