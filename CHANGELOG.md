@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adicionar job deploy-apk na esteira com container gost-ci-android, validacao de tamanho >= 1MB e publicacao no Cloudflare R2 (closes #15).
 
 ### Changed
+- Fixar versão SemVer estrita de joaju-static no build.rs e remover alias latest (closes #32).
 - Remoção de campo `permissions:` incompatível com Forgejo Actions (closes #22).
 
 ### Added
