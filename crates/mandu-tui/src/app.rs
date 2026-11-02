@@ -42,6 +42,7 @@ pub struct TuiApp<'a> {
     pub autosave_delay: std::time::Duration,
     pub autosave_feedback_until: Option<std::time::Instant>,
     pub preview_scroll: u16,
+    pub is_help_open: bool,
 }
 
 impl Default for TuiApp<'_> {
@@ -123,6 +124,7 @@ impl TuiApp<'_> {
             autosave_delay: std::time::Duration::from_millis(1000),
             autosave_feedback_until: None,
             preview_scroll: 0,
+            is_help_open: false,
         }
     }
 
@@ -373,7 +375,21 @@ impl TuiApp<'_> {
                     self.go_to_link_under_cursor();
                     return true;
                 }
+                KeyCode::Char('h') => {
+                    self.is_help_open = !self.is_help_open;
+                    return true;
+                }
                 _ => {}
+            }
+        }
+
+        if self.is_help_open {
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('q') => {
+                    self.is_help_open = false;
+                    return true;
+                }
+                _ => return true,
             }
         }
 
@@ -527,7 +543,7 @@ impl TuiApp<'_> {
         };
 
         format!(
-            "[ 📁 Buscar/Abrir ]  {file_name}{dirty_indicator} ({words_formatted} pal. | 🔗 {} backlinks)  [ 👁 {} (Ctrl+T) ]  [ 📄 Gerar PDF ]",
+            "{file_name}{dirty_indicator}  ({words_formatted} pal. | 🔗 {} backlinks)  [ {} (Ctrl+T) ]  [ ^H Ajuda ]",
             self.backlink_count,
             self.mode.label()
         )

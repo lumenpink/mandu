@@ -93,6 +93,11 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
     if app.is_peek_open {
         render_peek_modal(app, frame);
     }
+
+    // Modal de Ajuda overlay (Ctrl+H)
+    if app.is_help_open {
+        render_help_modal(app, frame);
+    }
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
@@ -212,6 +217,53 @@ fn render_peek_modal(app: &TuiApp, frame: &mut Frame) {
             .style(Style::default().fg(Color::White));
         frame.render_widget(paragraph, area);
     }
+}
+
+fn render_help_modal(_app: &TuiApp, frame: &mut Frame) {
+    let area = centered_rect(65, 55, frame.area());
+    frame.render_widget(Clear, area);
+
+    let modal_block = Block::default()
+        .borders(Borders::ALL)
+        .title(" [ 📖 Ajuda & Atalhos de Teclado (Esc para fechar) ] ")
+        .style(Style::default().bg(Color::Rgb(20, 20, 24)));
+    frame.render_widget(modal_block.clone(), area);
+
+    let inner = modal_block.inner(area);
+    let shortcuts = [
+        ("Ctrl + O", "Buscar ou abrir nota no cofre"),
+        ("Ctrl + S", "Salvar nota atual"),
+        ("Ctrl + D", "Exportar documento para PDF via Joaju"),
+        ("Ctrl + T", "Alternar modo de visão (Escrita / Split / Leitura)"),
+        (
+            "Ctrl + P",
+            "Espiar (Peek) conteúdo de link ou citação sob o cursor",
+        ),
+        ("Ctrl + G", "Navegar diretamente para o destino sob o cursor"),
+        (
+            "Ctrl + E",
+            "Abrir nota no editor externo configurado ($EDITOR)",
+        ),
+        ("Ctrl + H", "Exibir ou ocultar este modal de ajuda"),
+        ("Ctrl + Q", "Salvar e sair do Mandu"),
+        ("Esc / q", "Fechar modais suspensos"),
+    ];
+
+    let mut lines = Vec::new();
+    lines.push(Line::from(""));
+    for (key, desc) in shortcuts {
+        lines.push(Line::from(vec![
+            Span::styled(
+                format!("  {key:<10}  "),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(desc, Style::default().fg(Color::White)),
+        ]));
+    }
+
+    frame.render_widget(Paragraph::new(lines), inner);
 }
 
 fn render_preview_pane<'a>(
