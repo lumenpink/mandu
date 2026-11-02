@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistir automaticamente nova_nota.md ao abrir pasta contendo indice.md (closes #17).
 
 ### Added
+- Atalho Salvar Como (Ctrl+Shift+S) com renomeação física de nova_nota.md na TUI (closes #18).
 - Simplificação da barra de status e inclusão de modal de ajuda via Ctrl+H na TUI (closes #16).
 - Adicionar job deploy-apk na esteira com container gost-ci-android, validacao de tamanho >= 1MB e publicacao no Cloudflare R2 (closes #15).
 
