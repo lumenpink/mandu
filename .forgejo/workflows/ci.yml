@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: gambi.2lp.in/lumen/gost-ci-cross:latest
+    env:
+      CARGO_BUILD_JOBS: "2"
     steps:
       - name: "Checkout repository"
         uses: https://github.com/actions/checkout@v4
