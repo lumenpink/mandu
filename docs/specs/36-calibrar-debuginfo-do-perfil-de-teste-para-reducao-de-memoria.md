@@ -40,4 +40,4 @@ Ao configurar `debug = 1` (line tables only), o compilador gera informações su
 - [x] Fase 6 (Refactor): Limpeza e verificação
 - [x] Fase 7 (Mutation Test): Teste mutacional de reversão da configuração
 - [x] Fase 8 (Quality Gate): Validação com ferramentas nativas (`cargo fmt --check`, `cargo clippy`, testes)
-- [ ] Fase 9 (Finish & Close): Fechamento do ticket e merge via `cccp` sob autorização
+- [x] Fase 9 (Finish & Close): Fechamento do ticket e merge via `cccp` sob autorização
