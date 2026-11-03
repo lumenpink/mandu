@@ -38,6 +38,6 @@ Ao configurar `debug = 1` (line tables only), o compilador gera informações su
 - [x] Fase 4 (Red Test): Criação de `tests/test_debuginfo_config.sh` falhando antes da implementação
 - [x] Fase 5 (Green Implement): Ajuste em `Cargo.toml` e `.forgejo/workflows/ci.yml`
 - [x] Fase 6 (Refactor): Limpeza e verificação
-- [ ] Fase 7 (Mutation Test): Teste mutacional de reversão da configuração
+- [x] Fase 7 (Mutation Test): Teste mutacional de reversão da configuração
 - [ ] Fase 8 (Quality Gate): Validação com ferramentas nativas (`cargo fmt --check`, `cargo clippy`, testes)
 - [ ] Fase 9 (Finish & Close): Fechamento do ticket e merge via `cccp` sob autorização
