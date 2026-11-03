@@ -95,7 +95,8 @@ fn test_tui_rendering_all_modes_with_test_backend() {
 
 #[test]
 fn test_tui_ctrl_shortcuts_and_no_fkeys() {
-    let mut app = TuiApp::new(None);
+    let dir = tempfile::tempdir().expect("tempdir");
+    let mut app = TuiApp::new_with_vault(Some(dir.path().to_path_buf()), None);
 
     // Ctrl+O: Toggle search
     assert!(!app.is_search_open);
@@ -109,11 +110,11 @@ fn test_tui_ctrl_shortcuts_and_no_fkeys() {
         Some("Nota salva com sucesso")
     );
 
-    // Ctrl+D: PDF
+    // Ctrl+D: PDF (com arquivo persistido nova_nota.md)
     app.handle_key(KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL));
     assert_eq!(
         app.status_message.as_deref(),
-        Some("Documento exportado via Joaju")
+        Some("Documento exportado via Joaju: nova_nota.pdf")
     );
 
     // F2 NÃO DEVE alterar o modo (estrita proibição de F-keys)
@@ -125,6 +126,14 @@ fn test_tui_ctrl_shortcuts_and_no_fkeys() {
     assert!(!app.should_quit);
     app.handle_key(KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL));
     assert!(app.should_quit);
+
+    // Teste de exportacao de PDF sem nota persistida (current_file = None)
+    let mut unsaved_app = TuiApp::new(None);
+    unsaved_app.handle_key(KeyEvent::new(KeyCode::Char('d'), KeyModifiers::CONTROL));
+    assert_eq!(
+        unsaved_app.status_message.as_deref(),
+        Some("Documento exportado via Joaju")
+    );
 }
 
 #[test]
