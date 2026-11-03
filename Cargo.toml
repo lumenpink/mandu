@@ -11,7 +11,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0-dev.345+20261103.86ca04d"
+version = "0.1.0-dev.346+20261103.141c2b1"
 edition = "2021"
 authors = ["Lumen Pink <hi@lumen.pink>"]
 license = "GPL-3.0-or-later"
