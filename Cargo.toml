@@ -2,16 +2,12 @@
 members = [
     "crates/mandu-core",
     "crates/mandu-tui",
-    "crates/mandu-gui",
     "crates/mandu-cli",
-    "crates/mandu-mobile",
-    "crates/mandu-server",
-    "crates/mandu-web",
 ]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0-dev.363+20261107.dbad5ff"
+version = "0.1.0-dev.364+20261107.86299ee"
 edition = "2021"
 authors = ["Lumen Pink <hi@lumen.pink>"]
 license = "GPL-3.0-or-later"
@@ -33,4 +29,3 @@ lto = "fat"
 codegen-units = 1
 panic = "abort"
 strip = true
-
