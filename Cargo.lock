@@ -953,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-cli"
-version = "0.1.0-dev.362+20261107.86299ee"
+version = "0.1.0-dev.366+20261107.93cd606"
 dependencies = [
  "mandu-core",
  "tempfile",
@@ -961,7 +961,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-core"
-version = "0.1.0-dev.362+20261107.86299ee"
+version = "0.1.0-dev.366+20261107.93cd606"
 dependencies = [
  "blake3",
  "chrono",
@@ -982,7 +982,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-tui"
-version = "0.1.0-dev.362+20261107.86299ee"
+version = "0.1.0-dev.366+20261107.93cd606"
 dependencies = [
  "anyhow",
  "chrono",

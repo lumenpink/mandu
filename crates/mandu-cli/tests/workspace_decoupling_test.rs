@@ -52,5 +52,8 @@ fn test_mutation_rejection_of_readded_detached_crates() {
         || dummy_mutated_content.contains("\"crates/mandu-server\"")
         || dummy_mutated_content.contains("\"crates/mandu-web\"");
 
-    assert!(has_detached, "Mutação simulada com mandu-gui deve ser detectada");
+    assert!(
+        has_detached,
+        "Mutação simulada com mandu-gui deve ser detectada"
+    );
 }
