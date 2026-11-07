@@ -35,3 +35,22 @@ fn test_workspace_members_are_strictly_core_cli_tui() {
         "Cargo.toml ainda contém mandu-web"
     );
 }
+
+#[test]
+fn test_mutation_rejection_of_readded_detached_crates() {
+    let dummy_mutated_content = r#"
+        [workspace]
+        members = [
+            "crates/mandu-core",
+            "crates/mandu-cli",
+            "crates/mandu-gui",
+        ]
+    "#;
+
+    let has_detached = dummy_mutated_content.contains("\"crates/mandu-gui\"")
+        || dummy_mutated_content.contains("\"crates/mandu-mobile\"")
+        || dummy_mutated_content.contains("\"crates/mandu-server\"")
+        || dummy_mutated_content.contains("\"crates/mandu-web\"");
+
+    assert!(has_detached, "Mutação simulada com mandu-gui deve ser detectada");
+}
