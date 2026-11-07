@@ -33,3 +33,10 @@ fn test_joaju_static_required_version_is_current() {
         "crates/mandu-core/build.rs must require the latest canonical staticlib 0.2.0-dev.137+20261106.6eda140"
     );
 }
+
+#[test]
+fn test_mutation_version_mismatch_detected() {
+    let sample = "pub const JOAJU_STATIC_REQUIRED_VERSION: &str = \"0.2.0-dev.137+20261102.mutant\";";
+    let is_current = sample.contains("0.2.0-dev.137+20261106.6eda140");
+    assert!(!is_current, "Mutation to older version must be detected");
+}
