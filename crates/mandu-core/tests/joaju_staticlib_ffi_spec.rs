@@ -22,3 +22,14 @@ fn test_joaju_ffi_pdf_compilation() {
         .expect("pdf compilation must succeed via staticlib FFI");
     assert!(pdf_bytes.starts_with(b"%PDF"));
 }
+
+#[test]
+fn test_joaju_static_required_version_is_current() {
+    let build_rs = std::fs::read_to_string("crates/mandu-core/build.rs")
+        .or_else(|_| std::fs::read_to_string("build.rs"))
+        .expect("build.rs must exist");
+    assert!(
+        build_rs.contains("pub const JOAJU_STATIC_REQUIRED_VERSION: &str = \"0.2.0-dev.137+20261106.6eda140\";"),
+        "crates/mandu-core/build.rs must require the latest canonical staticlib 0.2.0-dev.137+20261106.6eda140"
+    );
+}
