@@ -15,6 +15,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  RUSTC_WRAPPER: ""
+  CARGO_INCREMENTAL: "0"
+
 jobs:
   test:
     name: "Checks, Tests & Quality Gates"
