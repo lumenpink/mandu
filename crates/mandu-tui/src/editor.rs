@@ -160,8 +160,14 @@ impl Editor<'_> {
             return true;
         }
 
-        let left = current_line[..col].to_string();
-        let right = current_line[col..].to_string();
+        let byte_col = current_line
+            .char_indices()
+            .nth(col)
+            .map(|(b, _)| b)
+            .unwrap_or(current_line.len());
+
+        let left = current_line[..byte_col].to_string();
+        let right = current_line[byte_col..].to_string();
 
         let (new_prefix, next_num_opt) = match prefix_info.kind {
             ListKind::Unordered(b) => (format!("{}{b} ", prefix_info.indent), None),

@@ -127,3 +127,63 @@ fn test_smart_list_continuation_ordered_and_renumbering() {
         "Antigo item 3 deve ser renumerado para '4. Terceiro'"
     );
 }
+
+#[test]
+fn test_mutation_checklist_continuation() {
+    let mut app = TuiApp::new(None);
+    app.editor = mandu_tui::editor::Editor::from_text("- [x] Tarefa concluída");
+    app.editor
+        .textarea
+        .move_cursor(ratatui_textarea::CursorMove::End);
+
+    // Enter deve gerar nova checkbox desmarcada "- [ ] "
+    app.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+    let lines = app.editor.textarea.lines();
+    assert_eq!(lines.len(), 2);
+    assert_eq!(lines[1], "- [ ] ");
+}
+
+#[test]
+fn test_mutation_nested_indented_list() {
+    let mut app = TuiApp::new(None);
+    app.editor = mandu_tui::editor::Editor::from_text("    - Subitem identado");
+    app.editor
+        .textarea
+        .move_cursor(ratatui_textarea::CursorMove::End);
+
+    app.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+    let lines = app.editor.textarea.lines();
+    assert_eq!(lines.len(), 2);
+    assert_eq!(lines[1], "    - ");
+}
+
+#[test]
+fn test_mutation_inline_bold_italic_combined() {
+    let spans = parse_inline_spans("***texto forte e itálico***");
+    let has_both = spans.iter().any(|s| {
+        s.content == "texto forte e itálico"
+            && s.style.add_modifier.contains(Modifier::BOLD)
+            && s.style.add_modifier.contains(Modifier::ITALIC)
+    });
+    assert!(
+        has_both,
+        "Deveria combinar Modifier::BOLD e Modifier::ITALIC para ***...***"
+    );
+}
+
+#[test]
+fn test_mutation_save_as_type_replaces_suggestion() {
+    let dir = tempdir().expect("tempdir");
+    let mut app = TuiApp::new_with_vault(Some(dir.path().to_path_buf()), None);
+
+    // Abrir modal de salvar
+    app.prompt_save_as();
+    assert!(app.is_save_as_open);
+    assert_eq!(app.save_as_input, "nova_nota.md");
+    assert!(app.save_as_initial);
+
+    // Digitar 'x' deve substituir a sugestão
+    app.handle_key(KeyEvent::new(KeyCode::Char('x'), KeyModifiers::NONE));
+    assert_eq!(app.save_as_input, "x");
+    assert!(!app.save_as_initial);
+}
