@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Formatação inline no preview (negrito, itálico, código), salvar como com sugestão e renumeração de listas (closes #42).
+
 ### Changed
 - Consolidar binário mandu como aplicação direta de terminal e eliminar despachante (closes #41).
 
