@@ -9,7 +9,7 @@ homepage.workspace = true
 description = "Interface de Terminal (Ratatui) para o Mandu"
 
 [dependencies]
-mandu-core = { path = "../mandu-core" }
+mandu-core = { version = "0.1.0-dev.368", path = "../mandu-core" }
 ratatui = "0.30"
 crossterm = "0.29"
 ratatui-textarea = "0.9"

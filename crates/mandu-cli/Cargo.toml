@@ -10,6 +10,8 @@ description = "Despachante inteligente CLI para o ecossistema Mandu"
 
 [dependencies]
 mandu-core = { path = "../mandu-core" }
+mandu-tui = { path = "../mandu-tui" }
+anyhow = "1.0"
 
 [lib]
 name = "mandu_cli"

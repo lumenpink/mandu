@@ -155,3 +155,45 @@ pub fn resolve_and_find_binary(
         target.binary_name()
     ))
 }
+
+/// Informa se o despachante possui o motor TUI embutido diretamente in-process.
+#[must_use]
+pub fn has_embedded_tui() -> bool {
+    true
+}
+
+/// Extrai caminhos opcionais de vault e arquivo dos argumentos filtrados.
+#[must_use]
+pub fn parse_vault_and_file_args(args: &[String]) -> (Option<PathBuf>, Option<PathBuf>) {
+    let mut vault = None;
+    let mut file = None;
+    let mut skip_next = false;
+
+    for (i, arg) in args.iter().enumerate() {
+        if skip_next {
+            skip_next = false;
+            continue;
+        }
+
+        if (arg == "--vault" || arg == "-v") && i + 1 < args.len() {
+            vault = Some(PathBuf::from(&args[i + 1]));
+            skip_next = true;
+        } else if let Some(stripped) = arg.strip_prefix("--vault=") {
+            vault = Some(PathBuf::from(stripped));
+        } else if !arg.starts_with('-') && file.is_none() {
+            file = Some(PathBuf::from(arg));
+        }
+    }
+
+    (vault, file)
+}
+
+/// Executa a interface TUI diretamente no processo corrente sem necessidade de binário externo.
+///
+/// # Errors
+/// Retorna erro caso ocorra falha na inicialização do terminal ou no loop de eventos.
+pub fn run_embedded_tui(args: &[String]) -> anyhow::Result<()> {
+    let (raw_vault, raw_file) = parse_vault_and_file_args(args);
+    let (vault, file) = mandu_core::vault::resolve_vault_and_file(raw_vault, raw_file);
+    mandu_tui::run(Some(vault), file)
+}

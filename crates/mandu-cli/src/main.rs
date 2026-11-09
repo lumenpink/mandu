@@ -36,6 +36,13 @@ fn main() {
             print!("{}", mandu_core::about::format_about_text());
             return;
         }
+        mandu_cli::TargetMode::Tui => {
+            if let Err(e) = mandu_cli::run_embedded_tui(&decision.filtered_args) {
+                eprintln!("Erro ao executar TUI embutida: {e}");
+                process::exit(1);
+            }
+            return;
+        }
         _ => {}
     }
 
@@ -63,9 +70,12 @@ fn main() {
                 process::exit(status.code().unwrap_or(1));
             }
         }
-        Err(err_msg) => {
-            eprintln!("{err_msg}");
-            process::exit(127);
+        Err(_) => {
+            // Fallback para TUI embutida in-process quando mandu-gui não estiver instalado
+            if let Err(e) = mandu_cli::run_embedded_tui(&decision.filtered_args) {
+                eprintln!("Erro ao executar TUI embutida: {e}");
+                process::exit(1);
+            }
         }
     }
 }
