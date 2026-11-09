@@ -130,7 +130,10 @@ pub fn resolve_and_find_binary(
     let decision = resolve_target(args, has_wayland, has_x11);
     let target = decision.target;
 
-    if target == TargetMode::Update || target == TargetMode::CheckUpdate || target == TargetMode::Tui {
+    if target == TargetMode::Update
+        || target == TargetMode::CheckUpdate
+        || target == TargetMode::Tui
+    {
         let self_bin = current_exe_dir
             .map(|d| d.join("mandu"))
             .unwrap_or_else(|| PathBuf::from("mandu"));
