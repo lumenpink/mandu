@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Sincronizar versão estática de joaju-static para 0.2.0-dev.137+20261109.df2603d no build.rs e esteira CI (closes #44).
+
 ### Added
 - Suporte a cartões visuais de lírica e motores joaju na TUI, com integração FFI e catálogo completo de componentes (closes #43).
 - Formatação inline no preview (negrito, itálico, código), salvar como com sugestão e renumeração de listas (closes #42).
