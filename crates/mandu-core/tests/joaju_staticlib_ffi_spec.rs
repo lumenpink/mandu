@@ -85,15 +85,15 @@ fn test_joaju_static_required_version_is_current() {
         .or_else(|_| std::fs::read_to_string("build.rs"))
         .expect("build.rs must exist");
     assert!(
-        build_rs.contains("pub const JOAJU_STATIC_REQUIRED_VERSION: &str = \"0.2.0-dev.137+20261106.6eda140\";"),
-        "crates/mandu-core/build.rs must require the latest canonical staticlib 0.2.0-dev.137+20261106.6eda140"
+        build_rs.contains("pub const JOAJU_STATIC_REQUIRED_VERSION: &str = \"0.2.0-dev.137+20261109.df2603d\";"),
+        "crates/mandu-core/build.rs must require the latest canonical staticlib 0.2.0-dev.137+20261109.df2603d"
     );
 }
 
 #[test]
 fn test_mutation_version_mismatch_detected() {
     let sample =
-        "pub const JOAJU_STATIC_REQUIRED_VERSION: &str = \"0.2.0-dev.137+20261102.mutant\";";
-    let is_current = sample.contains("0.2.0-dev.137+20261106.6eda140");
+        "pub const JOAJU_STATIC_REQUIRED_VERSION: &str = \"0.2.0-dev.137+20261106.mutant\";";
+    let is_current = sample.contains("0.2.0-dev.137+20261109.df2603d");
     assert!(!is_current, "Mutation to older version must be detected");
 }
