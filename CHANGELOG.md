@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Consolidar binário mandu como aplicação direta de terminal e eliminar despachante (closes #41).
+
 ### Added
 - Suporte a TUI in-process no binário mandu e exportação da biblioteca mandu-tui (closes #40).
 
