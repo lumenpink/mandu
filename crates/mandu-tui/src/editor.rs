@@ -79,13 +79,12 @@ pub fn renumber_ordered_list_from(
     expected_indent: &str,
     mut next_seq: usize,
 ) {
-    for i in start_row..lines.len() {
-        let line = &lines[i];
+    for line in lines.iter_mut().skip(start_row) {
         if let Some(info) = parse_list_prefix(line) {
             if info.indent == expected_indent {
                 if let ListKind::Ordered(_) = info.kind {
                     let content = &line[info.marker_len..];
-                    lines[i] = format!("{}{next_seq}. {content}", info.indent);
+                    *line = format!("{}{next_seq}. {content}", info.indent);
                     next_seq += 1;
                     continue;
                 }

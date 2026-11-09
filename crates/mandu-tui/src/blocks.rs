@@ -885,40 +885,34 @@ pub fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
         }
 
         // 2. Citação acadêmica: @chave
-        if slice.starts_with('@') {
-            if i == 0
+        if slice.starts_with('@')
+            && (i == 0
                 || line[..i]
-                    .ends_with(|c: char| c.is_whitespace() || c == '(' || c == '[' || c == '{')
-            {
-                let after = &line[i..];
-                let end = after
-                    .find(|c: char| {
-                        c.is_whitespace()
-                            || c == ','
-                            || c == '.'
-                            || c == ')'
-                            || c == ']'
-                            || c == ';'
-                    })
-                    .unwrap_or(after.len());
-                if end > 1 {
-                    if i > plain_start {
-                        spans.push(Span::styled(
-                            line[plain_start..i].to_string(),
-                            Style::default().fg(Color::Rgb(220, 220, 225)),
-                        ));
-                    }
-                    let cite = &after[..end];
+                    .ends_with(|c: char| c.is_whitespace() || c == '(' || c == '[' || c == '{'))
+        {
+            let after = &line[i..];
+            let end = after
+                .find(|c: char| {
+                    c.is_whitespace() || c == ',' || c == '.' || c == ')' || c == ']' || c == ';'
+                })
+                .unwrap_or(after.len());
+            if end > 1 {
+                if i > plain_start {
                     spans.push(Span::styled(
-                        cite.to_string(),
-                        Style::default()
-                            .fg(Color::Yellow)
-                            .add_modifier(Modifier::BOLD),
+                        line[plain_start..i].to_string(),
+                        Style::default().fg(Color::Rgb(220, 220, 225)),
                     ));
-                    i += end;
-                    plain_start = i;
-                    continue;
                 }
+                let cite = &after[..end];
+                spans.push(Span::styled(
+                    cite.to_string(),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ));
+                i += end;
+                plain_start = i;
+                continue;
             }
         }
 
