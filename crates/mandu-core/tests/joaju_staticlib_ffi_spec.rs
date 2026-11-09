@@ -24,6 +24,62 @@ fn test_joaju_ffi_pdf_compilation() {
 }
 
 #[test]
+fn test_joaju_ffi_lirica_rendering() {
+    let code = "%% titulo = Teste\nMinha terra tem palmeiras";
+    let typst = mandu_core::joaju_ffi::render_lirica(code)
+        .expect("lirica rendering must succeed via staticlib FFI");
+    assert!(typst.contains("Teste"));
+}
+
+#[test]
+fn test_joaju_ffi_wireframe_rendering() {
+    let code = "[Botão]";
+    let typst = mandu_core::joaju_ffi::render_wireframe(code)
+        .expect("wireframe rendering must succeed via staticlib FFI");
+    assert!(!typst.is_empty());
+}
+
+#[test]
+fn test_joaju_ffi_sequence_rendering() {
+    let code = "Alice -> Bob: Oi";
+    let typst = mandu_core::joaju_ffi::render_sequence(code)
+        .expect("sequence rendering must succeed via staticlib FFI");
+    assert!(!typst.is_empty());
+}
+
+#[test]
+fn test_joaju_ffi_graph_rendering() {
+    let code = "graph TD\n  A --> B";
+    let typst = mandu_core::joaju_ffi::render_graph(code)
+        .expect("graph rendering must succeed via staticlib FFI");
+    assert!(!typst.is_empty());
+}
+
+#[test]
+fn test_about_text_contains_all_eleven_satellites() {
+    let about = mandu_core::about::format_about_text();
+    let expected = [
+        "joaju-pdf",
+        "joaju-chem",
+        "joaju-pedigree",
+        "joaju-table",
+        "joaju-markdown",
+        "joaju-templates",
+        "joaju-lirica",
+        "joaju-slides",
+        "joaju-wireframe",
+        "joaju-sequence",
+        "joaju-graph",
+    ];
+    for sat in expected {
+        assert!(
+            about.contains(sat),
+            "about text must mention satellite component {sat}"
+        );
+    }
+}
+
+#[test]
 fn test_joaju_static_required_version_is_current() {
     let build_rs = std::fs::read_to_string("crates/mandu-core/build.rs")
         .or_else(|_| std::fs::read_to_string("build.rs"))
