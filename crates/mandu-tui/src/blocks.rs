@@ -1430,7 +1430,8 @@ pub fn render_markdown_lines(
         let trimmed = line.trim_start();
         if trimmed.starts_with("```") {
             ordered_list_counter = 0;
-            let engine = trimmed.trim_start_matches('`').trim();
+            let engine_raw = trimmed.trim_start_matches('`').trim();
+            let engine_norm = engine_raw.to_lowercase();
             let mut code_lines = Vec::new();
             while let Some(next_line) = body_lines.peek() {
                 if next_line.trim_start().starts_with("```") {
@@ -1440,7 +1441,7 @@ pub fn render_markdown_lines(
                 code_lines.push(body_lines.next().unwrap());
             }
             let code = code_lines.join("\n");
-            match engine {
+            match engine_norm.as_str() {
                 "unfurl" | "link" => {
                     let mut parts = code.split('|').map(str::trim);
                     let url = parts.next().unwrap_or("https://mandu.2lp.in");
@@ -1473,7 +1474,11 @@ pub fn render_markdown_lines(
                     lines.extend(render_graph_card(&code, card_width));
                 }
                 _ => {
-                    let label = if engine.is_empty() { "código" } else { engine };
+                    let label = if engine_raw.is_empty() {
+                        "código"
+                    } else {
+                        engine_raw
+                    };
                     lines.extend(render_code_box(label, &code, card_width));
                 }
             }

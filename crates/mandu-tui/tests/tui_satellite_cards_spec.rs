@@ -134,3 +134,30 @@ A --> B
     assert!(all_text.contains("Sequência"));
     assert!(all_text.contains("Grafo") || all_text.contains("Fluxograma"));
 }
+
+#[test]
+fn test_mutation_empty_and_narrow_satellite_cards() {
+    // 1. Largura estreita (deve clampar para 20 sem pânico)
+    let lines = render_lirica_card("Amor é fogo", 10);
+    assert!(!lines.is_empty());
+    for line in &lines {
+        let plain: String = line.spans.iter().map(|s| s.content.as_ref()).collect();
+        assert_eq!(UnicodeWidthStr::width(plain.as_str()), 20);
+    }
+
+    // 2. Blocos vazios
+    assert!(!render_chem_card("", 30).is_empty());
+    assert!(!render_wireframe_card("", 30).is_empty());
+    assert!(!render_sequence_card("", 30).is_empty());
+    assert!(!render_graph_card("", 30).is_empty());
+
+    // 3. Roteamento case-insensitive (MAIÚSCULAS)
+    let md = "```POEMA\nUm verso solitário\n```";
+    let lines_upper = render_markdown_lines(md, false, None, 40);
+    let all_text: String = lines_upper
+        .iter()
+        .flat_map(|l| l.spans.iter().map(|s| s.content.as_ref()))
+        .collect::<Vec<_>>()
+        .join(" ");
+    assert!(all_text.contains("Lírica"));
+}
