@@ -1,4 +1,4 @@
-//! Entrypoint binário do despachante unificado mandu.
+//! Entrypoint binário da aplicação de terminal mandu.
 
 use mandu_core::config::ManduConfig;
 use mandu_core::updater::{
@@ -6,8 +6,6 @@ use mandu_core::updater::{
     semver_is_newer,
 };
 use std::env;
-#[cfg(unix)]
-use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{self, Command};
 
@@ -26,54 +24,20 @@ fn main() {
     match decision.target {
         mandu_cli::TargetMode::CheckUpdate => {
             run_check_update(&decision.filtered_args);
-            return;
         }
         mandu_cli::TargetMode::Update => {
             run_update(&decision.filtered_args);
-            return;
         }
         mandu_cli::TargetMode::VersionAll => {
             print!("{}", mandu_core::about::format_about_text());
-            return;
         }
-        mandu_cli::TargetMode::Tui => {
+        mandu_cli::TargetMode::GuiHint => {
+            eprintln!("Aviso: O comando 'mandu' é a interface oficial de terminal (TUI).");
+            eprintln!("Para executar a interface gráfica desktop, instale e utilize o comando 'mandu-desktop'.");
+        }
+        mandu_cli::TargetMode::Tui | mandu_cli::TargetMode::Gui => {
             if let Err(e) = mandu_cli::run_embedded_tui(&decision.filtered_args) {
-                eprintln!("Erro ao executar TUI embutida: {e}");
-                process::exit(1);
-            }
-            return;
-        }
-        _ => {}
-    }
-
-    let current_exe_dir = env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(|p| p.to_path_buf()));
-
-    match mandu_cli::resolve_and_find_binary(&args, current_exe_dir.as_deref()) {
-        Ok((bin_path, target_args)) => {
-            #[cfg(unix)]
-            {
-                let err = Command::new(&bin_path).args(&target_args).exec();
-                eprintln!("Erro ao substituir imagem de processo ({bin_path:?}): {err}");
-                process::exit(1);
-            }
-            #[cfg(not(unix))]
-            {
-                let status = Command::new(&bin_path)
-                    .args(&target_args)
-                    .status()
-                    .unwrap_or_else(|e| {
-                        eprintln!("Erro ao executar processo ({bin_path:?}): {e}");
-                        process::exit(1);
-                    });
-                process::exit(status.code().unwrap_or(1));
-            }
-        }
-        Err(_) => {
-            // Fallback para TUI embutida in-process quando mandu-gui não estiver instalado
-            if let Err(e) = mandu_cli::run_embedded_tui(&decision.filtered_args) {
-                eprintln!("Erro ao executar TUI embutida: {e}");
+                eprintln!("Erro ao executar TUI: {e}");
                 process::exit(1);
             }
         }
@@ -81,21 +45,21 @@ fn main() {
 }
 
 fn print_help() {
-    println!("Mandu - Despachante Unificado");
-    println!("Uso: mandu [--tui | --gui] [ARQUIVO] [--vault CAMINHO]");
+    println!("Mandu - Editor e Gerenciador de Notas para Terminal");
+    println!("Uso: mandu [ARQUIVO] [--vault CAMINHO]");
     println!("     mandu update [--channel stable|nightly] [--pin VERSÃO] [--unpin]");
     println!("     mandu check-update [--channel stable|nightly]");
     println!("     mandu --version --all");
     println!();
-    println!("Opções do despachante:");
-    println!("  --tui         Força a interface de terminal (mandu-tui)");
-    println!("  --gui         Força a interface gráfica (mandu-gui)");
+    println!("Opções:");
+    println!("  --tui           Executa a interface de terminal (padrão)");
+    println!("  --gui           Informa sobre a interface gráfica 'mandu-desktop'");
     println!("  --version --all Exibe árvore de versões dos motores e bibliotecas embutidas");
-    println!("  -h, --help    Exibe esta ajuda");
+    println!("  -h, --help      Exibe esta ajuda");
     println!();
     println!("Comandos de distribuição na Banca:");
-    println!("  check-update  Verifica a disponibilidade de novas versões remotas");
-    println!("  update        Atualiza atomicamente todos os binários instalados do Mandu");
+    println!("  check-update    Verifica a disponibilidade de novas versões remotas");
+    println!("  update          Atualiza atomicamente todos os binários instalados do Mandu");
 }
 
 fn parse_channel_arg(args: &[String]) -> Option<&str> {

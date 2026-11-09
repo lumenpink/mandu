@@ -149,12 +149,9 @@ jobs:
           FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
         run: |
           export RUSTFLAGS="-C target-feature=+crt-static -C link-arg=-Wl,--allow-multiple-definition"
-          echo "★ Compilando ${{ matrix.target }} (${{ matrix.arch }}) em sequência..."
-          for pkg in mandu-cli mandu-tui; do
-            echo "  -> Compilando $pkg..."
-            cargo zigbuild --release --target ${{ matrix.target }} -p "$pkg" || \
-              cargo build --release --target ${{ matrix.target }} -p "$pkg"
-          done
+          echo "★ Compilando ${{ matrix.target }} (${{ matrix.arch }})..."
+          cargo zigbuild --release --target ${{ matrix.target }} -p mandu-cli || \
+            cargo build --release --target ${{ matrix.target }} -p mandu-cli
 
       - name: "Package Artifacts & Generate Checksums"
         run: |
@@ -167,16 +164,16 @@ jobs:
           if [ "$ARCH" = "windows-amd64" ]; then
             cd "target/${TARGET}/release"
             zip -j "$GITHUB_WORKSPACE/dist/packages/mandu-${VERSION}-${ARCH}.zip" \
-              mandu.exe mandu-tui.exe "$GITHUB_WORKSPACE/README.md" "$GITHUB_WORKSPACE/LICENSE" 2>/dev/null || \
+              mandu.exe "$GITHUB_WORKSPACE/README.md" "$GITHUB_WORKSPACE/LICENSE" 2>/dev/null || \
             zip -j "$GITHUB_WORKSPACE/dist/packages/mandu-${VERSION}-${ARCH}.zip" \
-              mandu.exe mandu-tui.exe
+              mandu.exe
             cd "$GITHUB_WORKSPACE"
           else
             tar -czf "dist/packages/mandu-${VERSION}-${ARCH}.tar.gz" \
-              -C "target/${TARGET}/release" mandu mandu-tui \
+              -C "target/${TARGET}/release" mandu \
               -C "$PWD" README.md LICENSE 2>/dev/null || \
             tar -czf "dist/packages/mandu-${VERSION}-${ARCH}.tar.gz" \
-              -C "target/${TARGET}/release" mandu mandu-tui
+              -C "target/${TARGET}/release" mandu
           fi
 
           cd dist/packages

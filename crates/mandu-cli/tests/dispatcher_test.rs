@@ -14,14 +14,14 @@ fn test_dispatcher_override_flags() {
     assert_eq!(decision.target, TargetMode::Tui);
     assert_eq!(decision.filtered_args, vec!["nota.md"]);
 
-    // Flag --gui força Gui mesmo em ambiente sem display
+    // Flag --gui força GuiHint informando sobre mandu-desktop
     let args_gui = vec![
         "mandu".to_string(),
         "--gui".to_string(),
         "tese.md".to_string(),
     ];
     let decision_gui = resolve_target(&args_gui, false, false);
-    assert_eq!(decision_gui.target, TargetMode::Gui);
+    assert_eq!(decision_gui.target, TargetMode::GuiHint);
     assert_eq!(decision_gui.filtered_args, vec!["tese.md"]);
 }
 
@@ -34,27 +34,27 @@ fn test_dispatcher_environment_detection() {
     assert_eq!(decision_no_display.target, TargetMode::Tui);
     assert_eq!(decision_no_display.filtered_args, vec!["nota.md"]);
 
-    // Com Wayland -> Gui
+    // Com Wayland -> Tui (o binário mandu é aplicação de terminal)
     let decision_wayland = resolve_target(&args, true, false);
-    assert_eq!(decision_wayland.target, TargetMode::Gui);
+    assert_eq!(decision_wayland.target, TargetMode::Tui);
 
-    // Com X11 -> Gui
+    // Com X11 -> Tui (o binário mandu é aplicação de terminal)
     let decision_x11 = resolve_target(&args, false, true);
-    assert_eq!(decision_x11.target, TargetMode::Gui);
+    assert_eq!(decision_x11.target, TargetMode::Tui);
 }
 
 #[test]
 fn test_dispatcher_binary_discovery_and_fallback() {
     let dir = tempdir().expect("tempdir");
-    let tui_path = dir.path().join("mandu-tui");
-    File::create(&tui_path).expect("create dummy mandu-tui");
+    let mandu_path = dir.path().join("mandu");
+    File::create(&mandu_path).expect("create dummy mandu");
 
-    // Localizar mandu-tui no diretório local
+    // Localizar mandu no diretório local
     let found_tui = find_binary(TargetMode::Tui, Some(dir.path()), None);
     assert!(found_tui.is_some());
-    assert_eq!(found_tui.unwrap(), tui_path);
+    assert_eq!(found_tui.unwrap(), mandu_path);
 
-    // mandu-gui não existe no dir, deve retornar None
+    // mandu-desktop não existe no dir, deve retornar None
     let found_gui = find_binary(TargetMode::Gui, Some(dir.path()), None);
     assert!(found_gui.is_none());
 }
@@ -100,8 +100,8 @@ fn test_mutation_dispatcher_empty_args_and_flag_positions() {
 #[test]
 fn test_mutation_dispatcher_path_and_fallback_resolution() {
     let dir = tempdir().expect("tempdir");
-    let tui_path = dir.path().join("mandu-tui");
-    File::create(&tui_path).expect("create dummy mandu-tui");
+    let mandu_path = dir.path().join("mandu");
+    File::create(&mandu_path).expect("create dummy mandu");
 
     // Simular que PATH aponta para o diretório temporário
     let path_str = dir.path().to_string_lossy().to_string();
@@ -109,15 +109,14 @@ fn test_mutation_dispatcher_path_and_fallback_resolution() {
     // Procurar com current_exe_dir = None e PATH informado
     let found_via_path = find_binary(TargetMode::Tui, None, Some(&path_str));
     assert!(found_via_path.is_some());
-    assert_eq!(found_via_path.unwrap(), tui_path);
+    assert_eq!(found_via_path.unwrap(), mandu_path);
 
-    // Fallback completo: se chamamos em ambiente gráfico onde mandu-gui não existe,
-    // o fallback automático para mandu-tui deve encontrar mandu-tui
+    // Fallback completo: em qualquer chamada, mandu resolve para o binário mandu
     let args = vec!["mandu".to_string(), "documento.md".to_string()];
     let res = mandu_cli::resolve_and_find_binary(&args, Some(dir.path()));
     assert!(res.is_ok());
     let (found_bin, filtered) = res.unwrap();
-    assert_eq!(found_bin, tui_path);
+    assert_eq!(found_bin, mandu_path);
     assert_eq!(filtered, vec!["documento.md"]);
 }
 
