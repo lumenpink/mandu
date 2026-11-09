@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Suporte a TUI in-process no binário mandu e exportação da biblioteca mandu-tui (closes #40).
+
 ### Fixed
 - Correção de formatação rustfmt em shortcuts do modal de ajuda na TUI (closes #33).
 - Persistir automaticamente nova_nota.md ao abrir pasta contendo indice.md (closes #17).
