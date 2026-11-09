@@ -845,26 +845,32 @@ pub fn render_typst_preview(code: &str, width: usize) -> Vec<Line<'static>> {
     lines
 }
 
-/// Analisa spans inline em Markdown reconhecendo wikilinks [[...]] e tags @citação
+/// Analisa spans inline em Markdown reconhecendo formatação (**negrito**, *itálico*, código), wikilinks [[...]] e tags @citação
 #[must_use]
 pub fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
     let mut spans = Vec::new();
-    let mut rest = line;
+    let mut i = 0;
+    let bytes = line.as_bytes();
+    let len = bytes.len();
+    let mut plain_start = 0;
 
-    while !rest.is_empty() {
-        if let Some(start) = rest.find("[[") {
-            if let Some(end) = rest[start..].find("]]") {
-                if start > 0 {
+    while i < len {
+        let slice = &line[i..];
+
+        // 1. Wikilinks [[alvo|título]] ou [[alvo]]
+        if slice.starts_with("[[") {
+            if let Some(end) = line[i + 2..].find("]]") {
+                if i > plain_start {
                     spans.push(Span::styled(
-                        rest[..start].to_string(),
+                        line[plain_start..i].to_string(),
                         Style::default().fg(Color::Rgb(220, 220, 225)),
                     ));
                 }
-                let link_text = &rest[start..start + end + 2];
-                let display = if let Some(pipe) = link_text.find('|') {
-                    format!("🔗 {}", link_text[pipe + 1..link_text.len() - 2].trim())
+                let link_content = &line[i + 2..i + 2 + end];
+                let display = if let Some(pipe) = link_content.find('|') {
+                    format!("🔗 {}", link_content[pipe + 1..].trim())
                 } else {
-                    format!("🔗 {}", link_text[2..link_text.len() - 2].trim())
+                    format!("🔗 {}", link_content.trim())
                 };
                 spans.push(Span::styled(
                     display,
@@ -872,23 +878,19 @@ pub fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::UNDERLINED),
                 ));
-                rest = &rest[start + end + 2..];
+                i += 2 + end + 2;
+                plain_start = i;
                 continue;
             }
         }
 
-        if let Some(start) = rest.find('@') {
-            if start == 0
-                || rest[..start]
+        // 2. Citação acadêmica: @chave
+        if slice.starts_with('@') {
+            if i == 0
+                || line[..i]
                     .ends_with(|c: char| c.is_whitespace() || c == '(' || c == '[' || c == '{')
             {
-                if start > 0 {
-                    spans.push(Span::styled(
-                        rest[..start].to_string(),
-                        Style::default().fg(Color::Rgb(220, 220, 225)),
-                    ));
-                }
-                let after = &rest[start..];
+                let after = &line[i..];
                 let end = after
                     .find(|c: char| {
                         c.is_whitespace()
@@ -899,23 +901,197 @@ pub fn parse_inline_spans(line: &str) -> Vec<Span<'static>> {
                             || c == ';'
                     })
                     .unwrap_or(after.len());
-                let cite = &after[..end];
-                spans.push(Span::styled(
-                    cite.to_string(),
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                ));
-                rest = &after[end..];
-                continue;
+                if end > 1 {
+                    if i > plain_start {
+                        spans.push(Span::styled(
+                            line[plain_start..i].to_string(),
+                            Style::default().fg(Color::Rgb(220, 220, 225)),
+                        ));
+                    }
+                    let cite = &after[..end];
+                    spans.push(Span::styled(
+                        cite.to_string(),
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD),
+                    ));
+                    i += end;
+                    plain_start = i;
+                    continue;
+                }
             }
         }
 
+        // 3. Negrito e Itálico combinados: ***texto*** ou ___texto___
+        if slice.starts_with("***") {
+            if let Some(end) = line[i + 3..].find("***") {
+                if end > 0 {
+                    if i > plain_start {
+                        spans.push(Span::styled(
+                            line[plain_start..i].to_string(),
+                            Style::default().fg(Color::Rgb(220, 220, 225)),
+                        ));
+                    }
+                    let inner = &line[i + 3..i + 3 + end];
+                    spans.push(Span::styled(
+                        inner.to_string(),
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD | Modifier::ITALIC),
+                    ));
+                    i += 3 + end + 3;
+                    plain_start = i;
+                    continue;
+                }
+            }
+        } else if slice.starts_with("___") {
+            if let Some(end) = line[i + 3..].find("___") {
+                if end > 0 {
+                    if i > plain_start {
+                        spans.push(Span::styled(
+                            line[plain_start..i].to_string(),
+                            Style::default().fg(Color::Rgb(220, 220, 225)),
+                        ));
+                    }
+                    let inner = &line[i + 3..i + 3 + end];
+                    spans.push(Span::styled(
+                        inner.to_string(),
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD | Modifier::ITALIC),
+                    ));
+                    i += 3 + end + 3;
+                    plain_start = i;
+                    continue;
+                }
+            }
+        }
+
+        // 4. Negrito: **texto** ou __texto__
+        if slice.starts_with("**") {
+            if let Some(end) = line[i + 2..].find("**") {
+                if end > 0 {
+                    if i > plain_start {
+                        spans.push(Span::styled(
+                            line[plain_start..i].to_string(),
+                            Style::default().fg(Color::Rgb(220, 220, 225)),
+                        ));
+                    }
+                    let inner = &line[i + 2..i + 2 + end];
+                    spans.push(Span::styled(
+                        inner.to_string(),
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD),
+                    ));
+                    i += 2 + end + 2;
+                    plain_start = i;
+                    continue;
+                }
+            }
+        } else if slice.starts_with("__") {
+            if let Some(end) = line[i + 2..].find("__") {
+                if end > 0 {
+                    if i > plain_start {
+                        spans.push(Span::styled(
+                            line[plain_start..i].to_string(),
+                            Style::default().fg(Color::Rgb(220, 220, 225)),
+                        ));
+                    }
+                    let inner = &line[i + 2..i + 2 + end];
+                    spans.push(Span::styled(
+                        inner.to_string(),
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD),
+                    ));
+                    i += 2 + end + 2;
+                    plain_start = i;
+                    continue;
+                }
+            }
+        }
+
+        // 5. Código inline: `código`
+        if slice.starts_with('`') {
+            if let Some(end) = line[i + 1..].find('`') {
+                if end > 0 {
+                    if i > plain_start {
+                        spans.push(Span::styled(
+                            line[plain_start..i].to_string(),
+                            Style::default().fg(Color::Rgb(220, 220, 225)),
+                        ));
+                    }
+                    let inner = &line[i + 1..i + 1 + end];
+                    spans.push(Span::styled(
+                        inner.to_string(),
+                        Style::default().fg(Color::Rgb(160, 220, 255)),
+                    ));
+                    i += 1 + end + 1;
+                    plain_start = i;
+                    continue;
+                }
+            }
+        }
+
+        // 6. Itálico: *texto* ou _texto_
+        if slice.starts_with('*') {
+            if let Some(end) = line[i + 1..].find('*') {
+                if end > 0 && !line[i + 1..i + 1 + end].starts_with('*') {
+                    if i > plain_start {
+                        spans.push(Span::styled(
+                            line[plain_start..i].to_string(),
+                            Style::default().fg(Color::Rgb(220, 220, 225)),
+                        ));
+                    }
+                    let inner = &line[i + 1..i + 1 + end];
+                    spans.push(Span::styled(
+                        inner.to_string(),
+                        Style::default()
+                            .fg(Color::Rgb(220, 220, 225))
+                            .add_modifier(Modifier::ITALIC),
+                    ));
+                    i += 1 + end + 1;
+                    plain_start = i;
+                    continue;
+                }
+            }
+        } else if slice.starts_with('_') {
+            let is_boundary = i == 0
+                || line[..i].ends_with(|c: char| c.is_whitespace() || c.is_ascii_punctuation());
+            if is_boundary {
+                if let Some(end) = line[i + 1..].find('_') {
+                    if end > 0 && !line[i + 1..i + 1 + end].starts_with('_') {
+                        if i > plain_start {
+                            spans.push(Span::styled(
+                                line[plain_start..i].to_string(),
+                                Style::default().fg(Color::Rgb(220, 220, 225)),
+                            ));
+                        }
+                        let inner = &line[i + 1..i + 1 + end];
+                        spans.push(Span::styled(
+                            inner.to_string(),
+                            Style::default()
+                                .fg(Color::Rgb(220, 220, 225))
+                                .add_modifier(Modifier::ITALIC),
+                        ));
+                        i += 1 + end + 1;
+                        plain_start = i;
+                        continue;
+                    }
+                }
+            }
+        }
+
+        let c = line[i..].chars().next().unwrap_or(' ');
+        i += c.len_utf8();
+    }
+
+    if plain_start < len {
         spans.push(Span::styled(
-            rest.to_string(),
+            line[plain_start..].to_string(),
             Style::default().fg(Color::Rgb(220, 220, 225)),
         ));
-        break;
     }
 
     if spans.is_empty() {

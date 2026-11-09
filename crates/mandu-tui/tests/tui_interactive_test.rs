@@ -24,8 +24,10 @@ fn test_tui_interactive_saving_with_linter() {
     assert!(app.is_dirty);
     assert!(app.status_text().contains("[●]"));
 
-    // Salvar com Ctrl+S
+    // Salvar com Ctrl+S (abre diálogo com sugestão) e confirmar com Enter
     app.handle_key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL));
+    assert!(app.is_save_as_open);
+    app.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
     assert!(!app.is_dirty);
     assert!(!app.status_text().contains("[●]"));
 

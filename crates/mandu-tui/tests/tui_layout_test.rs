@@ -103,8 +103,10 @@ fn test_tui_ctrl_shortcuts_and_no_fkeys() {
     app.handle_key(KeyEvent::new(KeyCode::Char('o'), KeyModifiers::CONTROL));
     assert!(app.is_search_open);
 
-    // Ctrl+S: Save
+    // Ctrl+S: Save (abre modal de confirmação) e Enter confirma
     app.handle_key(KeyEvent::new(KeyCode::Char('s'), KeyModifiers::CONTROL));
+    assert!(app.is_save_as_open);
+    app.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
     assert_eq!(
         app.status_message.as_deref(),
         Some("Nota salva com sucesso")

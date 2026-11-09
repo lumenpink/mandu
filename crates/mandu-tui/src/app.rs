@@ -45,6 +45,7 @@ pub struct TuiApp<'a> {
     pub is_help_open: bool,
     pub is_save_as_open: bool,
     pub save_as_input: String,
+    pub save_as_initial: bool,
     pub is_about_open: bool,
 }
 
@@ -130,6 +131,7 @@ impl TuiApp<'_> {
             is_help_open: false,
             is_save_as_open: false,
             save_as_input: String::new(),
+            save_as_initial: false,
             is_about_open: false,
         }
     }
@@ -186,6 +188,8 @@ impl TuiApp<'_> {
                 }
                 self.is_dirty = false;
                 self.status_message = Some("Nota salva com sucesso".to_string());
+                self.autosave_feedback_until =
+                    Some(std::time::Instant::now() + std::time::Duration::from_millis(2500));
             } else {
                 self.status_message = Some("Erro ao gravar arquivo em disco".to_string());
             }
@@ -204,6 +208,8 @@ impl TuiApp<'_> {
                 self.current_file = Some(path);
                 self.is_dirty = false;
                 self.status_message = Some("Nota salva com sucesso".to_string());
+                self.autosave_feedback_until =
+                    Some(std::time::Instant::now() + std::time::Duration::from_millis(2500));
             } else {
                 self.status_message = Some("Erro ao gravar arquivo em disco".to_string());
             }
@@ -337,6 +343,36 @@ impl TuiApp<'_> {
         self.search.selected_index = 0;
     }
 
+    pub fn prompt_save_as(&mut self) {
+        let suggested_name = self
+            .current_file
+            .as_ref()
+            .and_then(|p| p.file_name())
+            .and_then(|s| s.to_str())
+            .map(ToString::to_string)
+            .unwrap_or_else(|| {
+                let text = self.editor.get_text();
+                let (meta, _) = mandu_core::vault::Vault::extract_metadata(&text);
+                if let Some(t) = meta.and_then(|m| m.title) {
+                    let clean: String = t
+                        .chars()
+                        .filter(|c| c.is_alphanumeric() || *c == '_' || *c == '-')
+                        .collect();
+                    if !clean.is_empty() {
+                        format!("{clean}.md")
+                    } else {
+                        "nova_nota.md".to_string()
+                    }
+                } else {
+                    "nova_nota.md".to_string()
+                }
+            });
+
+        self.save_as_input = suggested_name;
+        self.save_as_initial = true;
+        self.is_save_as_open = true;
+    }
+
     pub fn confirm_save_as(&mut self) {
         let raw_name = self.save_as_input.trim();
         if raw_name.is_empty() {
@@ -368,11 +404,24 @@ impl TuiApp<'_> {
             }
         }
 
+        let is_rename = self
+            .current_file
+            .as_ref()
+            .is_some_and(|p| p != &target_path);
+        let was_named = self
+            .current_file
+            .as_ref()
+            .is_some_and(|p| p.file_name().and_then(|s| s.to_str()) != Some("nova_nota.md"));
+
         self.current_file = Some(target_path.clone());
         self.save_current_note();
         self.is_save_as_open = false;
         self.save_as_input.clear();
-        self.status_message = Some(format!("Salvo como: {file_name}"));
+        if (is_rename && was_named) || (is_rename && file_name != "nova_nota.md") {
+            self.status_message = Some(format!("Salvo como: {file_name}"));
+        }
+        self.autosave_feedback_until =
+            Some(std::time::Instant::now() + std::time::Duration::from_millis(2500));
     }
 
     /// Processa eventos de teclado sem utilizar teclas de função (F1-F12)
@@ -382,10 +431,20 @@ impl TuiApp<'_> {
                 KeyCode::Esc => {
                     self.is_save_as_open = false;
                     self.save_as_input.clear();
+                    self.save_as_initial = false;
                     return true;
                 }
                 KeyCode::Backspace => {
-                    self.save_as_input.pop();
+                    if self.save_as_initial {
+                        self.save_as_input.clear();
+                        self.save_as_initial = false;
+                    } else {
+                        self.save_as_input.pop();
+                    }
+                    return true;
+                }
+                KeyCode::Left | KeyCode::Right | KeyCode::Home | KeyCode::End => {
+                    self.save_as_initial = false;
                     return true;
                 }
                 KeyCode::Enter => {
@@ -393,6 +452,10 @@ impl TuiApp<'_> {
                     return true;
                 }
                 KeyCode::Char(c) => {
+                    if self.save_as_initial {
+                        self.save_as_input.clear();
+                        self.save_as_initial = false;
+                    }
                     self.save_as_input.push(c);
                     return true;
                 }
@@ -402,16 +465,11 @@ impl TuiApp<'_> {
 
         // Atalhos globais com Control (Zero Teclas de Função)
         if key.modifiers.contains(KeyModifiers::CONTROL) {
-            if (key.modifiers.contains(KeyModifiers::SHIFT)
-                && (key.code == KeyCode::Char('s') || key.code == KeyCode::Char('S')))
-                || key.code == KeyCode::Char('S')
-            {
-                self.is_save_as_open = true;
-                self.save_as_input.clear();
-                return true;
-            }
-
             match key.code {
+                KeyCode::Char('s') | KeyCode::Char('S') => {
+                    self.prompt_save_as();
+                    return true;
+                }
                 KeyCode::Char('q') => {
                     if self.is_dirty {
                         self.save_current_note();
@@ -429,10 +487,6 @@ impl TuiApp<'_> {
                         self.search.query.clear();
                         self.update_search_results();
                     }
-                    return true;
-                }
-                KeyCode::Char('s') => {
-                    self.save_current_note();
                     return true;
                 }
                 KeyCode::Char('d') => {
@@ -590,6 +644,18 @@ impl TuiApp<'_> {
                 }
                 _ => return false,
             }
+        }
+
+        // Se a tecla for Enter e estivermos em modo de edição, tenta continuação inteligente de listas
+        if key.code == KeyCode::Enter
+            && (self.mode == ViewMode::Source || self.mode == ViewMode::Split)
+            && self.editor.handle_smart_enter()
+        {
+            self.is_dirty = true;
+            self.last_edit_time = Some(std::time::Instant::now());
+            self.autosave_feedback_until = None;
+            self.word_count = self.editor.get_text().split_whitespace().count();
+            return true;
         }
 
         // Teclas normais de edição no editor
