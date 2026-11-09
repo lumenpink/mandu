@@ -2,7 +2,7 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 
-pub const JOAJU_STATIC_REQUIRED_VERSION: &str = "0.2.0-dev.137+20261106.6eda140";
+pub const JOAJU_STATIC_REQUIRED_VERSION: &str = "0.2.0-dev.137+20261109.df2603d";
 pub const JOAJU_STATIC_FALLBACK_VERSION: &str = "0.2.0-dev.137";
 
 fn main() {

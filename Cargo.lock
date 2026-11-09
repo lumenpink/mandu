@@ -953,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-cli"
-version = "0.1.0-dev.395+20261109.1e31662"
+version = "0.1.0-dev.396+20261109.9ad26d1"
 dependencies = [
  "anyhow",
  "mandu-core",
@@ -963,7 +963,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-core"
-version = "0.1.0-dev.395+20261109.1e31662"
+version = "0.1.0-dev.396+20261109.9ad26d1"
 dependencies = [
  "blake3",
  "chrono",
@@ -984,7 +984,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-tui"
-version = "0.1.0-dev.395+20261109.1e31662"
+version = "0.1.0-dev.396+20261109.9ad26d1"
 dependencies = [
  "anyhow",
  "chrono",
