@@ -607,7 +607,9 @@ pub fn render_chem_card(raw_body: &str, width: usize) -> Vec<Line<'static>> {
             "│ ",
             vec![Span::styled(
                 trunc,
-                Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
             )],
             w,
             " │",
