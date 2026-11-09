@@ -469,6 +469,301 @@ pub fn render_code_box(engine: &str, code: &str, width: usize) -> Vec<Line<'stat
     lines
 }
 
+/// Renderiza cartão de lírica e métrica poética (Joaju Lirica).
+#[must_use]
+pub fn render_lirica_card(raw_body: &str, width: usize) -> Vec<Line<'static>> {
+    let width = width.max(20);
+    let border_style = Style::default().fg(Color::Magenta);
+    let mut lines = Vec::new();
+
+    let mut title_opt = None;
+    let mut author_opt = None;
+    let mut poem_lines = Vec::new();
+
+    for line in raw_body.lines() {
+        let trimmed = line.trim();
+        if let Some(stripped) = trimmed.strip_prefix("%%") {
+            let meta = stripped.trim();
+            if let Some((k, v)) = meta.split_once('=') {
+                let key = k.trim().to_lowercase();
+                let val = v.trim();
+                if key == "titulo" || key == "title" {
+                    title_opt = Some(val.to_string());
+                } else if key == "autor" || key == "author" {
+                    author_opt = Some(val.to_string());
+                }
+            }
+        } else if !line.is_empty() {
+            poem_lines.push(line);
+        }
+    }
+
+    let header_title = match title_opt {
+        Some(t) => format!("Lírica: {t} "),
+        None => "Lírica (Poema) ".to_string(),
+    };
+
+    lines.push(build_top_border(
+        "╭",
+        vec![
+            Span::styled("─ ✒ ", border_style),
+            Span::styled(
+                header_title,
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ],
+        "╮",
+        width,
+        border_style,
+    ));
+
+    if let Some(author) = author_opt {
+        let auth_str = format!("Autor: {author}");
+        let (trunc, w) = truncate_to_width(&auth_str, width.saturating_sub(4));
+        lines.push(build_box_line(
+            "│ ",
+            vec![Span::styled(
+                trunc,
+                Style::default()
+                    .fg(Color::DarkGray)
+                    .add_modifier(Modifier::ITALIC),
+            )],
+            w,
+            " │",
+            width,
+            border_style,
+        ));
+    }
+
+    let inner_width = width.saturating_sub(4);
+    for verse in poem_lines.iter().take(12) {
+        let (trunc, w) = truncate_to_width(verse, inner_width);
+        lines.push(build_box_line(
+            "│ ",
+            vec![Span::styled(trunc, Style::default().fg(Color::White))],
+            w,
+            " │",
+            width,
+            border_style,
+        ));
+    }
+
+    let total_v = poem_lines.len();
+    let footer_text = format!("Total: {total_v} verso(s)");
+    let (f_trunc, f_w) = truncate_to_width(&footer_text, inner_width);
+    lines.push(build_box_line(
+        "│ ",
+        vec![Span::styled(
+            f_trunc,
+            Style::default()
+                .fg(Color::Magenta)
+                .add_modifier(Modifier::BOLD),
+        )],
+        f_w,
+        " │",
+        width,
+        border_style,
+    ));
+
+    let bottom_rem = width.saturating_sub(2);
+    lines.push(Line::from(vec![
+        Span::styled("╰", border_style),
+        Span::styled("─".repeat(bottom_rem), border_style),
+        Span::styled("╯", border_style),
+    ]));
+
+    lines
+}
+
+/// Renderiza cartão de química e SMILES molecular (Joaju Chem).
+#[must_use]
+pub fn render_chem_card(raw_body: &str, width: usize) -> Vec<Line<'static>> {
+    let width = width.max(20);
+    let border_style = Style::default().fg(Color::Green);
+    let mut lines = Vec::new();
+
+    lines.push(build_top_border(
+        "╭",
+        vec![
+            Span::styled("─ 🧪 ", border_style),
+            Span::styled(
+                "Química (SMILES) ",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ],
+        "╮",
+        width,
+        border_style,
+    ));
+
+    let inner_width = width.saturating_sub(4);
+    for line in raw_body.lines().filter(|l| !l.trim().is_empty()).take(10) {
+        let (trunc, w) = truncate_to_width(line, inner_width);
+        lines.push(build_box_line(
+            "│ ",
+            vec![Span::styled(
+                trunc,
+                Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            )],
+            w,
+            " │",
+            width,
+            border_style,
+        ));
+    }
+
+    let bottom_rem = width.saturating_sub(2);
+    lines.push(Line::from(vec![
+        Span::styled("╰", border_style),
+        Span::styled("─".repeat(bottom_rem), border_style),
+        Span::styled("╯", border_style),
+    ]));
+
+    lines
+}
+
+/// Renderiza cartão de protótipo de interface salt (Joaju Wireframe).
+#[must_use]
+pub fn render_wireframe_card(raw_body: &str, width: usize) -> Vec<Line<'static>> {
+    let width = width.max(20);
+    let border_style = Style::default().fg(Color::Yellow);
+    let mut lines = Vec::new();
+
+    lines.push(build_top_border(
+        "╭",
+        vec![
+            Span::styled("─ 📐 ", border_style),
+            Span::styled(
+                "Wireframe (UI) ",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ],
+        "╮",
+        width,
+        border_style,
+    ));
+
+    let inner_width = width.saturating_sub(4);
+    for line in raw_body.lines().take(12) {
+        let (trunc, w) = truncate_to_width(line, inner_width);
+        lines.push(build_box_line(
+            "│ ",
+            vec![Span::styled(trunc, Style::default().fg(Color::White))],
+            w,
+            " │",
+            width,
+            border_style,
+        ));
+    }
+
+    let bottom_rem = width.saturating_sub(2);
+    lines.push(Line::from(vec![
+        Span::styled("╰", border_style),
+        Span::styled("─".repeat(bottom_rem), border_style),
+        Span::styled("╯", border_style),
+    ]));
+
+    lines
+}
+
+/// Renderiza cartão de diagrama de sequência (Joaju Sequence).
+#[must_use]
+pub fn render_sequence_card(raw_body: &str, width: usize) -> Vec<Line<'static>> {
+    let width = width.max(20);
+    let border_style = Style::default().fg(Color::Cyan);
+    let mut lines = Vec::new();
+
+    lines.push(build_top_border(
+        "╭",
+        vec![
+            Span::styled("─ ⇄ ", border_style),
+            Span::styled(
+                "Diagrama de Sequência ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ],
+        "╮",
+        width,
+        border_style,
+    ));
+
+    let inner_width = width.saturating_sub(4);
+    for line in raw_body.lines().take(12) {
+        let (trunc, w) = truncate_to_width(line, inner_width);
+        lines.push(build_box_line(
+            "│ ",
+            vec![Span::styled(trunc, Style::default().fg(Color::LightCyan))],
+            w,
+            " │",
+            width,
+            border_style,
+        ));
+    }
+
+    let bottom_rem = width.saturating_sub(2);
+    lines.push(Line::from(vec![
+        Span::styled("╰", border_style),
+        Span::styled("─".repeat(bottom_rem), border_style),
+        Span::styled("╯", border_style),
+    ]));
+
+    lines
+}
+
+/// Renderiza cartão de grafo e fluxograma (Joaju Graph).
+#[must_use]
+pub fn render_graph_card(raw_body: &str, width: usize) -> Vec<Line<'static>> {
+    let width = width.max(20);
+    let border_style = Style::default().fg(Color::Green);
+    let mut lines = Vec::new();
+
+    lines.push(build_top_border(
+        "╭",
+        vec![
+            Span::styled("─ ☊ ", border_style),
+            Span::styled(
+                "Grafo / Fluxograma ",
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ],
+        "╮",
+        width,
+        border_style,
+    ));
+
+    let inner_width = width.saturating_sub(4);
+    for line in raw_body.lines().take(12) {
+        let (trunc, w) = truncate_to_width(line, inner_width);
+        lines.push(build_box_line(
+            "│ ",
+            vec![Span::styled(trunc, Style::default().fg(Color::LightGreen))],
+            w,
+            " │",
+            width,
+            border_style,
+        ));
+    }
+
+    let bottom_rem = width.saturating_sub(2);
+    lines.push(Line::from(vec![
+        Span::styled("╰", border_style),
+        Span::styled("─".repeat(bottom_rem), border_style),
+        Span::styled("╯", border_style),
+    ]));
+
+    lines
+}
+
 /// Embeleza fórmulas matemáticas para apresentação clara no terminal.
 #[must_use]
 pub fn format_math_symbols(formula: &str) -> String {
@@ -1161,6 +1456,21 @@ pub fn render_markdown_lines(
                 }
                 "typst" | "joaju" => {
                     lines.extend(render_typst_preview(&code, card_width));
+                }
+                "lirica" | "poema" | "poesia" => {
+                    lines.extend(render_lirica_card(&code, card_width));
+                }
+                "chem" | "smiles" | "quimica" => {
+                    lines.extend(render_chem_card(&code, card_width));
+                }
+                "wireframe" | "salt" | "ui" => {
+                    lines.extend(render_wireframe_card(&code, card_width));
+                }
+                "sequence" | "sequencia" => {
+                    lines.extend(render_sequence_card(&code, card_width));
+                }
+                "graph" | "flowchart" | "grafo" | "fluxograma" => {
+                    lines.extend(render_graph_card(&code, card_width));
                 }
                 _ => {
                     let label = if engine.is_empty() { "código" } else { engine };

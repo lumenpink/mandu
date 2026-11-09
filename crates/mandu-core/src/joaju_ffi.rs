@@ -38,6 +38,30 @@ extern "C" {
         out_error: *mut *mut c_char,
     ) -> i32;
 
+    fn joaju_render_lirica(
+        code: *const c_char,
+        out_typst: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> i32;
+
+    fn joaju_render_wireframe(
+        code: *const c_char,
+        out_typst: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> i32;
+
+    fn joaju_render_sequence(
+        code: *const c_char,
+        out_typst: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> i32;
+
+    fn joaju_render_graph(
+        code: *const c_char,
+        out_typst: *mut *mut c_char,
+        out_error: *mut *mut c_char,
+    ) -> i32;
+
     fn joaju_free_bytes(ptr: *mut u8, len: usize);
     fn joaju_free_string(ptr: *mut c_char);
 }
@@ -195,6 +219,52 @@ pub fn compile_typst_to_pdf(typst_code: &str) -> Result<Vec<u8>, String> {
             s
         } else {
             "Unknown error in joaju_compile_typst_to_pdf".to_string()
+        };
+        Err(err_str)
+    }
+}
+
+/// Renders poetic scansion and poem DSL block to Typst markup.
+pub fn render_lirica(code: &str) -> Result<String, String> {
+    render_typst_single_arg(code, joaju_render_lirica, "joaju_render_lirica")
+}
+
+/// Renders wireframe/salt UI mockup DSL block to Typst markup.
+pub fn render_wireframe(code: &str) -> Result<String, String> {
+    render_typst_single_arg(code, joaju_render_wireframe, "joaju_render_wireframe")
+}
+
+/// Renders sequence diagram DSL block to Typst markup.
+pub fn render_sequence(code: &str) -> Result<String, String> {
+    render_typst_single_arg(code, joaju_render_sequence, "joaju_render_sequence")
+}
+
+/// Renders connected graph or flowchart DSL block to Typst markup.
+pub fn render_graph(code: &str) -> Result<String, String> {
+    render_typst_single_arg(code, joaju_render_graph, "joaju_render_graph")
+}
+
+fn render_typst_single_arg(
+    code: &str,
+    f: unsafe extern "C" fn(*const c_char, *mut *mut c_char, *mut *mut c_char) -> i32,
+    fn_name: &str,
+) -> Result<String, String> {
+    let c_code = CString::new(code).map_err(|e| format!("Invalid CString: {e}"))?;
+    let mut out_typst = ptr::null_mut();
+    let mut out_error = ptr::null_mut();
+
+    let rc = unsafe { f(c_code.as_ptr(), &mut out_typst, &mut out_error) };
+    if rc == 0 && !out_typst.is_null() {
+        let res = unsafe { CStr::from_ptr(out_typst).to_string_lossy().into_owned() };
+        unsafe { joaju_free_string(out_typst) };
+        Ok(res)
+    } else {
+        let err_str = if !out_error.is_null() {
+            let s = unsafe { CStr::from_ptr(out_error).to_string_lossy().into_owned() };
+            unsafe { joaju_free_string(out_error) };
+            s
+        } else {
+            format!("Unknown error in {fn_name}")
         };
         Err(err_str)
     }

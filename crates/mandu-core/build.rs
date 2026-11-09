@@ -18,6 +18,7 @@ fn main() {
             "/home/lumen/src/joaju/target/x86_64-unknown-linux-musl/release",
         ));
         local_paths.push(PathBuf::from("/home/lumen/src/joaju/target/release"));
+        local_paths.push(PathBuf::from("/home/lumen/src/joaju/target/debug"));
     }
 
     let mut found_dir = None;
