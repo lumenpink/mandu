@@ -152,3 +152,65 @@ Referência: @silva2024
         "Preview deve expurgar comentários Obsidian %%: {content_rendered}"
     );
 }
+
+#[test]
+fn test_mutation_citation_modal_query_typing_and_navigation() {
+    let tmp = TempDir::new().unwrap();
+    let vault_dir = tmp.path();
+    let note_path = vault_dir.join("sem_colecao.md");
+    fs::write(&note_path, "# Nota sem frontmatter de colecao").unwrap();
+
+    let mut app = TuiApp::new_with_vault(Some(vault_dir.to_path_buf()), Some(note_path));
+    let db = app.db.as_ref().unwrap();
+    let ref1 = ReferenceMd {
+        citekey: "silva2024".to_string(),
+        note_path: "refs/silva2024.md".to_string(),
+        doi: None,
+        title: "Fisiologia Respiratória".to_string(),
+        authors_json: Some("Silva, João".to_string()),
+        year: Some(2024),
+        csl_yaml: None,
+        collections: vec!["Tese".to_string()],
+    };
+    let ref2 = ReferenceMd {
+        citekey: "santos2023".to_string(),
+        note_path: "refs/santos2023.md".to_string(),
+        doi: None,
+        title: "Algoritmos Distribuídos".to_string(),
+        authors_json: Some("Santos, Carlos".to_string()),
+        year: Some(2023),
+        csl_yaml: None,
+        collections: vec!["Sistemas".to_string()],
+    };
+    db.index_reference(&ref1).unwrap();
+    db.index_reference(&ref2).unwrap();
+
+    // 1. Abrir modal em nota sem ref_collections: deve listar todas
+    app.handle_key(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL));
+    assert!(app.is_citation_open);
+    assert!(!app.citation.filter_by_collections);
+    assert_eq!(app.citation.results.len(), 2);
+
+    // 2. Digitar busca "algoritmos"
+    for c in "algoritmos".chars() {
+        app.handle_key(KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE));
+    }
+    assert_eq!(app.citation.query, "algoritmos");
+    assert_eq!(app.citation.results.len(), 1);
+    assert_eq!(app.citation.results[0].citekey, "santos2023");
+
+    // 3. Backspace
+    for _ in 0..10 {
+        app.handle_key(KeyEvent::new(KeyCode::Backspace, KeyModifiers::NONE));
+    }
+    assert_eq!(app.citation.results.len(), 2);
+
+    // 4. Navegar com seta para baixo
+    app.handle_key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
+    assert_eq!(app.citation.selected_index, 1);
+
+    // 5. Cancelar com Esc sem modificar o buffer
+    app.handle_key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE));
+    assert!(!app.is_citation_open);
+    assert!(!app.is_dirty);
+}
