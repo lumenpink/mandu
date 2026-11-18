@@ -163,7 +163,8 @@ citekey: no_col2021
 # Conteudo
 "#;
     let note_no_col = Vault::parse_note_content(Path::new("refs/no_col.md"), content_no_col);
-    let extracted_no_col = extract_reference_from_note(&note_no_col).expect("Extração sem colecoes");
+    let extracted_no_col =
+        extract_reference_from_note(&note_no_col).expect("Extração sem colecoes");
     assert!(extracted_no_col.collections.is_empty());
 
     // Teste da função pura em memória filter_references_fuzzy
@@ -198,4 +199,32 @@ citekey: no_col2021
     // Busca pura vazia retorna todos
     let all = filter_references_fuzzy(&refs, "");
     assert_eq!(all.len(), 2);
+}
+
+#[test]
+fn test_mutation_preview_pipeline_edge_cases() {
+    // 1. Markdown vazio
+    let empty = prepare_markdown_pipeline("", None);
+    assert_eq!(empty, "");
+
+    // 2. Markdown puro sem transformações
+    let plain = "Texto simples sem marcações especiais.";
+    assert_eq!(prepare_markdown_pipeline(plain, None), plain);
+
+    // 3. Com mapa de referências vazio
+    let empty_map = HashMap::new();
+    assert_eq!(prepare_markdown_pipeline(plain, Some(&empty_map)), plain);
+
+    // 4. Múltiplos realces sequenciais
+    let multi_highlights = "Destaque ==um== e ==dois== final.";
+    let res_highlights = prepare_markdown_pipeline(multi_highlights, None);
+    assert!(res_highlights.contains("<mark>um</mark>"));
+    assert!(res_highlights.contains("<mark>dois</mark>"));
+
+    // 5. Múltiplos wikilinks convertidos para tags semânticas internas
+    let multi_wikilinks = "Veja [[Nota A]] e também [[Nota B|Apelido B]].";
+    let res_wikilinks = prepare_markdown_pipeline(multi_wikilinks, None);
+    assert!(res_wikilinks.contains("<a class=\"internal-link\" data-href=\"Nota A\""));
+    assert!(res_wikilinks.contains("<a class=\"internal-link\" data-href=\"Nota B\""));
+    assert!(res_wikilinks.contains(">Apelido B</a>"));
 }
