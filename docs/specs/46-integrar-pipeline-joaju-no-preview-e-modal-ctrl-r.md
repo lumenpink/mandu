@@ -52,3 +52,8 @@ Adicionalmente, o painel de preview da TUI (`render_preview_pane`) deve passar o
   A nota bibliográfica pertence a uma ou mais `collections`. O documento de trabalho cita referências de um conjunto de `ref_collections` (coleções referenciadas). O parser do frontmatter aceita ambos ou lista/string para prevenir falhas por digitação livre.
 - **Sem mutação destrutiva do buffer:**
   O modal `Ctrl+R` apenas lê o frontmatter para filtrar a busca; ele não reescreve ou formata o frontmatter automaticamente.
+
+## 4. Validação e Quality Gate (Fase 8)
+- `cargo fmt --check`: Aprovado sem nenhuma divergência de estilo.
+- `cargo clippy --all-targets -- -D warnings`: Aprovado com zero advertências em todo o workspace.
+- `cargo test -p mandu-tui --test tui_citation_modal_and_preview_spec`: 4 testes aprovados cobrindo abertura de modal, filtro por coleções, alternância com Tab, inserção com Enter, expurgo de comentários e renderização Joaju no preview, além de casos de mutação e banco vazio.
