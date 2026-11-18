@@ -57,3 +57,7 @@ Adicionalmente, o painel de preview da TUI (`render_preview_pane`) deve passar o
 - `cargo fmt --check`: Aprovado sem nenhuma divergência de estilo.
 - `cargo clippy --all-targets -- -D warnings`: Aprovado com zero advertências em todo o workspace.
 - `cargo test -p mandu-tui --test tui_citation_modal_and_preview_spec`: 4 testes aprovados cobrindo abertura de modal, filtro por coleções, alternância com Tab, inserção com Enter, expurgo de comentários e renderização Joaju no preview, além de casos de mutação e banco vazio.
+
+## 5. Laudo de Fechamento (Fase 9)
+- **Status:** Concluído e aprovado.
+- **Resultado:** Implementado seletor de citações interativo via atalho `Ctrl+R` com suporte a filtro por coleções do frontmatter (`ref_collections`) e alternância com `Tab`. Painel de preview integrado ao pipeline canônico Joaju (`prepare_markdown_pipeline`), expurgando comentários `%%...%%` e resolvendo referências bibliográficas.
