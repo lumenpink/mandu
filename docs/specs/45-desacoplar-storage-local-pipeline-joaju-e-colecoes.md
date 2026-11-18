@@ -60,3 +60,7 @@ Executa a esteira padronizada:
 - `cargo clippy --all-targets -- -D warnings`: Aprovado com zero alertas no workspace completo.
 - `cargo clippy --no-default-features -p mandu-core -- -D warnings`: Aprovado garantindo compilação pura para WASM sem dependências de SO.
 - `cargo test -p mandu-core --test collections_and_pipeline_spec`: 4 testes aprovados cobrindo extração de coleções, filtragem por coleções no SQLite, pré-processamento do pipeline Joaju e casos de borda de mutação.
+
+## 5. Laudo de Fechamento (Fase 9)
+- **Status:** Concluído e aprovado.
+- **Resultado:** `mandu-core` modularizado sob feature flag `storage-local`, compatível com alvos nativos e WASM. Pipeline Joaju integrado para resolução de citações e sintaxe Obsidian. Coleções do Tatupeba indexadas e consultáveis no autocompletar.
