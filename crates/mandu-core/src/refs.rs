@@ -126,12 +126,14 @@ pub fn extract_reference_from_note(note: &Note) -> Option<ReferenceMd> {
 
     let collections = val
         .get("collections")
-        .and_then(serde_json::Value::as_array)
-        .map(|arr| {
-            arr.iter()
+        .map(|v| match v {
+            serde_json::Value::Array(arr) => arr
+                .iter()
                 .filter_map(serde_json::Value::as_str)
                 .map(ToString::to_string)
-                .collect()
+                .collect(),
+            serde_json::Value::String(s) => vec![s.clone()],
+            _ => Vec::new(),
         })
         .unwrap_or_default();
 

@@ -137,3 +137,65 @@ Conforme demonstrado por @silva2024 e [[silva2024]].
         processed
     );
 }
+
+#[test]
+fn test_mutation_collections_edge_cases_and_fuzzy_pure() {
+    use mandu_core::autocomplete::filter_references_fuzzy;
+    use mandu_core::refs::ReferenceMd;
+
+    // Teste de frontmatter com collections como string única e não array
+    let content_single_str = r#"---
+title: "Nota com String Única"
+citekey: souza2022
+collections: "ColecaoUnica"
+---
+# Conteudo
+"#;
+    let note = Vault::parse_note_content(Path::new("refs/souza2022.md"), content_single_str);
+    let extracted = extract_reference_from_note(&note).expect("Extração com string");
+    assert_eq!(extracted.collections, vec!["ColecaoUnica".to_string()]);
+
+    // Teste de frontmatter sem campo collections
+    let content_no_col = r#"---
+title: "Nota Sem Coleções"
+citekey: no_col2021
+---
+# Conteudo
+"#;
+    let note_no_col = Vault::parse_note_content(Path::new("refs/no_col.md"), content_no_col);
+    let extracted_no_col = extract_reference_from_note(&note_no_col).expect("Extração sem colecoes");
+    assert!(extracted_no_col.collections.is_empty());
+
+    // Teste da função pura em memória filter_references_fuzzy
+    let refs = vec![
+        ReferenceMd {
+            citekey: "alfa2020".to_string(),
+            note_path: "refs/alfa.md".to_string(),
+            doi: None,
+            title: "Primeiro Artigo de Bioestatística".to_string(),
+            authors_json: Some("Alfa, Maria".to_string()),
+            year: Some(2020),
+            csl_yaml: None,
+            collections: vec![],
+        },
+        ReferenceMd {
+            citekey: "beta2021".to_string(),
+            note_path: "refs/beta.md".to_string(),
+            doi: None,
+            title: "Segundo Livro de Genética".to_string(),
+            authors_json: Some("Beta, Pedro".to_string()),
+            year: Some(2021),
+            csl_yaml: None,
+            collections: vec![],
+        },
+    ];
+
+    // Busca pura com @ prefix ranqueada
+    let matched = filter_references_fuzzy(&refs, "@bioestatistica");
+    assert_eq!(matched.len(), 1);
+    assert_eq!(matched[0].insert_text, "@alfa2020");
+
+    // Busca pura vazia retorna todos
+    let all = filter_references_fuzzy(&refs, "");
+    assert_eq!(all.len(), 2);
+}
