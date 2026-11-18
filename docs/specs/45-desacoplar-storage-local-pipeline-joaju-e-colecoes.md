@@ -54,3 +54,9 @@ Executa a esteira padronizada:
 ## 3. Preservação de Manutenibilidade (Para Natasha)
 - **Por que feature flag e não outro crate?** Evita proliferação de microrrepositórios mantendo os tipos canônicos em `mandu-core`.
 - **Por que pipeline centralizado?** Garante que o preview da TUI, da GUI, do Mobile e da Web renderizem exatamente o mesmo documento, sem surpresas de formatação.
+
+## 4. Validação e Quality Gate (Fase 8)
+- `cargo fmt --check`: Aprovado com zero divergências.
+- `cargo clippy --all-targets -- -D warnings`: Aprovado com zero alertas no workspace completo.
+- `cargo clippy --no-default-features -p mandu-core -- -D warnings`: Aprovado garantindo compilação pura para WASM sem dependências de SO.
+- `cargo test -p mandu-core --test collections_and_pipeline_spec`: 4 testes aprovados cobrindo extração de coleções, filtragem por coleções no SQLite, pré-processamento do pipeline Joaju e casos de borda de mutação.
