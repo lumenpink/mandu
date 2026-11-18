@@ -54,7 +54,8 @@ impl ManduDb {
                 title TEXT,
                 authors_json TEXT,
                 year INTEGER,
-                csl_yaml TEXT
+                csl_yaml TEXT,
+                collections_json TEXT
             );
 
             CREATE TABLE IF NOT EXISTS joaju_block_cache (
@@ -65,6 +66,10 @@ impl ManduDb {
             );
             "#,
         )?;
+        let _ = self.conn.execute(
+            "ALTER TABLE references_md ADD COLUMN collections_json TEXT",
+            [],
+        );
         Ok(())
     }
 
@@ -226,10 +231,11 @@ impl ManduDb {
     }
 
     pub fn index_reference(&self, reference: &crate::refs::ReferenceMd) -> Result<()> {
+        let collections_str = serde_json::to_string(&reference.collections).unwrap_or_default();
         self.conn.execute(
             r#"
-            INSERT OR REPLACE INTO references_md (citekey, note_path, doi, title, authors_json, year, csl_yaml)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            INSERT OR REPLACE INTO references_md (citekey, note_path, doi, title, authors_json, year, csl_yaml, collections_json)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
             "#,
             (
                 &reference.citekey,
@@ -239,6 +245,7 @@ impl ManduDb {
                 &reference.authors_json,
                 reference.year,
                 &reference.csl_yaml,
+                &collections_str,
             ),
         )?;
         Ok(())
@@ -247,13 +254,18 @@ impl ManduDb {
     pub fn find_reference(&self, citekey: &str) -> Result<Option<crate::refs::ReferenceMd>> {
         let mut stmt = self.conn.prepare(
             r#"
-            SELECT citekey, note_path, doi, title, authors_json, year, csl_yaml
+            SELECT citekey, note_path, doi, title, authors_json, year, csl_yaml, collections_json
             FROM references_md
             WHERE citekey = ?1
             "#,
         )?;
 
         let mut rows = stmt.query_map([citekey], |row| {
+            let collections_raw: Option<String> = row.get(7)?;
+            let collections = collections_raw
+                .and_then(|s| serde_json::from_str(&s).ok())
+                .unwrap_or_default();
+
             Ok(crate::refs::ReferenceMd {
                 citekey: row.get(0)?,
                 note_path: row.get(1)?,
@@ -262,6 +274,7 @@ impl ManduDb {
                 authors_json: row.get(4)?,
                 year: row.get(5)?,
                 csl_yaml: row.get(6)?,
+                collections,
             })
         })?;
 
@@ -275,13 +288,18 @@ impl ManduDb {
     pub fn list_all_references(&self) -> Result<Vec<crate::refs::ReferenceMd>> {
         let mut stmt = self.conn.prepare(
             r#"
-            SELECT citekey, note_path, doi, title, authors_json, year, csl_yaml
+            SELECT citekey, note_path, doi, title, authors_json, year, csl_yaml, collections_json
             FROM references_md
             ORDER BY citekey
             "#,
         )?;
 
         let rows = stmt.query_map([], |row| {
+            let collections_raw: Option<String> = row.get(7)?;
+            let collections = collections_raw
+                .and_then(|s| serde_json::from_str(&s).ok())
+                .unwrap_or_default();
+
             Ok(crate::refs::ReferenceMd {
                 citekey: row.get(0)?,
                 note_path: row.get(1)?,
@@ -290,6 +308,7 @@ impl ManduDb {
                 authors_json: row.get(4)?,
                 year: row.get(5)?,
                 csl_yaml: row.get(6)?,
+                collections,
             })
         })?;
 
@@ -298,6 +317,26 @@ impl ManduDb {
             results.push(r?);
         }
         Ok(results)
+    }
+
+    pub fn list_references_by_collections(
+        &self,
+        allowed_collections: &[String],
+    ) -> Result<Vec<crate::refs::ReferenceMd>> {
+        let all = self.list_all_references()?;
+        if allowed_collections.is_empty() {
+            return Ok(all);
+        }
+        Ok(all
+            .into_iter()
+            .filter(|r| {
+                r.collections.iter().any(|c| {
+                    allowed_collections
+                        .iter()
+                        .any(|allowed| allowed.eq_ignore_ascii_case(c))
+                })
+            })
+            .collect())
     }
 
     pub fn list_all_notes(&self) -> Result<Vec<(String, String)>> {

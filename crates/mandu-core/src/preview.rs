@@ -1,9 +1,65 @@
 //! Motor de renderização e preview Joaju (SVG / PDF / Typst).
 
+#[cfg(feature = "storage-local")]
 use crate::db::ManduDb;
+use crate::refs::ReferenceMd;
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+
+/// Prepara o texto Markdown aplicando o pipeline unificado Joaju:
+/// 1. Resolução de citações e anexação de referências bibliográficas (via joaju-refs)
+/// 2. Remoção de comentários %%...%% (via joaju-markdown)
+/// 3. Conversão de callouts > [!type] em caixas semânticas com SVG (via joaju-markdown)
+/// 4. Conversão de realces ==...== em marcas <mark> (via joaju-markdown)
+/// 5. Normalização de links internos wikilinks [[...]] (via joaju-markdown)
+#[must_use]
+pub fn prepare_markdown_pipeline(
+    markdown: &str,
+    references: Option<&HashMap<String, ReferenceMd>>,
+) -> String {
+    let mut resolved_text = markdown.to_string();
+
+    if let Some(refs_map) = references {
+        if !refs_map.is_empty() {
+            let joaju_refs_map: HashMap<String, joaju_refs::ReferenceNote> = refs_map
+                .iter()
+                .map(|(k, v)| {
+                    let authors: Vec<String> = if let Some(ref aj) = v.authors_json {
+                        if aj.starts_with('[') {
+                            serde_json::from_str(aj).unwrap_or_else(|_| vec![aj.clone()])
+                        } else {
+                            vec![aj.clone()]
+                        }
+                    } else {
+                        Vec::new()
+                    };
+
+                    (
+                        k.clone(),
+                        joaju_refs::ReferenceNote {
+                            citekey: v.citekey.clone(),
+                            title: v.title.clone(),
+                            authors,
+                            year: v.year,
+                            doi: v.doi.clone(),
+                            publisher: None,
+                            journal: None,
+                        },
+                    )
+                })
+                .collect();
+
+            resolved_text = joaju_refs::process_references(markdown, &joaju_refs_map);
+        }
+    }
+
+    let s = joaju_markdown::preprocess_comments(&resolved_text);
+    let s = joaju_markdown::preprocess_callouts(&s);
+    let s = joaju_markdown::preprocess_highlights(&s);
+    joaju_markdown::preprocess_wikilinks(&s)
+}
 
 #[derive(Error, Debug)]
 pub enum PreviewError {
@@ -11,6 +67,7 @@ pub enum PreviewError {
     RenderError(String),
     #[error("Erro de I/O: {0}")]
     Io(#[from] std::io::Error),
+    #[cfg(feature = "storage-local")]
     #[error("Erro de banco de dados: {0}")]
     Db(#[from] rusqlite::Error),
 }
@@ -31,6 +88,7 @@ impl PreviewEngine {
             .to_string()
     }
 
+    #[cfg(feature = "storage-local")]
     pub fn render_block_svg(
         engine: &str,
         code: &str,
@@ -61,6 +119,22 @@ impl PreviewEngine {
         Ok(svg)
     }
 
+    #[cfg(not(feature = "storage-local"))]
+    pub fn render_block_svg(engine: &str, code: &str) -> Result<String, PreviewError> {
+        let svg = match engine {
+            "pedtools" | "kinship2" => crate::joaju_ffi::render_pedigree(code, Some(engine))
+                .map(|(_, s)| s)
+                .unwrap_or_else(|_| render_fallback_svg(engine, code)),
+            "openchemlib" | "openbabel" => crate::joaju_ffi::render_chem(code, Some(engine))
+                .map(|(_, s)| s)
+                .unwrap_or_else(|_| render_fallback_svg(engine, code)),
+            _ => render_fallback_svg(engine, code),
+        };
+
+        Ok(svg)
+    }
+
+    #[cfg(feature = "storage-local")]
     pub fn parse_preview_segments(
         markdown: &str,
         db: Option<&ManduDb>,
@@ -89,6 +163,51 @@ impl PreviewEngine {
 
                     let code = code_lines.join("\n");
                     let svg = Self::render_block_svg(engine_name, &code, db)?;
+                    segments.push(PreviewSegment::SvgBlock {
+                        engine: engine_name.to_string(),
+                        svg,
+                    });
+                    continue;
+                }
+            }
+
+            current_text.push_str(line);
+            current_text.push('\n');
+        }
+
+        if !current_text.trim().is_empty() {
+            segments.push(PreviewSegment::Text(current_text));
+        }
+
+        Ok(segments)
+    }
+
+    #[cfg(not(feature = "storage-local"))]
+    pub fn parse_preview_segments(markdown: &str) -> Result<Vec<PreviewSegment>, PreviewError> {
+        let mut segments = Vec::new();
+        let mut current_text = String::new();
+
+        let mut lines = markdown.lines().peekable();
+        while let Some(line) = lines.next() {
+            let trimmed = line.trim_start();
+            if trimmed.starts_with("```") {
+                let engine_name = trimmed.trim_start_matches('`').trim();
+                if is_supported_preview_engine(engine_name) {
+                    if !current_text.is_empty() {
+                        segments.push(PreviewSegment::Text(current_text.clone()));
+                        current_text.clear();
+                    }
+
+                    let mut code_lines = Vec::new();
+                    for inner_line in lines.by_ref() {
+                        if inner_line.trim_start().starts_with("```") {
+                            break;
+                        }
+                        code_lines.push(inner_line);
+                    }
+
+                    let code = code_lines.join("\n");
+                    let svg = Self::render_block_svg(engine_name, &code)?;
                     segments.push(PreviewSegment::SvgBlock {
                         engine: engine_name.to_string(),
                         svg,

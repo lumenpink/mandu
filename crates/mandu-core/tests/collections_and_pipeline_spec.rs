@@ -1,9 +1,6 @@
 use mandu_core::{
-    autocomplete::complete_citations,
-    db::ManduDb,
-    preview::prepare_markdown_pipeline,
-    refs::{extract_reference_from_note, ReferenceMd},
-    vault::Vault,
+    autocomplete::complete_citations, db::ManduDb, preview::prepare_markdown_pipeline,
+    refs::extract_reference_from_note, vault::Vault,
 };
 use std::collections::HashMap;
 use std::path::Path;
@@ -44,7 +41,10 @@ collections:
     assert_eq!(ref1.citekey, "silva2024");
     assert_eq!(
         ref1.collections,
-        vec!["Tese Doutorado".to_string(), "Artigo Ventilação".to_string()]
+        vec![
+            "Tese Doutorado".to_string(),
+            "Artigo Ventilação".to_string()
+        ]
     );
 
     assert_eq!(ref2.citekey, "santos2023");

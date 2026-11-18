@@ -22,6 +22,7 @@ pub struct ReferenceMd {
     pub authors_json: Option<String>,
     pub year: Option<i32>,
     pub csl_yaml: Option<String>,
+    pub collections: Vec<String>,
 }
 
 /// Extrai todos os links wiki [[alvo]] ou [[alvo|apelido]] com linha e contexto
@@ -123,6 +124,17 @@ pub fn extract_reference_from_note(note: &Note) -> Option<ReferenceMd> {
 
     let csl_yaml = Some(fm_json.clone());
 
+    let collections = val
+        .get("collections")
+        .and_then(serde_json::Value::as_array)
+        .map(|arr| {
+            arr.iter()
+                .filter_map(serde_json::Value::as_str)
+                .map(ToString::to_string)
+                .collect()
+        })
+        .unwrap_or_default();
+
     Some(ReferenceMd {
         citekey,
         note_path: path_str.to_string(),
@@ -131,6 +143,7 @@ pub fn extract_reference_from_note(note: &Note) -> Option<ReferenceMd> {
         authors_json,
         year,
         csl_yaml,
+        collections,
     })
 }
 

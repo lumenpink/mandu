@@ -3,9 +3,11 @@
 pub mod about;
 pub mod autocomplete;
 pub mod config;
+#[cfg(feature = "storage-local")]
 pub mod db;
 pub mod joaju_ffi;
 pub mod linter;
+#[cfg(feature = "storage-local")]
 pub mod peek;
 pub mod preview;
 pub mod refs;

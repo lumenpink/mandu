@@ -60,6 +60,7 @@ fn test_resolve_target_path_for_citation() {
         authors_json: None,
         year: Some(1969),
         csl_yaml: None,
+        collections: vec![],
     };
     db.index_reference(&ref_item).expect("index ref");
 
@@ -103,6 +104,7 @@ fn test_resolve_citation_with_punctuation() {
         authors_json: None,
         year: Some(1948),
         csl_yaml: None,
+        collections: vec![],
     };
     db.index_reference(&ref_item).expect("index ref");
 

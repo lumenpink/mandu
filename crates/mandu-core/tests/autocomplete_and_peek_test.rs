@@ -18,6 +18,7 @@ fn test_autocomplete_citations_from_database() {
         authors_json: Some("[\"Silva, A.\", \"Santos, B.\"]".to_string()),
         year: Some(2026),
         csl_yaml: None,
+        collections: vec![],
     };
 
     let ref2 = ReferenceMd {
@@ -28,19 +29,20 @@ fn test_autocomplete_citations_from_database() {
         authors_json: Some("[\"Costa, C.\"]".to_string()),
         year: Some(2025),
         csl_yaml: None,
+        collections: vec![],
     };
 
     db.index_reference(&ref1).expect("index ref1");
     db.index_reference(&ref2).expect("index ref2");
 
     // Autocompletar com query "silva"
-    let results = complete_citations(&db, "silva");
+    let results = complete_citations(&db, "silva", None);
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].insert_text, "@silva2026");
     assert!(results[0].label.contains("Genética Forense"));
 
     // Autocompletar com query vazia (deve listar todos)
-    let all = complete_citations(&db, "");
+    let all = complete_citations(&db, "", None);
     assert_eq!(all.len(), 2);
 }
 
@@ -126,6 +128,7 @@ fn test_peek_note_and_reference() {
         authors_json: Some("[\"Autor, X.\"]".to_string()),
         year: Some(2024),
         csl_yaml: None,
+        collections: vec![],
     };
     db.index_reference(&ref_item).expect("index ref");
 

@@ -1,9 +1,11 @@
 //! Operações de I/O de cofre, varredura rápida e monitoramento de arquivos.
 
+#[cfg(feature = "storage-local")]
 use rayon::prelude::*;
 use std::fs;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+#[cfg(feature = "storage-local")]
 use walkdir::WalkDir;
 
 #[derive(Error, Debug)]
@@ -42,6 +44,7 @@ impl Vault {
         }
     }
 
+    #[cfg(feature = "storage-local")]
     /// Executa varredura paralela na árvore do cofre e indexa todas as notas .md
     pub fn scan(&self) -> Result<Vec<Note>, VaultError> {
         let md_paths: Vec<PathBuf> = WalkDir::new(&self.root_path)

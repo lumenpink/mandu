@@ -1,8 +1,10 @@
 //! Provedor de autocompletar para citações (@) e links internos ([[).
 
+#[cfg(feature = "storage-local")]
 use crate::db::ManduDb;
 use crate::refs::FuzzySearcher;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "storage-local")]
 use std::path::Path;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -13,18 +15,35 @@ pub struct AutocompleteItem {
 }
 
 /// Autocompleta citações bibliográficas consultando as referências indexadas
+#[cfg(feature = "storage-local")]
 #[must_use]
-pub fn complete_citations(db: &ManduDb, query: &str) -> Vec<AutocompleteItem> {
+pub fn complete_citations(
+    db: &ManduDb,
+    query: &str,
+    allowed_collections: Option<&[String]>,
+) -> Vec<AutocompleteItem> {
+    let references = match allowed_collections {
+        Some(cols) => db.list_references_by_collections(cols).unwrap_or_default(),
+        None => db.list_all_references().unwrap_or_default(),
+    };
+    filter_references_fuzzy(&references, query)
+}
+
+/// Filtra referências em memória por busca aproximada fuzzy
+#[must_use]
+pub fn filter_references_fuzzy(
+    references: &[crate::refs::ReferenceMd],
+    query: &str,
+) -> Vec<AutocompleteItem> {
     let clean_query = query.trim_start_matches('@').trim();
-    let references = db.list_all_references().unwrap_or_default();
 
     if clean_query.is_empty() {
         return references
-            .into_iter()
+            .iter()
             .map(|r| {
-                let desc = match (r.authors_json, r.year) {
+                let desc = match (&r.authors_json, r.year) {
                     (Some(a), Some(y)) => format!("{a} ({y})"),
-                    (Some(a), None) => a,
+                    (Some(a), None) => a.clone(),
                     (None, Some(y)) => format!("({y})"),
                     (None, None) => String::new(),
                 };
@@ -68,6 +87,7 @@ pub fn complete_citations(db: &ManduDb, query: &str) -> Vec<AutocompleteItem> {
 }
 
 /// Autocompleta wikilinks consultando as notas indexadas no cofre
+#[cfg(feature = "storage-local")]
 #[must_use]
 pub fn complete_wikilinks(db: &ManduDb, query: &str) -> Vec<AutocompleteItem> {
     let clean_query = query.trim_start_matches("[[").trim_end_matches("]]").trim();
