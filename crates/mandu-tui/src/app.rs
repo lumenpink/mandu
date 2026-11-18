@@ -23,6 +23,16 @@ pub struct SearchModalState {
     pub all_items: Vec<SearchItem>,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct CitationModalState {
+    pub query: String,
+    pub results: Vec<mandu_core::refs::ReferenceMd>,
+    pub selected_index: usize,
+    pub all_references: Vec<mandu_core::refs::ReferenceMd>,
+    pub allowed_collections: Option<Vec<String>>,
+    pub filter_by_collections: bool,
+}
+
 pub struct TuiApp<'a> {
     pub mode: ViewMode,
     pub editor: Editor<'a>,
@@ -34,6 +44,8 @@ pub struct TuiApp<'a> {
     pub should_quit: bool,
     pub is_search_open: bool,
     pub search: SearchModalState,
+    pub is_citation_open: bool,
+    pub citation: CitationModalState,
     pub is_peek_open: bool,
     pub peek_content: Option<mandu_core::peek::PeekContent>,
     pub status_message: Option<String>,
@@ -120,6 +132,8 @@ impl TuiApp<'_> {
                 selected_index: 0,
                 all_items,
             },
+            is_citation_open: false,
+            citation: CitationModalState::default(),
             is_peek_open: false,
             peek_content: None,
             status_message: None,
@@ -343,6 +357,102 @@ impl TuiApp<'_> {
         self.search.selected_index = 0;
     }
 
+    #[must_use]
+    pub fn get_references_map(
+        &self,
+    ) -> Option<std::collections::HashMap<String, mandu_core::refs::ReferenceMd>> {
+        let db = self.db.as_ref()?;
+        let refs = db.list_all_references().ok()?;
+        let mut map = std::collections::HashMap::new();
+        for r in refs {
+            map.insert(r.citekey.clone(), r);
+        }
+        Some(map)
+    }
+
+    pub fn toggle_citation_modal(&mut self) {
+        self.is_citation_open = !self.is_citation_open;
+        if self.is_citation_open {
+            let text = self.editor.get_text();
+            let (fm_val, _) = Vault::extract_frontmatter(&text);
+            let mut allowed_collections = Vec::new();
+            if let Some(fm) = fm_val {
+                if let Some(c_val) = fm.get("ref_collections").or_else(|| fm.get("collections")) {
+                    if let Some(seq) = c_val.as_sequence() {
+                        for it in seq {
+                            if let Some(s) = it.as_str() {
+                                allowed_collections.push(s.to_string());
+                            }
+                        }
+                    } else if let Some(s) = c_val.as_str() {
+                        allowed_collections.push(s.to_string());
+                    }
+                }
+            }
+
+            let has_collections = !allowed_collections.is_empty();
+            self.citation.allowed_collections = if has_collections {
+                Some(allowed_collections)
+            } else {
+                None
+            };
+            self.citation.filter_by_collections = has_collections;
+            self.citation.all_references = self
+                .db
+                .as_ref()
+                .and_then(|d| d.list_all_references().ok())
+                .unwrap_or_default();
+            self.citation.query.clear();
+            self.citation.selected_index = 0;
+            self.update_citation_results();
+        }
+    }
+
+    pub fn update_citation_results(&mut self) {
+        let base_refs: Vec<mandu_core::refs::ReferenceMd> = if self.citation.filter_by_collections {
+            if let Some(ref allowed) = self.citation.allowed_collections {
+                self.citation
+                    .all_references
+                    .iter()
+                    .filter(|r| r.collections.iter().any(|c| allowed.contains(c)))
+                    .cloned()
+                    .collect()
+            } else {
+                self.citation.all_references.clone()
+            }
+        } else {
+            self.citation.all_references.clone()
+        };
+
+        if self.citation.query.is_empty() {
+            self.citation.results = base_refs;
+        } else {
+            let clean_query = self.citation.query.trim_start_matches('@').trim();
+            let candidates: Vec<String> = base_refs
+                .iter()
+                .map(|r| format!("{} {}", r.citekey, r.title))
+                .collect();
+            let matches = FuzzySearcher::match_candidates(clean_query, &candidates);
+            let mut res = Vec::new();
+            let mut used = std::collections::HashSet::new();
+            for m in matches {
+                if let Some((idx, r)) = base_refs
+                    .iter()
+                    .enumerate()
+                    .find(|(i, r)| !used.contains(i) && format!("{} {}", r.citekey, r.title) == m)
+                {
+                    used.insert(idx);
+                    res.push(r.clone());
+                }
+            }
+            self.citation.results = res;
+        }
+
+        if self.citation.selected_index >= self.citation.results.len() {
+            self.citation.selected_index = 0;
+        }
+    }
+
     pub fn prompt_save_as(&mut self) {
         let suggested_name = self
             .current_file
@@ -489,6 +599,10 @@ impl TuiApp<'_> {
                     }
                     return true;
                 }
+                KeyCode::Char('r') | KeyCode::Char('R') => {
+                    self.toggle_citation_modal();
+                    return true;
+                }
                 KeyCode::Char('d') => {
                     self.export_pdf();
                     return true;
@@ -562,6 +676,58 @@ impl TuiApp<'_> {
                 KeyCode::Esc | KeyCode::Char('q') => {
                     self.is_peek_open = false;
                     self.peek_content = None;
+                    return true;
+                }
+                _ => return true,
+            }
+        }
+
+        if self.is_citation_open {
+            match key.code {
+                KeyCode::Esc => {
+                    self.is_citation_open = false;
+                    self.citation.query.clear();
+                    return true;
+                }
+                KeyCode::Tab => {
+                    if self.citation.allowed_collections.is_some() {
+                        self.citation.filter_by_collections = !self.citation.filter_by_collections;
+                        self.update_citation_results();
+                    }
+                    return true;
+                }
+                KeyCode::Up => {
+                    self.citation.selected_index = self.citation.selected_index.saturating_sub(1);
+                    return true;
+                }
+                KeyCode::Down => {
+                    if !self.citation.results.is_empty()
+                        && self.citation.selected_index + 1 < self.citation.results.len()
+                    {
+                        self.citation.selected_index += 1;
+                    }
+                    return true;
+                }
+                KeyCode::Enter => {
+                    if let Some(r) = self.citation.results.get(self.citation.selected_index) {
+                        let citekey = r.citekey.clone();
+                        self.editor.textarea.insert_str(format!("@{citekey}"));
+                        self.is_dirty = true;
+                        self.is_citation_open = false;
+                        self.citation.query.clear();
+                    }
+                    return true;
+                }
+                KeyCode::Backspace => {
+                    self.citation.query.pop();
+                    self.update_citation_results();
+                    return true;
+                }
+                KeyCode::Char(c)
+                    if key.modifiers.is_empty() || key.modifiers == KeyModifiers::SHIFT =>
+                {
+                    self.citation.query.push(c);
+                    self.update_citation_results();
                     return true;
                 }
                 _ => return true,
@@ -699,7 +865,7 @@ impl TuiApp<'_> {
         };
 
         format!(
-            "{file_name}{dirty_indicator}  ({words_formatted} pal. | 🔗 {} backlinks)  [ {} (Ctrl+T) ]  [ ^H Ajuda ]",
+            "{file_name}{dirty_indicator}  ({words_formatted} pal. | 🔗 {} backlinks)  [ {} (Ctrl+T) ]  [ ^R Citar ]  [ ^H Ajuda ]",
             self.backlink_count,
             self.mode.label()
         )

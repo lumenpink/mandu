@@ -58,15 +58,25 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
             frame.render_widget(&app.editor.textarea, split_chunks[0]);
 
             let text = app.editor.get_text();
-            let (preview_widget, total_lines) =
-                render_preview_pane(&text, "Visualização Joaju", split_chunks[1].width);
+            let refs = app.get_references_map();
+            let (preview_widget, total_lines) = render_preview_pane(
+                &text,
+                "Visualização Joaju",
+                split_chunks[1].width,
+                refs.as_ref(),
+            );
             let scroll = app.calculate_preview_scroll(split_chunks[1].height, total_lines);
             frame.render_widget(preview_widget.scroll((scroll, 0)), split_chunks[1]);
         }
         ViewMode::Preview => {
             let text = app.editor.get_text();
-            let (preview_widget, total_lines) =
-                render_preview_pane(&text, "Visualização Joaju (Modo Leitura)", main_area.width);
+            let refs = app.get_references_map();
+            let (preview_widget, total_lines) = render_preview_pane(
+                &text,
+                "Visualização Joaju (Modo Leitura)",
+                main_area.width,
+                refs.as_ref(),
+            );
             let visible_height = main_area.height.saturating_sub(2) as usize;
             let max_scroll = total_lines.saturating_sub(visible_height) as u16;
             let scroll = app.preview_scroll.min(max_scroll);
@@ -87,6 +97,11 @@ pub fn render_app(app: &TuiApp, frame: &mut Frame) {
     // Modal de busca overlay (Ctrl+O)
     if app.is_search_open {
         render_search_modal(app, frame);
+    }
+
+    // Modal de Citação overlay (Ctrl+R)
+    if app.is_citation_open {
+        render_citation_modal(app, frame);
     }
 
     // Modal de Peek overlay (Ctrl+P)
@@ -242,6 +257,7 @@ fn render_help_modal(_app: &TuiApp, frame: &mut Frame) {
     let inner = modal_block.inner(area);
     let shortcuts = [
         ("Ctrl + O", "Buscar ou abrir nota no cofre"),
+        ("Ctrl + R", "Inserir citação bibliográfica (@citekey)"),
         ("Ctrl + S", "Salvar nota atual"),
         ("Ctrl+Shift+S", "Salvar Como (renomeia nova_nota.md)"),
         ("Ctrl + D", "Exportar documento para PDF via Joaju"),
@@ -381,11 +397,12 @@ fn render_about_modal(_app: &TuiApp, frame: &mut Frame) {
     frame.render_widget(Paragraph::new(lines), inner);
 }
 
-fn render_preview_pane<'a>(
-    text: &'a str,
-    title: &'a str,
+fn render_preview_pane(
+    text: &str,
+    title: &str,
     pane_width: u16,
-) -> (Paragraph<'a>, usize) {
+    references: Option<&std::collections::HashMap<String, mandu_core::refs::ReferenceMd>>,
+) -> (Paragraph<'static>, usize) {
     let mut lines = Vec::new();
     let (meta_opt, raw_body) = mandu_core::vault::Vault::extract_metadata(text);
 
@@ -423,8 +440,9 @@ fn render_preview_pane<'a>(
 
     let pattern = meta_opt.as_ref().and_then(|m| m.number_type.as_deref());
     let card_width = (pane_width as usize).saturating_sub(4).clamp(24, 76);
+    let prepared_body = mandu_core::preview::prepare_markdown_pipeline(raw_body, references);
     lines.extend(crate::blocks::render_markdown_lines(
-        raw_body,
+        &prepared_body,
         number_headings,
         pattern,
         card_width,
@@ -441,4 +459,110 @@ fn render_preview_pane<'a>(
             .wrap(ratatui::widgets::Wrap { trim: false }),
         total_lines,
     )
+}
+
+fn render_citation_modal(app: &TuiApp, frame: &mut Frame) {
+    let area = centered_rect(75, 60, frame.area());
+    frame.render_widget(Clear, area);
+
+    let title = if app.citation.filter_by_collections {
+        if let Some(ref cols) = app.citation.allowed_collections {
+            format!(
+                " [ 📚 Inserir Citação (Ctrl+R) | Coleções: {} | Tab: Ver todas ] ",
+                cols.join(", ")
+            )
+        } else {
+            " [ 📚 Inserir Citação (Ctrl+R) | Todas as referências ] ".to_string()
+        }
+    } else if app.citation.allowed_collections.is_some() {
+        " [ 📚 Inserir Citação (Ctrl+R) | Todas as referências | Tab: Filtrar por coleções ] "
+            .to_string()
+    } else {
+        " [ 📚 Inserir Citação (Ctrl+R) | Todas as referências ] ".to_string()
+    };
+
+    let modal_block = Block::default()
+        .borders(Borders::ALL)
+        .title(title)
+        .style(Style::default().bg(Color::Rgb(20, 20, 24)));
+    frame.render_widget(modal_block.clone(), area);
+
+    let inner = modal_block.inner(area);
+    let modal_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Length(1),
+            Constraint::Min(3),
+            Constraint::Length(1),
+        ])
+        .split(inner);
+
+    // Linha de consulta
+    let query_line = Line::from(vec![
+        Span::styled(
+            " > @",
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(&app.citation.query),
+        Span::styled("_", Style::default().add_modifier(Modifier::RAPID_BLINK)),
+    ]);
+    frame.render_widget(Paragraph::new(query_line), modal_chunks[0]);
+
+    // Lista de resultados
+    let mut lines = Vec::new();
+    if app.citation.results.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Nenhuma referência encontrada.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (i, item) in app.citation.results.iter().enumerate().take(12) {
+            let is_selected = i == app.citation.selected_index;
+            let line_style = if is_selected {
+                Style::default()
+                    .bg(Color::Rgb(50, 50, 70))
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+
+            let prefix = if is_selected { "▶ " } else { "  " };
+            let mut spans = vec![
+                Span::styled(prefix, line_style),
+                Span::styled(format!("@{} ", item.citekey), line_style),
+                Span::styled(
+                    format!("— {} ", item.title),
+                    Style::default().fg(Color::White),
+                ),
+            ];
+
+            if let Some(ref authors) = item.authors_json {
+                let yr = item.year.map(|y| format!(" ({y})")).unwrap_or_default();
+                spans.push(Span::styled(
+                    format!("({authors}{yr}) "),
+                    Style::default().fg(Color::DarkGray),
+                ));
+            }
+
+            if !item.collections.is_empty() {
+                spans.push(Span::styled(
+                    format!("[{}]", item.collections.join(", ")),
+                    Style::default().fg(Color::Cyan),
+                ));
+            }
+
+            lines.push(Line::from(spans));
+        }
+    }
+    frame.render_widget(Paragraph::new(lines), modal_chunks[1]);
+
+    // Rodapé de instruções
+    let footer = Line::from(vec![Span::styled(
+        " ↑/↓ Navegar  |  Enter Inserir @citekey  |  Tab Alternar Coleções  |  Esc Cancelar",
+        Style::default().fg(Color::DarkGray),
+    )]);
+    frame.render_widget(Paragraph::new(footer), modal_chunks[2]);
 }

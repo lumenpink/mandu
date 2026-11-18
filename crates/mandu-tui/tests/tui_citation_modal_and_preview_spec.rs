@@ -23,7 +23,10 @@ Redigindo o capítulo:
     let mut app = TuiApp::new_with_vault(Some(vault_dir.to_path_buf()), Some(note_path.clone()));
 
     // Indexar referências no banco de dados da TUI
-    let db = app.db.as_ref().expect("Banco de dados SQLite deve estar ativo");
+    let db = app
+        .db
+        .as_ref()
+        .expect("Banco de dados SQLite deve estar ativo");
     let ref1 = ReferenceMd {
         citekey: "silva2024".to_string(),
         note_path: "refs/silva2024.md".to_string(),
@@ -128,8 +131,8 @@ Referência: @silva2024
     };
     db.index_reference(&ref1).unwrap();
 
-    // Mudar para modo Split para renderizar preview
-    app.mode = mandu_tui::ui::ViewMode::Split;
+    // Mudar para modo Preview (Leitura) para inspecionar exclusivamente o painel de preview
+    app.mode = mandu_tui::ui::ViewMode::Preview;
 
     let backend = TestBackend::new(120, 40);
     let mut terminal = Terminal::new(backend).unwrap();
@@ -143,9 +146,9 @@ Referência: @silva2024
     let buffer = terminal.backend().buffer();
     let content_rendered = format!("{buffer:?}");
 
-    // Comentário %% não deve aparecer na tela
+    // Comentário %% não deve aparecer na tela de preview
     assert!(
         !content_rendered.contains("Comentário confidencial"),
-        "Preview deve expurgar comentários Obsidian %%"
+        "Preview deve expurgar comentários Obsidian %%: {content_rendered}"
     );
 }
