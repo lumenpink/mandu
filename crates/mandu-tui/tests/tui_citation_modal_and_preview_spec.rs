@@ -214,3 +214,32 @@ fn test_mutation_citation_modal_query_typing_and_navigation() {
     assert!(!app.is_citation_open);
     assert!(!app.is_dirty);
 }
+
+#[test]
+fn test_mutation_empty_db_and_rapid_toggle() {
+    let tmp = TempDir::new().unwrap();
+    let vault_dir = tmp.path();
+    let note_path = vault_dir.join("vazia.md");
+    fs::write(&note_path, "Texto qualquer").unwrap();
+
+    let mut app = TuiApp::new_with_vault(Some(vault_dir.to_path_buf()), Some(note_path));
+
+    // 1. Abrir com banco vazio
+    app.handle_key(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL));
+    assert!(app.is_citation_open);
+    assert!(app.citation.results.is_empty());
+
+    // 2. Teclar Enter ou Down com lista vazia não deve entrar em pânico nem sujar buffer
+    app.handle_key(KeyEvent::new(KeyCode::Down, KeyModifiers::NONE));
+    app.handle_key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE));
+    assert!(app.is_citation_open);
+    assert!(!app.is_dirty);
+
+    // 3. Tab em nota sem coleções não causa pânico
+    app.handle_key(KeyEvent::new(KeyCode::Tab, KeyModifiers::NONE));
+    assert!(!app.citation.filter_by_collections);
+
+    // 4. Fechar re-pressionando Ctrl+R
+    app.handle_key(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL));
+    assert!(!app.is_citation_open);
+}
