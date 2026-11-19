@@ -9,21 +9,19 @@ use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 /// Prepara o texto Markdown aplicando o pipeline unificado Joaju:
-/// 1. Resolução de citações e anexação de referências bibliográficas (via joaju-refs)
-/// 2. Remoção de comentários %%...%% (via joaju-markdown)
-/// 3. Conversão de callouts > [!type] em caixas semânticas com SVG (via joaju-markdown)
-/// 4. Conversão de realces ==...== em marcas <mark> (via joaju-markdown)
-/// 5. Normalização de links internos wikilinks [[...]] (via joaju-markdown)
+/// 1. Resolução de citações e anexação de referências bibliográficas (via joaju)
+/// 2. Remoção de comentários %%...%% (via joaju)
+/// 3. Conversão de callouts > [!type] em caixas semânticas com SVG (via joaju)
+/// 4. Conversão de realces ==...== em marcas <mark> (via joaju)
+/// 5. Normalização de links internos wikilinks [[...]] (via joaju)
 #[must_use]
 pub fn prepare_markdown_pipeline(
     markdown: &str,
     references: Option<&HashMap<String, ReferenceMd>>,
 ) -> String {
-    let mut resolved_text = markdown.to_string();
-
-    if let Some(refs_map) = references {
-        if !refs_map.is_empty() {
-            let joaju_refs_map: HashMap<String, joaju_refs::ReferenceNote> = refs_map
+    let joaju_refs_map: Option<HashMap<String, joaju_refs::ReferenceNote>> =
+        references.map(|refs_map| {
+            refs_map
                 .iter()
                 .map(|(k, v)| {
                     let authors: Vec<String> = if let Some(ref aj) = v.authors_json {
@@ -49,16 +47,11 @@ pub fn prepare_markdown_pipeline(
                         },
                     )
                 })
-                .collect();
+                .collect()
+        });
 
-            resolved_text = joaju_refs::process_references(markdown, &joaju_refs_map);
-        }
-    }
-
-    let s = joaju_markdown::preprocess_comments(&resolved_text);
-    let s = joaju_markdown::preprocess_callouts(&s);
-    let s = joaju_markdown::preprocess_highlights(&s);
-    joaju_markdown::preprocess_wikilinks(&s)
+    let source = joaju_refs_map.as_ref().map(joaju::ReferenceSource::from);
+    joaju::prepare_markdown(markdown, source)
 }
 
 #[derive(Error, Debug)]
