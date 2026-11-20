@@ -97,3 +97,27 @@ fn test_mutation_version_mismatch_detected() {
     let is_current = sample.contains("0.2.0-dev.137+20261109.df2603d");
     assert!(!is_current, "Mutation to older version must be detected");
 }
+
+#[test]
+fn test_build_rs_bypasses_staticlib_for_android() {
+    let build_rs = std::fs::read_to_string("crates/mandu-core/build.rs")
+        .or_else(|_| std::fs::read_to_string("build.rs"))
+        .expect("build.rs must exist");
+    assert!(
+        build_rs.contains("if target.contains(\"android\")"),
+        "build.rs must bypass downloading/linking joaju staticlib for Android targets"
+    );
+}
+
+#[test]
+#[cfg(target_os = "android")]
+fn test_android_joaju_ffi_stubs_return_unsupported() {
+    assert!(mandu_core::joaju_ffi::compile_markdown_to_pdf("test", None).is_err());
+    assert!(mandu_core::joaju_ffi::compile_typst_to_pdf("= Test").is_err());
+    assert!(mandu_core::joaju_ffi::render_chem("CCO", None).is_err());
+    assert!(mandu_core::joaju_ffi::render_pedigree("1,0,0,1", None).is_err());
+    assert!(mandu_core::joaju_ffi::render_lirica("teste").is_err());
+    assert!(mandu_core::joaju_ffi::render_wireframe("[btn]").is_err());
+    assert!(mandu_core::joaju_ffi::render_sequence("A -> B").is_err());
+    assert!(mandu_core::joaju_ffi::render_graph("A --> B").is_err());
+}
