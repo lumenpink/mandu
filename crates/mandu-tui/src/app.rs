@@ -97,10 +97,12 @@ impl TuiApp<'_> {
                         });
                         if let Some(ref d) = db {
                             let _ = d.index_note(note);
-                            if let Some(r) = mandu_core::refs::extract_reference_from_note_with_custom_dir(
-                                note,
-                                custom_refs_dir,
-                            ) {
+                            if let Some(r) =
+                                mandu_core::refs::extract_reference_from_note_with_custom_dir(
+                                    note,
+                                    custom_refs_dir,
+                                )
+                            {
                                 let _ = d.index_reference(&r);
                             }
                         }
