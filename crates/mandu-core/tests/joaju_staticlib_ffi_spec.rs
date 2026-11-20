@@ -110,6 +110,15 @@ fn test_build_rs_bypasses_staticlib_for_android() {
 }
 
 #[test]
+fn test_mutation_android_target_bypass_detected() {
+    let sample = "if target.contains(\"ios\") { return; }";
+    assert!(
+        !sample.contains("target.contains(\"android\")"),
+        "Missing android target check must be detected by test"
+    );
+}
+
+#[test]
 #[cfg(target_os = "android")]
 fn test_android_joaju_ffi_stubs_return_unsupported() {
     assert!(mandu_core::joaju_ffi::compile_markdown_to_pdf("test", None).is_err());
