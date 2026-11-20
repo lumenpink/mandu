@@ -39,7 +39,7 @@ impl FromStr for UpdateChannel {
 }
 
 /// Configurações do atualizador automático.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct UpdateConfig {
     #[serde(default)]
     pub channel: UpdateChannel,
@@ -63,13 +63,22 @@ impl Default for UpdateConfig {
     }
 }
 
+/// Configurações de referências bibliográficas do cofre.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct ReferencesConfig {
+    #[serde(default)]
+    pub dir: Option<String>,
+}
+
 /// Configuração central do Mandu.
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ManduConfig {
     pub default_vault: Option<PathBuf>,
     pub editor_command: Option<String>,
     #[serde(default)]
     pub update: UpdateConfig,
+    #[serde(default)]
+    pub references: ReferencesConfig,
 }
 
 impl ManduConfig {

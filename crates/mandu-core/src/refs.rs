@@ -68,6 +68,15 @@ pub fn extract_wikilinks(content: &str) -> Vec<InternalLink> {
 /// Extrai metadados bibliográficos de uma nota se for do tipo referência ou estiver em refs/
 #[must_use]
 pub fn extract_reference_from_note(note: &Note) -> Option<ReferenceMd> {
+    extract_reference_from_note_with_custom_dir(note, None)
+}
+
+/// Extrai metadados bibliográficos de uma nota considerando diretório customizado de referências.
+#[must_use]
+pub fn extract_reference_from_note_with_custom_dir(
+    note: &Note,
+    custom_dir: Option<&str>,
+) -> Option<ReferenceMd> {
     let fm_json = note.frontmatter_json.as_ref()?;
     let val: serde_json::Value = serde_json::from_str(fm_json).ok()?;
 
@@ -81,10 +90,23 @@ pub fn extract_reference_from_note(note: &Note) -> Option<ReferenceMd> {
             .is_some_and(|s| s.eq_ignore_ascii_case("reference"));
 
     let path_str = note.path.to_string_lossy();
-    let is_ref_path =
+    let is_default_ref_path =
         path_str.contains("refs/@") || path_str.starts_with("refs/") || path_str.contains("/refs/");
 
-    if !is_ref_type && !is_ref_path {
+    let is_custom_ref_path = custom_dir.is_some_and(|dir| {
+        let clean = dir.trim_matches('/').trim();
+        if clean.is_empty() {
+            return false;
+        }
+        let pattern_at = format!("{clean}/@");
+        let pattern_start = format!("{clean}/");
+        let pattern_middle = format!("/{clean}/");
+        path_str.contains(&pattern_at)
+            || path_str.starts_with(&pattern_start)
+            || path_str.contains(&pattern_middle)
+    });
+
+    if !is_ref_type && !is_default_ref_path && !is_custom_ref_path {
         return None;
     }
 

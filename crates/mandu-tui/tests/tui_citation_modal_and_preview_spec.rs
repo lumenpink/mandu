@@ -243,3 +243,45 @@ fn test_mutation_empty_db_and_rapid_toggle() {
     app.handle_key(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL));
     assert!(!app.is_citation_open);
 }
+
+#[test]
+fn test_tui_scans_custom_references_dir_from_config() {
+    let tmp = TempDir::new().unwrap();
+    let vault_dir = tmp.path();
+
+    // 1. Criar .mandu/config.toml com pasta customizada "bibliografia"
+    let mandu_cfg_dir = vault_dir.join(".mandu");
+    fs::create_dir_all(&mandu_cfg_dir).unwrap();
+    fs::write(
+        mandu_cfg_dir.join("config.toml"),
+        "[references]\ndir = \"bibliografia\"\n",
+    )
+    .unwrap();
+
+    // 2. Criar nota de referência em bibliografia/olivier2024.md
+    let bib_dir = vault_dir.join("bibliografia");
+    fs::create_dir_all(&bib_dir).unwrap();
+    let ref_content = r#"---
+title: "Teoria da Complexidade"
+ano: 2024
+autores:
+  - "Olivier, Marie"
+---
+Nota de referência em diretório configurado.
+"#;
+    fs::write(bib_dir.join("olivier2024.md"), ref_content).unwrap();
+
+    // 3. Criar nota ativa
+    let note_path = vault_dir.join("artigo.md");
+    fs::write(&note_path, "Texto com citação: ").unwrap();
+
+    // 4. Inicializar TuiApp
+    let mut app = TuiApp::new_with_vault(Some(vault_dir.to_path_buf()), Some(note_path));
+
+    // 5. Abrir seletor de citações (Ctrl+R)
+    app.handle_key(KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL));
+    assert!(app.is_citation_open);
+    assert_eq!(app.citation.results.len(), 1);
+    assert_eq!(app.citation.results[0].citekey, "olivier2024");
+    assert_eq!(app.citation.results[0].title, "Teoria da Complexidade");
+}

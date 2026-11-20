@@ -3,6 +3,7 @@
 use crate::editor::Editor;
 use crate::ui::ViewMode;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use mandu_core::config::ManduConfig;
 use mandu_core::db::ManduDb;
 use mandu_core::linter::Linter;
 use mandu_core::refs::FuzzySearcher;
@@ -82,6 +83,9 @@ impl TuiApp<'_> {
 
         let db = ManduDb::open_in_memory().ok();
 
+        let cfg = ManduConfig::load_hierarchical(vault_path.as_deref());
+        let custom_refs_dir = cfg.references.dir.as_deref();
+
         if let Some(ref v_path) = vault_path {
             if v_path.is_dir() {
                 let vault = Vault::new(v_path);
@@ -93,6 +97,12 @@ impl TuiApp<'_> {
                         });
                         if let Some(ref d) = db {
                             let _ = d.index_note(note);
+                            if let Some(r) = mandu_core::refs::extract_reference_from_note_with_custom_dir(
+                                note,
+                                custom_refs_dir,
+                            ) {
+                                let _ = d.index_reference(&r);
+                            }
                         }
                     }
                 }
