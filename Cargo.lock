@@ -1253,7 +1253,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-cli"
-version = "0.1.0-dev.419+20261120.9d8be6d"
+version = "0.1.0-dev.425+20261120.1906ac6"
 dependencies = [
  "anyhow",
  "mandu-core",
@@ -1263,7 +1263,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-core"
-version = "0.1.0-dev.419+20261120.9d8be6d"
+version = "0.1.0-dev.425+20261120.1906ac6"
 dependencies = [
  "blake3",
  "chrono",
@@ -1286,7 +1286,7 @@ dependencies = [
 
 [[package]]
 name = "mandu-tui"
-version = "0.1.0-dev.419+20261120.9d8be6d"
+version = "0.1.0-dev.425+20261120.1906ac6"
 dependencies = [
  "anyhow",
  "chrono",
