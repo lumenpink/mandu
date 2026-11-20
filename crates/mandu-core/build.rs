@@ -8,6 +8,13 @@ pub const JOAJU_STATIC_FALLBACK_VERSION: &str = "0.2.0-dev.137";
 fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let target = env::var("TARGET").unwrap_or_else(|_| "x86_64-unknown-linux-gnu".to_string());
+    println!("cargo:rerun-if-changed=build.rs");
+
+    // No Android, motores pesados C-ABI (Typst/PDF) sao desativados;
+    // a vinculacao da staticlib de Linux causaria conflitos com Bionic libc e libstd.
+    if target.contains("android") {
+        return;
+    }
 
     // 1. Verificar se existe biblioteca estática local construída no repositório joaju
     let mut local_paths = vec![PathBuf::from(format!(

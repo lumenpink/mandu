@@ -3,10 +3,14 @@
 //! Provides zero-overhead in-memory calls to Typst PDF compilation and
 //! scientific diagrams (pedigree, chemical SMILES) without compiling Typst in-tree.
 
+#[cfg(not(target_os = "android"))]
 use std::ffi::{CStr, CString};
+#[cfg(not(target_os = "android"))]
 use std::os::raw::c_char;
+#[cfg(not(target_os = "android"))]
 use std::ptr;
 
+#[cfg(not(target_os = "android"))]
 extern "C" {
     fn joaju_compile_markdown_to_pdf(
         markdown: *const c_char,
@@ -67,6 +71,7 @@ extern "C" {
 }
 
 /// Renders chemical SMILES or code block to SVG via the staticlib C-ABI.
+#[cfg(not(target_os = "android"))]
 pub fn render_chem(
     raw_code: &str,
     forced_format: Option<&str>,
@@ -119,6 +124,7 @@ pub fn render_chem(
 }
 
 /// Renders a clinical pedigree code block to SVG via the staticlib C-ABI.
+#[cfg(not(target_os = "android"))]
 pub fn render_pedigree(
     raw_code: &str,
     forced_format: Option<&str>,
@@ -171,6 +177,7 @@ pub fn render_pedigree(
 }
 
 /// Compiles Markdown text to PDF using the pre-compiled Typst/Joaju staticlib.
+#[cfg(not(target_os = "android"))]
 pub fn compile_markdown_to_pdf(markdown: &str, _template: Option<&str>) -> Result<Vec<u8>, String> {
     let c_md = CString::new(markdown).map_err(|e| format!("Invalid CString: {e}"))?;
     let mut out_data = ptr::null_mut();
@@ -198,6 +205,7 @@ pub fn compile_markdown_to_pdf(markdown: &str, _template: Option<&str>) -> Resul
 }
 
 /// Compiles Typst source text to PDF using the pre-compiled Typst/Joaju staticlib.
+#[cfg(not(target_os = "android"))]
 pub fn compile_typst_to_pdf(typst_code: &str) -> Result<Vec<u8>, String> {
     let c_code = CString::new(typst_code).map_err(|e| format!("Invalid CString: {e}"))?;
     let mut out_data = ptr::null_mut();
@@ -225,25 +233,30 @@ pub fn compile_typst_to_pdf(typst_code: &str) -> Result<Vec<u8>, String> {
 }
 
 /// Renders poetic scansion and poem DSL block to Typst markup.
+#[cfg(not(target_os = "android"))]
 pub fn render_lirica(code: &str) -> Result<String, String> {
     render_typst_single_arg(code, joaju_render_lirica, "joaju_render_lirica")
 }
 
 /// Renders wireframe/salt UI mockup DSL block to Typst markup.
+#[cfg(not(target_os = "android"))]
 pub fn render_wireframe(code: &str) -> Result<String, String> {
     render_typst_single_arg(code, joaju_render_wireframe, "joaju_render_wireframe")
 }
 
 /// Renders sequence diagram DSL block to Typst markup.
+#[cfg(not(target_os = "android"))]
 pub fn render_sequence(code: &str) -> Result<String, String> {
     render_typst_single_arg(code, joaju_render_sequence, "joaju_render_sequence")
 }
 
 /// Renders connected graph or flowchart DSL block to Typst markup.
+#[cfg(not(target_os = "android"))]
 pub fn render_graph(code: &str) -> Result<String, String> {
     render_typst_single_arg(code, joaju_render_graph, "joaju_render_graph")
 }
 
+#[cfg(not(target_os = "android"))]
 fn render_typst_single_arg(
     code: &str,
     f: unsafe extern "C" fn(*const c_char, *mut *mut c_char, *mut *mut c_char) -> i32,
@@ -268,4 +281,57 @@ fn render_typst_single_arg(
         };
         Err(err_str)
     }
+}
+
+// -----------------------------------------------------------------------------
+// Android stubs: Joaju C-ABI staticlib is not bundled on Android
+// -----------------------------------------------------------------------------
+
+#[cfg(target_os = "android")]
+pub fn render_chem(
+    _raw_code: &str,
+    _forced_format: Option<&str>,
+) -> Result<(String, String), String> {
+    Err("Chemical rendering via joaju C-ABI is unsupported on Android".to_string())
+}
+
+#[cfg(target_os = "android")]
+pub fn render_pedigree(
+    _raw_code: &str,
+    _forced_format: Option<&str>,
+) -> Result<(String, String), String> {
+    Err("Pedigree rendering via joaju C-ABI is unsupported on Android".to_string())
+}
+
+#[cfg(target_os = "android")]
+pub fn compile_markdown_to_pdf(
+    _markdown: &str,
+    _template: Option<&str>,
+) -> Result<Vec<u8>, String> {
+    Err("PDF compilation via joaju C-ABI is unsupported on Android".to_string())
+}
+
+#[cfg(target_os = "android")]
+pub fn compile_typst_to_pdf(_typst_code: &str) -> Result<Vec<u8>, String> {
+    Err("PDF compilation via joaju C-ABI is unsupported on Android".to_string())
+}
+
+#[cfg(target_os = "android")]
+pub fn render_lirica(_code: &str) -> Result<String, String> {
+    Err("Lirica rendering via joaju C-ABI is unsupported on Android".to_string())
+}
+
+#[cfg(target_os = "android")]
+pub fn render_wireframe(_code: &str) -> Result<String, String> {
+    Err("Wireframe rendering via joaju C-ABI is unsupported on Android".to_string())
+}
+
+#[cfg(target_os = "android")]
+pub fn render_sequence(_code: &str) -> Result<String, String> {
+    Err("Sequence diagram rendering via joaju C-ABI is unsupported on Android".to_string())
+}
+
+#[cfg(target_os = "android")]
+pub fn render_graph(_code: &str) -> Result<String, String> {
+    Err("Graph rendering via joaju C-ABI is unsupported on Android".to_string())
 }
