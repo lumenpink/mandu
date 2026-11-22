@@ -98,7 +98,7 @@ pub fn render_chem(
         let fmt_str = if !out_format.is_null() {
             unsafe { CStr::from_ptr(out_format).to_string_lossy().into_owned() }
         } else {
-            "openchemlib".to_string()
+            "chem".to_string()
         };
         let svg_str = if !out_svg.is_null() {
             unsafe { CStr::from_ptr(out_svg).to_string_lossy().into_owned() }
@@ -151,7 +151,7 @@ pub fn render_pedigree(
         let fmt_str = if !out_format.is_null() {
             unsafe { CStr::from_ptr(out_format).to_string_lossy().into_owned() }
         } else {
-            "pedtools".to_string()
+            "pedigree".to_string()
         };
         let svg_str = if !out_svg.is_null() {
             unsafe { CStr::from_ptr(out_svg).to_string_lossy().into_owned() }

@@ -6,7 +6,7 @@ use tempfile::TempDir;
 #[test]
 fn test_joaju_block_cache_in_database() {
     let db = ManduDb::open_in_memory().unwrap();
-    let hash = blake3::hash(b"pedtools:1 2 3").to_hex().to_string();
+    let hash = blake3::hash(b"pedigree:1 2 3").to_hex().to_string();
 
     // Cache miss inicial
     let cached = db.get_cached_block_svg(&hash).unwrap();
@@ -14,7 +14,7 @@ fn test_joaju_block_cache_in_database() {
 
     // Inserir no cache
     let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>Heredograma</text></svg>";
-    db.cache_block_svg(&hash, "pedtools", svg).unwrap();
+    db.cache_block_svg(&hash, "pedigree", svg).unwrap();
 
     // Cache hit
     let cached = db.get_cached_block_svg(&hash).unwrap();
@@ -24,12 +24,12 @@ fn test_joaju_block_cache_in_database() {
 #[test]
 fn test_preview_engine_render_block_with_cache() {
     let db = ManduDb::open_in_memory().unwrap();
-    let engine = "pedtools";
+    let engine = "pedigree";
     let code = "1 2 3\n4 5 6";
 
     let svg1 = PreviewEngine::render_block_svg(engine, code, Some(&db)).unwrap();
     assert!(svg1.contains("<svg"));
-    assert!(svg1.contains("pedtools") || svg1.contains("Joaju"));
+    assert!(svg1.contains("pedigree") || svg1.contains("Joaju"));
 
     // O hash deve agora estar presente no SQLite
     let hash = PreviewEngine::compute_block_hash(engine, code);
@@ -44,7 +44,7 @@ fn test_preview_engine_render_block_with_cache() {
 #[test]
 fn test_parse_preview_segments() {
     let db = ManduDb::open_in_memory().unwrap();
-    let markdown = "# Título da Seção\n\nTexto descritivo prévio.\n\n```pedtools\n1 2 3\n```\n\nTexto final pós-bloco.";
+    let markdown = "# Título da Seção\n\nTexto descritivo prévio.\n\n```pedigree\n1 2 3\n```\n\nTexto final pós-bloco.";
 
     let segments = PreviewEngine::parse_preview_segments(markdown, Some(&db)).unwrap();
     assert_eq!(segments.len(), 3);
@@ -56,7 +56,7 @@ fn test_parse_preview_segments() {
 
     match &segments[1] {
         PreviewSegment::SvgBlock { engine, svg } => {
-            assert_eq!(engine, "pedtools");
+            assert_eq!(engine, "pedigree");
             assert!(svg.contains("<svg"));
         }
         _ => panic!("Esperado segmento de bloco SVG"),

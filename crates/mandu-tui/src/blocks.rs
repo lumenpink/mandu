@@ -1444,35 +1444,35 @@ pub fn render_markdown_lines(
             }
             let code = code_lines.join("\n");
             match engine_norm.as_str() {
-                "unfurl" | "link" => {
+                "unfurl" => {
                     let mut parts = code.split('|').map(str::trim);
                     let url = parts.next().unwrap_or("https://mandu.2lp.in");
                     let title = parts.next().unwrap_or(url);
                     let desc = parts.next();
                     lines.extend(render_link_card(title, url, desc, card_width));
                 }
-                "table" | "csv" => {
+                "table" => {
                     lines.extend(render_table_block(&code, card_width));
                 }
-                "pedigree" | "heredograma" | "kinship2" | "pedtools" => {
+                "pedigree" => {
                     lines.extend(render_pedigree_summary(&code, card_width));
                 }
-                "typst" | "joaju" => {
+                "typst" => {
                     lines.extend(render_typst_preview(&code, card_width));
                 }
-                "lirica" | "poema" | "poesia" => {
+                "lirica" => {
                     lines.extend(render_lirica_card(&code, card_width));
                 }
-                "chem" | "smiles" | "quimica" => {
+                "chem" => {
                     lines.extend(render_chem_card(&code, card_width));
                 }
-                "wireframe" | "salt" | "ui" => {
+                "wireframe" => {
                     lines.extend(render_wireframe_card(&code, card_width));
                 }
-                "sequence" | "sequencia" => {
+                "sequence" => {
                     lines.extend(render_sequence_card(&code, card_width));
                 }
-                "graph" | "flowchart" | "grafo" | "fluxograma" => {
+                "graph" => {
                     lines.extend(render_graph_card(&code, card_width));
                 }
                 _ => {

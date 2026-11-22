@@ -96,10 +96,10 @@ impl PreviewEngine {
         }
 
         let svg = match engine {
-            "pedtools" | "kinship2" => crate::joaju_ffi::render_pedigree(code, Some(engine))
+            "pedigree" => crate::joaju_ffi::render_pedigree(code, None)
                 .map(|(_, s)| s)
                 .unwrap_or_else(|_| render_fallback_svg(engine, code)),
-            "openchemlib" | "openbabel" => crate::joaju_ffi::render_chem(code, Some(engine))
+            "chem" => crate::joaju_ffi::render_chem(code, None)
                 .map(|(_, s)| s)
                 .unwrap_or_else(|_| render_fallback_svg(engine, code)),
             _ => render_fallback_svg(engine, code),
@@ -115,10 +115,10 @@ impl PreviewEngine {
     #[cfg(not(feature = "storage-local"))]
     pub fn render_block_svg(engine: &str, code: &str) -> Result<String, PreviewError> {
         let svg = match engine {
-            "pedtools" | "kinship2" => crate::joaju_ffi::render_pedigree(code, Some(engine))
+            "pedigree" => crate::joaju_ffi::render_pedigree(code, None)
                 .map(|(_, s)| s)
                 .unwrap_or_else(|_| render_fallback_svg(engine, code)),
-            "openchemlib" | "openbabel" => crate::joaju_ffi::render_chem(code, Some(engine))
+            "chem" => crate::joaju_ffi::render_chem(code, None)
                 .map(|(_, s)| s)
                 .unwrap_or_else(|_| render_fallback_svg(engine, code)),
             _ => render_fallback_svg(engine, code),
@@ -256,19 +256,19 @@ impl PreviewEngine {
 fn is_supported_preview_engine(engine: &str) -> bool {
     matches!(
         engine,
-        "pedtools"
-            | "kinship2"
-            | "openchemlib"
-            | "openbabel"
-            | "heredograma"
+        "table"
+            | "pedigree"
             | "chem"
+            | "lirica"
+            | "wireframe"
+            | "sequence"
+            | "graph"
+            | "typst"
+            | "unfurl"
             | "svg"
-            | "table"
             | "d2"
             | "mermaid"
             | "graphviz"
-            | "typst"
-            | "joaju"
     )
 }
 

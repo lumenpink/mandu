@@ -152,7 +152,7 @@ fn test_mutation_empty_and_narrow_satellite_cards() {
     assert!(!render_graph_card("", 30).is_empty());
 
     // 3. Roteamento case-insensitive (MAIÚSCULAS)
-    let md = "```POEMA\nUm verso solitário\n```";
+    let md = "```LIRICA\nUm verso solitário\n```";
     let lines_upper = render_markdown_lines(md, false, None, 40);
     let all_text: String = lines_upper
         .iter()

@@ -2,7 +2,7 @@
 fn test_joaju_ffi_chem_rendering() {
     let (fmt, svg) = mandu_core::joaju_ffi::render_chem("CCO", None)
         .expect("chem rendering must succeed via staticlib FFI");
-    assert_eq!(fmt, "openchemlib");
+    assert_eq!(fmt, "chem");
     assert!(svg.contains("<svg"));
 }
 
@@ -11,7 +11,7 @@ fn test_joaju_ffi_pedigree_rendering() {
     let code = "id,pai,mae,sex\n1,0,0,1\n2,0,0,2\n3,1,2,1\n";
     let (fmt, svg) = mandu_core::joaju_ffi::render_pedigree(code, None)
         .expect("pedigree rendering must succeed via staticlib FFI");
-    assert_eq!(fmt, "pedtools");
+    assert_eq!(fmt, "pedigree");
     assert!(svg.contains("<svg"));
 }
 
