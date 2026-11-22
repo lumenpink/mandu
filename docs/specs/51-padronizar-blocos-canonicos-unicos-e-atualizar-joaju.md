@@ -21,4 +21,5 @@ Para Natasha manter este código: qualquer menção a nomes legados (`pedtools`,
 - *Suportar aliases legados na TUI:* Descartado para manter integridade com as diretivas do Joaju #92 e evitar divergência de comportamento entre preview HTML e TUI.
 
 ## Validação
-- Testes de compilação e unidade em `crates/mandu-core` e `crates/mandu-tui`.
+- Testes de compilação e unidade em `crates/mandu-core` (incluindo FFI estático `joaju_staticlib_ffi_spec` e cache de preview `preview_engine_test`) e `crates/mandu-tui` (`tui_satellite_cards_spec`, `tui_blocks_test`, `tui_layout_test`).
+- `cargo fmt --check` e `cargo clippy --all-targets -- -D warnings` aprovados com zero warnings.
