@@ -1,4 +1,4 @@
-# Especificação Técnica — Esteira de Release Multi-Arquitetura e Publicação Soberana na Banca (#5)
+# Especificação Técnica — Esteira de Release Multi-Arquitetura e Publicação Autônoma na Banca (#5)
 
 ## 1. Contexto e Motivação
 O Mandu distribui binários nativos para CLI (`mandu`), interface de terminal (`mandu-tui`) e interface gráfica GPU (`mandu-gui`).
@@ -53,7 +53,7 @@ Para cada versão `${VERSION}`:
    - `twolp-bucket/downloads/mandu/${CHANNEL}-latest/mandu-${ARCH}.(tar.gz|zip)`
 3. Envio do `SHA256SUMS` para o canal.
 
-### 3.2. Rotação & Poda Soberana (Banca)
+### 3.2. Rotação & Poda Autônoma (Banca)
 A esteira clona o repositório `banca` e invoca `scripts/rotate-downloads.py` para as 3 arquiteturas:
 ```bash
 for ARCH in "linux-amd64" "linux-arm64" "windows-amd64"; do

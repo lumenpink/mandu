@@ -5,7 +5,7 @@ Na esteira unificada de CI/CD do Mandu (`.forgejo/workflows/ci.yml`), a etapa de
 ```
 rotate-downloads.py: error: unrecognized arguments: add --app-name Mandu
 ```
-Além disso, a esteira ainda referenciava o repositório legado no Codeberg (`codeberg.org/lumenpink/banca.git`), violando a diretriz de soberania do ecossistema que determina o uso exclusivo de `git.2lp.in`.
+Além disso, a esteira ainda referenciava o repositório legado no Codeberg (`codeberg.org/lumenpink/banca.git`), violando a diretriz de autonomia do ecossistema que determina o uso exclusivo de `git.2lp.in`.
 
 Uma análise do utilitário `scripts/rotate-downloads.py` no repositório da Banca revelou que a CLI não implementa subcomandos posicionais (como `add`), utiliza `--version-str` em vez de `--version`, e `--app` em vez de `--app-name`.
 

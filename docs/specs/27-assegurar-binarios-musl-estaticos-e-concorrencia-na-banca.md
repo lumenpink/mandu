@@ -14,7 +14,7 @@ No Mandu, a esteira de integração contínua (`.forgejo/workflows/ci.yml`) exec
 Identificaram-se dois problemas críticos no pipeline de release:
 1. **Sobrescrita de `RUSTFLAGS`:** O comando `export RUSTFLAGS="-C target-feature=+crt-static"` na esteira suprimia a flag `-C link-arg=-Wl,--allow-multiple-definition` configurada no `.cargo/config.toml`, resultando em falha de linkedição devido a duplicidade de símbolos entre a biblioteca estática pura musl `libjoaju.a` e a `libstd`.
 2. **Concorrência de Matriz na Banca:** Os jobs da matriz (`linux-amd64`, `linux-arm64`, `windows-amd64`) tentavam efetuar clone, rotação e `git push` concorrentemente no repositório da Banca, gerando conflitos de concorrência não triviais.
-3. **Resíduos Terminológicos:** Ocorrências de termos imperialistas ("soberano") foram localizadas em scripts de teste, mensagens e no CLI do TUI.
+3. **Resíduos Terminológicos:** Ocorrências de termos imperialistas ("autônomo") foram localizadas em scripts de teste, mensagens e no CLI do TUI.
 
 ---
 
@@ -28,7 +28,7 @@ Identificaram-se dois problemas críticos no pipeline de release:
    - Assegurar que `crates/mandu-core/build.rs` busque `/home/lumen/src/joaju/target/x86_64-unknown-linux-musl/release` prioritariamente ao linkar com a biblioteca local.
 
 3. **Higienização Terminológica:**
-   - Substituir qualquer ocorrência de "soberano" por "canônico" ou "centralizado" nos arquivos de workflow, scripts de teste e no cabeçalho do `mandu-tui`.
+   - Substituir qualquer ocorrência de "autônomo" por "canônico" ou "centralizado" nos arquivos de workflow, scripts de teste e no cabeçalho do `mandu-tui`.
 
 ---
 

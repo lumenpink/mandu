@@ -14,7 +14,7 @@ Atualmente, o subsistema de renderização acadêmica e exportação via Typst (
 Como o Typst é uma suíte extensa, a sua compilação e a linkedição com `LTO = "fat"` consumiam grande quantidade de tempo (15–20 minutos) e memória RAM (>3.5 GB), gerando gargalos e até abortos por OOM no runner de CI.
 
 Adotou-se com sucesso a **Opção 2** do ticket #25:
-- Pré-compilar o `joaju` e suas dependências pesadas (`typst-as-lib`, `typst-pdf`, etc.) como biblioteca estática multiarch C-ABI (`libjoaju.a` / `joaju.lib`) publicada na infraestrutura soberana (Forgejo Generic Packages).
+- Pré-compilar o `joaju` e suas dependências pesadas (`typst-as-lib`, `typst-pdf`, etc.) como biblioteca estática multiarch C-ABI (`libjoaju.a` / `joaju.lib`) publicada na infraestrutura autônoma (Forgejo Generic Packages).
 - Vincular o binário estático no Cargo do `mandu-core` via `build.rs`, gerando um executável **100% único, autônomo e estático**.
 - Reduzir o tempo de compilação do Mandu no CI de ~18 minutos para **menos de 1 minuto**.
 

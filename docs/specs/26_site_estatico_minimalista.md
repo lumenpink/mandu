@@ -29,7 +29,7 @@ O objetivo do Ticket #19 é criar uma experiência web estática acolhedora, min
    - `site/_headers`: Cabeçalhos de segurança (CSP, X-Content-Type-Options, Referrer-Policy, Cache-Control).
 3. **Cópia e Apresentação (Conforme Spec 13 / Ticket #13):**
    - Apresentação como **caderno pessoal** e **bloco de notas seguro**.
-   - Proibição estrita de jargões técnicos inadequados na comunicação principal (como `100% rust`, `ambiente soberano`, `sqlite in-memory`, `fts5`, `blake3`, `pilares arquiteturais`).
+   - Proibição estrita de jargões técnicos inadequados na comunicação principal (como `100% rust`, `ambiente autônomo`, `sqlite in-memory`, `fts5`, `blake3`, `pilares arquiteturais`).
    - Seções claras:
      - *Apresentação (Hero)* com badge e introdução acolhedora.
      - *Destaques*: Foco na escrita, arquivos locais sob controle da usuária, busca ágil, multiplataforma (terminal, desktop e celular).

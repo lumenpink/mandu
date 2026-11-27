@@ -8,7 +8,7 @@ Para garantir digitação ergonômica em telas sensíveis ao toque, integração
 
 O gerenciamento de notas opera estritamente sobre **diretórios locais do dispositivo**, delegando a sincronização entre dispositivos a ferramentas autônomas descentralizadas já consagradas pelo usuário (como o Syncthing), mantendo o `mandu-core` como a única autoridade de parsing, indexação SQLite FTS5, gerenciamento de referências e escrita atômica.
 
-A distribuição mobile é realizada soberanamente na **Pratilera** (catálogo F-Droid da Banca) sob o identificador canônico `in.twolp.mandu`.
+A distribuição mobile é realizada de forma autônoma na **Pratilera** (catálogo F-Droid da Banca) sob o identificador canônico `in.twolp.mandu`.
 
 ---
 
@@ -108,11 +108,11 @@ Uma barra horizontal scrollável com botões táteis projetados para digitação
 Estruturados em `fastlane/metadata/android/in.twolp.mandu/`:
 - `pt-BR/title.txt`: `Mandu`
 - `pt-BR/short_description.txt`: `Editor e Visualizador Hiperlocal de Notas com Joaju`
-- `pt-BR/full_description.txt`: Detalhamento completo do Mandu, escrita honesta, zettelkasten, busca FTS5, blocos Joaju e soberania digital.
+- `pt-BR/full_description.txt`: Detalhamento completo do Mandu, escrita honesta, zettelkasten, busca FTS5, blocos Joaju e autonomia digital.
 - `en-US/*`: Paridade de metadados em língua inglesa.
 - `icon.png`: Ícone canônico 512x512 no formato RGBA 8-bit estrito.
 
-### 4.2. Script de Empacotamento Soberano (`scripts/package-apk.sh`)
+### 4.2. Script de Empacotamento Autônomo (`scripts/package-apk.sh`)
 - Executa compilação do APK via `dx build --platform android --release` (ou fallback hermético).
 - Assina o pacote gerado com `~/.android/in_twolp_release.keystore` e `apksigner`.
 - Suporta a flag `--sync-pratilera [CAMINHO_BANCA]` para atualizar automaticamente a loja e disparar a regeneração do catálogo F-Droid via `gerar-pratilera.py`.

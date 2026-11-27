@@ -1,7 +1,7 @@
 # Especificação Técnica: Padronização Universal de Frontmatter em Inglês e Arquitetura de Documentos
 
 ## 1. Contexto e Motivação
-O Mandu foi concebido como um ambiente de notas soberano, interoperável e aderente aos padrões globais do ecossistema Markdown acadêmico (Obsidian, Zola, Hugo, Typst e Zettelkasten).
+O Mandu foi concebido como um ambiente de notas autônomo, interoperável e aderente aos padrões globais do ecossistema Markdown acadêmico (Obsidian, Zola, Hugo, Typst e Zettelkasten).
 O uso prévio de metadados em português (`titulo`, `modificado`, `numerar_titulos`, `tipo: nota`) gerava inconsistência com ferramentas internacionais e reduzia a portabilidade das notas.
 
 Este ticket padroniza a gramática canônica de YAML Frontmatter **estritamente em língua inglesa**, preserva compatibilidade retroativa resiliente para notas preexistentes e documenta com profundidade a arquitetura de processamento e numeração de seções.

@@ -1,7 +1,7 @@
 # Especificação Técnica — Migração da Imagem Cross do Mandu para Docker Hub (#6)
 
 ## 1. Contexto e Motivação
-A esteira de publicação multi-arquitetura na Banca (`.forgejo/workflows/release-banca.yaml`) utilizava temporariamente a sub-imagem `codeberg.org/lumenpink/gost-ci-cross:latest`. Devido à centralização soberana de contêineres de CI no **Docker Hub** (`docker.io/lumenpink/...`), a referência da imagem deve ser atualizada para `docker.io/lumenpink/gost-ci-cross:latest`.
+A esteira de publicação multi-arquitetura na Banca (`.forgejo/workflows/release-banca.yaml`) utilizava temporariamente a sub-imagem `codeberg.org/lumenpink/gost-ci-cross:latest`. Devido à centralização autônoma de contêineres de CI no **Docker Hub** (`docker.io/lumenpink/...`), a referência da imagem deve ser atualizada para `docker.io/lumenpink/gost-ci-cross:latest`.
 
 ## 2. Requisitos de Implementação
 1. **Contêiner da Esteira:** `.forgejo/workflows/release-banca.yaml` deve declarar `image: docker.io/lumenpink/gost-ci-cross:latest`.

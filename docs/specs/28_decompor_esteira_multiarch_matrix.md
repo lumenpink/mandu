@@ -4,7 +4,7 @@
 - **Branch:** `feat/24-decompor-esteira-multiarch-matrix-deploy-site`
 - **Status:** Em Especificação (Fase 3 DD-TDD)
 - **Autora:** Lumen
-- **Alinhamento:** GOST 1.5.0 (CI/CD Soberano)
+- **Alinhamento:** GOST 1.5.0 (CI/CD Autônomo)
 
 ---
 
@@ -33,7 +33,7 @@ Para respeitar rigorosamente o limite de 45 minutos e destravar a fila de forma 
      - Alvo 3: `target: x86_64-pc-windows-gnu`, `arch: windows-amd64`, `pkg_ext: zip`
    - Cada instância da matriz compila os binários de seu respectivo alvo, empacota, envia para o Cloudflare R2 e atualiza o manifesto na Banca via `rotate-downloads.py`.
    - Adição de mecanismo de retentativa resiliente no push do manifesto da Banca (`git pull --rebase` com até 5 tentativas).
-3. **Conformidade de Imagem Soberana:**
+3. **Conformidade de Imagem Autônoma:**
    - Manutenção do container `gambi.2lp.in/lumen/gost-ci-cross:latest`.
 
 ---

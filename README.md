@@ -29,3 +29,7 @@ Software livre sob a [GNU General Public License v3.0](LICENSE) (GPL-3.0-or-late
 - **Código-fonte:** GPL-3.0-or-later ([LICENSE](LICENSE))
 - **Logotipos:** CC-BY-ND-4.0 ([LICENSE-LOGO](LICENSE-LOGO))
 - **Mídias e documentação:** CC-BY-SA-4.0 ([LICENSE-MEDIA](LICENSE-MEDIA))
+
+---
+
+Feito com amor travesti por [Lumen Pink](https://lumen.pink).

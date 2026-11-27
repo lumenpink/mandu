@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "slug": "mandu",
+  "title": "Mandu",
+  "site_type": "app",
+  "tagline": "Leitor e gerenciador autônomo de acervos RSS, Atom e web",
+  "summary": "Núcleo, CLI e TUI em Rust do Mandu para assinatura, leitura offline e sincronização de feeds.",
+  "abstract": "O Mandu é um leitor e agregador autônomo de feeds e artigos com foco em operação offline-first, terminal e sincronização federada.",
+  "tags": ["mandu", "rss", "atom", "rust", "tui", "cli"],
+  "icon": "📰",
+  "theme": { "bg_color": "#1e1e2e", "accent_color": "#f38ba8" }
+}

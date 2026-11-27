@@ -2,7 +2,7 @@
 
 ## 1. Contexto e Motivação
 
-O Mandu adota a infraestrutura soberana da **Banca** (`https://banca.2lp.in/downloads/mandu/`) para compilação remota e entrega contínua de executáveis e pacotes tarball, eliminando o acoplamento com o armazenamento de releases do Codeberg.
+O Mandu adota a infraestrutura autônoma da **Banca** (`https://banca.2lp.in/downloads/mandu/`) para compilação remota e entrega contínua de executáveis e pacotes tarball, eliminando o acoplamento com o armazenamento de releases do Codeberg.
 
 Adicionalmente, os usuários precisam de um mecanismo nativo, seguro e atômico para verificar atualizações e efetuar upgrade de todos os binários da ferramenta (`mandu`, `mandu-tui` e `mandu-gui`), com suporte a canais de distribuição (`stable` e `nightly`), versões travadas (*pin*) e persistência em arquivo de configuração local ou global.
 

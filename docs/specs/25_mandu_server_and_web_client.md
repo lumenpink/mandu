@@ -16,7 +16,7 @@ Contudo, para cenários em que a usuária necessita acessar sua base de conhecim
 1. **Processamento Server-Side:** Manter o cofre de notas, a indexação full-text (SQLite FTS5), a renderização pesada de Typst/Joaju e futuros pipelines de IA no servidor (`mandu-server`).
 2. **Cliente Web Leve e Acessível:** Fornecer uma interface Web (`mandu-web`) em **Dioxus 0.7** que compartilhe 100% da identidade visual, layout RSX e componentes do `mandu-mobile`, compilada para WebAssembly (WASM).
 3. **Resiliência e Modo Offline:** O cliente web deve persistir rascunhos e alterações pendentes no armazenamento do navegador (`localStorage`), garantindo que oscilações de conectividade não provoquem perda de trabalho.
-4. **Autenticação Soberana Desacoplada (Authelia):** Suporte nativo a proxy reverso com Authelia, com logout sanitizador (limpeza de cache local e redirecionamento dinâmico sem URLs hardcoded).
+4. **Autenticação Autônoma Desacoplada (Authelia):** Suporte nativo a proxy reverso com Authelia, com logout sanitizador (limpeza de cache local e redirecionamento dinâmico sem URLs hardcoded).
 
 ---
 

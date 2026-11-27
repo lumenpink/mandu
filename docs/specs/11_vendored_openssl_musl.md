@@ -1,7 +1,7 @@
 # Especificação Técnica — OpenSSL Vendored para Multiarch MUSL (#9)
 
 ## 1. Contexto e Motivação
-A publicação soberana de artefatos multi-arquitetura na Banca (`https://banca.2lp.in/downloads/mandu/`) empacota binários estáticos para `x86_64-unknown-linux-musl` e `aarch64-unknown-linux-musl`.
+A publicação autônoma de artefatos multi-arquitetura na Banca (`https://banca.2lp.in/downloads/mandu/`) empacota binários estáticos para `x86_64-unknown-linux-musl` e `aarch64-unknown-linux-musl`.
 O ecossistema utiliza `joaju` e `reqwest`, os quais transitivamente dependem do crate `openssl-sys`. Em alvos estáticos baseados em musl, o OpenSSL dinâmico não está disponível via pkg-config padrão, exigindo que o código-fonte C do OpenSSL seja compilado estaticamente via a feature `vendored` do crate `openssl`.
 
 Adicionalmente, na esteira `.forgejo/workflows/ci.yml`, o job `deploy-banca` deve exigir formalmente a cláusula `success()` do upstream `test` para garantir que qualquer falha nos testes bloqueie imediatamente a publicação de pacotes.

@@ -19,7 +19,7 @@ Esta especificação define a unificação dos pipelines de automação do Mandu
    - Job de Validação (`test` / `check-and-test`): Executa `cargo fmt -- --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` e `cccp check --strict`.
    - Job de Deploy (`deploy-banca`): Declara obrigatoriamente `needs: [test]`, rodando apenas após a aprovação integral dos testes em pushes na branch `main`, tags `v*` ou `workflow_dispatch`.
 
-3. **Compilação Multiarch Soberana via Container:**
+3. **Compilação Multiarch Autônoma via Container:**
    - Execução em container `docker.io/lumenpink/gost-ci-cross:latest`.
    - Alvos: `x86_64-unknown-linux-musl`, `aarch64-unknown-linux-musl`, `x86_64-pc-windows-gnu`.
    - Upload de artefatos para Cloudflare R2 (`twolp-bucket/downloads/mandu/${CHANNEL}/...`).
